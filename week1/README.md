@@ -46,36 +46,3 @@ This system fixes that by:
 3. **Route Hot Leads** — If classified as Hot, sends an instant alert email to the sales team
 4. **Update CRM** — Reflects the new classification in the CRM
 5. **Log Activity** — Records the classification outcome in the activity log
-
----
-
-## Prerequisites
-
-- [N8N](https://n8n.io/) instance (self-hosted or cloud)
-- CRM with API/webhook access (e.g., HubSpot, Zoho, Pipedrive, or custom CRM)
-- Google Search API credentials (e.g., SerpAPI, Google Custom Search, or equivalent node credentials)
-- Email sending credentials (SMTP, Gmail API, or equivalent)
-- (Optional) LLM API access if using AI-based email generation or reply classification
-
----
-
-## Setup
-
-1. Clone this repository:
-   ```bash
-   git clone <your-repo-url>
-   ```
-2. Import both workflow JSON files into your N8N instance:
-   - `Workflows` → `Import from File` → select `workflow-1-lead-reactivation.json`
-   - Repeat for `workflow-2-reply-classification.json`
-3. Configure credentials in N8N for:
-   - CRM connection
-   - Google Search node
-   - Email sending node
-   - (If used) LLM/AI node
-4. Update field mappings in the CRM nodes to match your CRM's schema (lead ID, area, budget, status fields, etc.)
-5. Set the trigger for Workflow 1 (schedule, manual, or CRM-status-based trigger)
-6. Confirm the email reply webhook/trigger for Workflow 2 is correctly connected to your inbox
-7. Test both workflows with a sample lead before going live
-
-
