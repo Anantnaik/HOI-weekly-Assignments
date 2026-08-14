@@ -1,0 +1,1312 @@
+{
+  "name": "Content Multiplier Engine V2 - Approval and Distribution",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "6e58a40b-50bd-45cf-ac2d-c05da094bacd",
+      "name": "Publish Cron (15 min)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2240,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1eK55nMFSOPcWSmAdIfbNHj39cEFWMlY2VERamn61UQQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1067049847,
+          "mode": "list",
+          "cachedResultName": "Voice_Profile",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eK55nMFSOPcWSmAdIfbNHj39cEFWMlY2VERamn61UQQ/edit#gid=1067049847"
+        },
+        "options": {}
+      },
+      "id": "03ed7caa-63fd-44d7-a120-57989321b3ab",
+      "name": "Load Brand Voice",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2016,
+        768
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1eK55nMFSOPcWSmAdIfbNHj39cEFWMlY2VERamn61UQQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1483655409,
+          "mode": "list",
+          "cachedResultName": "Content_Library",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1eK55nMFSOPcWSmAdIfbNHj39cEFWMlY2VERamn61UQQ/edit#gid=1483655409"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "approved"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d1fe4479-1f3c-4e6f-b344-ed504c9dd66d",
+      "name": "Read Approved Content",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1792,
+        768
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = [];\nconst rows = $input.all();\nfor (let i = 0; i < rows.length; i++) {\n  const r = rows[i].json;\n  if (!r || !r.content_id) continue;\n  const st = String(r.status || \"\").toLowerCase().trim();\n  if (st !== \"approved\" && st !== \"scheduled\") continue;\n  const sched = String(r.scheduled_for || \"\").trim();\n  let due = true;\n  if (sched) {\n    let dt = DateTime.fromFormat(sched, \"yyyy-MM-dd HH:mm\");\n    if (!dt.isValid) dt = DateTime.fromISO(sched);\n    if (dt.isValid) due = dt.toMillis() <= $now.toMillis();\n  }\n  if (due) out.push({ json: r });\n}\nreturn out.slice(0, 5);"
+      },
+      "id": "8fa05d27-156b-4ac8-b108-ce314357cc3d",
+      "name": "Filter Due Now",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a publishing editor. This piece was written and approved earlier. It is going live right now. Your job is a final tightening pass so it lands on the platform it is going to.\" + \"\\n\\nBRAND VOICE\\nCreator: \" + ($(\"Load Brand Voice\").first().json.creator_name || \"\") + \"\\nAudience: \" + ($(\"Load Brand Voice\").first().json.audience || \"\") + \"\\nTone: \" + ($(\"Load Brand Voice\").first().json.tone_notes || \"\") + \"\\nSignature phrases: \" + ($(\"Load Brand Voice\").first().json.signature_phrases || \"\") + \"\\nBANNED WORDS: \" + ($(\"Load Brand Voice\").first().json.banned_words || \"\") + \"\\n\\nTHE PIECE\\nPlatform: \" + ($json.platform || \"\") + \"\\nFormat: \" + ($json.format || \"\") + \"\\nSource: \" + ($json.source_title || \"\") + \"\\nTimestamp reference: \" + ($json.timestamp_ref || \"\") + \"\\nCurrent hook: \" + ($json.hook || \"\") + \"\\nCurrent body: \" + ($json.body || \"\") + \"\\nCurrent hashtags: \" + ($json.hashtags || \"\") + \"\\nCurrent cta: \" + ($json.cta || \"\") + \"\\n\\nPLATFORM RULES\\nlinkedin: hook must be under 200 characters, body 120 to 220 words, blank line between thoughts, 3 to 5 hashtags\\nx: single posts under 270 characters, threads numbered 1/ 2/ 3/, 0 to 2 hashtags\\nreels: spoken script 30 to 60 seconds, hook in the first 3 seconds, keep the on screen text line\\nnewsletter: keep valid HTML, subject under 60 characters\\nquote_card: quote under 20 words, keep the caption and the design direction lines\\n\\nTASK\\nReturn ONLY valid JSON, no markdown fences. The object has these keys: final_hook, final_body, final_hashtags, final_cta, char_count, changes_made.\\n\\nfinal_hook is the tightened hook\\nfinal_body is the tightened body, ready to paste with no edits\\nfinal_hashtags is the hashtag line or an empty string\\nfinal_cta is the closing line or an empty string\\nchar_count is the number of characters in final_body as a number\\nchanges_made is one short line describing what you changed\\n\\nRULES\\nKeep the meaning and the specifics. Do not invent new facts.\\nRemove any em-dash and replace it with a full stop or a comma.\\nRemove every banned word listed above.\\nIf the piece is already tight, say so in changes_made and return it close to unchanged.\") }} }]}],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":4096,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 12000
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "bc783b9a-5690-4fb4-9240-e3361f2a1522",
+      "name": "Agent 7 - Publish Polish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1344,
+        768
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => {\n  const c = resp && resp.candidates && resp.candidates[0];\n  const parts = (c && c.content && c.content.parts) || [];\n  return parts.filter(p => typeof p.text === \"string\" && !p.thought).map(p => p.text).join(\"\");\n};\nconst parseJson = (raw) => {\n  let t = String(raw || \"\").trim();\n  t = t.replace(/^```json/i, \"\").replace(/^```/, \"\").replace(/```$/, \"\").trim();\n  const s = t.indexOf(\"{\");\n  const e = t.lastIndexOf(\"}\");\n  if (s !== -1 && e !== -1) t = t.slice(s, e + 1);\n  try { return JSON.parse(t); } catch (err) { return null; }\n};\nconst responses = $input.all();\nconst rows = $(\"Filter Due Now\").all();\nconst out = [];\nfor (let i = 0; i < responses.length; i++) {\n  const r = rows[i] ? rows[i].json : {};\n  const p = parseJson(textOf(responses[i].json)) || {};\n  out.push({ json: {\n    content_id: r.content_id,\n    source_id: r.source_id,\n    source_title: r.source_title,\n    platform: r.platform,\n    format: r.format,\n    timestamp_ref: r.timestamp_ref,\n    original_hook: r.hook,\n    original_body: r.body,\n    final_hook: p.final_hook || r.hook || \"\",\n    final_body: p.final_body || r.body || \"\",\n    final_hashtags: p.final_hashtags || r.hashtags || \"\",\n    final_cta: p.final_cta || r.cta || \"\",\n    char_count: p.char_count || String(p.final_body || r.body || \"\").length,\n    changes_made: p.changes_made || \"no changes\",\n    polish_ok: p.final_body ? true : false\n  } });\n}\nreturn out;"
+      },
+      "id": "6fdd0c29-add7-4645-9c6b-d0ad060bd6a6",
+      "name": "Parse Polish",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a brand compliance checker. You are the last gate before something is published under the brand name. Be strict but fair.\\n\\nBRAND VOICE\\nCreator: \" + ($(\"Load Brand Voice\").first().json.creator_name || \"\") + \"\\nTone: \" + ($(\"Load Brand Voice\").first().json.tone_notes || \"\") + \"\\nBANNED WORDS: \" + ($(\"Load Brand Voice\").first().json.banned_words || \"\") + \"\\n\\nTHE PIECE ABOUT TO BE PUBLISHED\\nPlatform: \" + ($json.platform || \"\") + \"\\nHook: \" + ($json.final_hook || \"\") + \"\\nBody: \" + ($json.final_body || \"\") + \"\\nHashtags: \" + ($json.final_hashtags || \"\") + \"\\nBody character count: \" + ($json.char_count || 0) + \"\\n\\nCHECK ALL OF THESE\\n1 Banned words must not appear anywhere.\\n2 There must be zero em-dash characters.\\n3 Length. x singles under 270 characters. linkedin hooks under 200 characters. quote_card quotes under 20 words.\\n4 Voice match against the creator described above, not generic corporate tone.\\n5 Flag any number, statistic or claim that sounds invented.\\n6 Flag anything misleading, discriminatory, or promising a financial outcome.\\n\\nReturn ONLY compact JSON with these keys: verdict, score, violations, banned_words_found, risk_notes, one_line_summary.\\nverdict is pass or revise. score is a number 0 to 100. violations is an array of short strings, empty if clean. banned_words_found is an array, empty if none. risk_notes is one short line or the word none. one_line_summary is ONE sentence under 20 words.\\nverdict is revise if there is any banned word, any em-dash, any length breach, or any real risk.\\nBe brief. Keep every string short.\") }} }]}],\"generationConfig\":{\"temperature\":0.1,\"maxOutputTokens\":4096,\"responseMimeType\":\"application/json\",\"thinkingConfig\":{\"thinkingBudget\":512}}}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 12000
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "4f79ba5f-7215-4561-bf95-4d7c73ac5127",
+      "name": "Agent 8 - Brand Guard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -896,
+        768
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => {\n  const c = resp && resp.candidates && resp.candidates[0];\n  const parts = (c && c.content && c.content.parts) || [];\n  return parts.filter(p => typeof p.text === \"string\" && !p.thought).map(p => p.text).join(\"\");\n};\nconst parseJson = (raw) => {\n  let t = String(raw || \"\").trim();\n  t = t.replace(/^```json/i, \"\").replace(/^```/, \"\").replace(/```$/, \"\").trim();\n  const s = t.indexOf(\"{\");\n  const e = t.lastIndexOf(\"}\");\n  if (s !== -1 && e !== -1) t = t.slice(s, e + 1);\n  try { return JSON.parse(t); } catch (err) { return null; }\n};\nconst responses = $input.all();\nconst polished = $(\"Parse Polish\").all();\nconst out = [];\nfor (let i = 0; i < responses.length; i++) {\n  const p = polished[i] ? polished[i].json : {};\n  const raw = responses[i] ? responses[i].json : {};\n  const txt = textOf(raw);\n  const g = parseJson(txt);\n  let verdict = \"revise\";\n  let summary = \"Guard did not return readable JSON, so this piece was held back as a precaution.\";\n  let violations = [];\n  let banned = [];\n  let score = 0;\n  let risk = \"none\";\n  if (g) {\n    violations = Array.isArray(g.violations) ? g.violations : [];\n    banned = Array.isArray(g.banned_words_found) ? g.banned_words_found : [];\n    score = typeof g.score === \"number\" ? g.score : 0;\n    risk = g.risk_notes || \"none\";\n    summary = g.one_line_summary || \"Guard returned no summary line.\";\n    const v = String(g.verdict || \"revise\").toLowerCase().trim();\n    verdict = (v === \"pass\" && violations.length === 0 && banned.length === 0) ? \"pass\" : \"revise\";\n  } else {\n    const errBlob = raw && raw.error ? JSON.stringify(raw.error) : JSON.stringify(raw);\n    summary = \"Brand guard could not be read. Raw response: \" + String(txt || errBlob).slice(0, 400);\n    violations = [\"brand guard did not respond with valid JSON\"];\n  }\n  out.push({ json: Object.assign({}, p, {\n    verdict: verdict,\n    score: score,\n    violations_text: violations.length ? violations.join(\" | \") : \"none\",\n    banned_text: banned.length ? banned.join(\", \") : \"none\",\n    risk_notes: risk,\n    guard_summary: summary,\n    checked_at: $now.toFormat(\"yyyy-MM-dd HH:mm\")\n  }) });\n}\nreturn out;"
+      },
+      "id": "ebfc4668-842e-46a5-94dd-d5944b894825",
+      "name": "Assemble Publish Packet",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.verdict }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "pass",
+              "id": "156d1665-231e-43ae-afd1-8dc46c1fb916"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d2f943cf-177e-4649-bebe-2c5bb51a7a9d",
+      "name": "Guard Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -448,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.platform }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "linkedin"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.platform }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "x"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.platform }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "reels"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.platform }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "newsletter"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.platform }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "quote_card"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Other"
+        }
+      },
+      "id": "c5e11ba1-f406-4e0d-b997-dc487e8ae56b",
+      "name": "Route by Platform",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -224,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "platform_label",
+              "value": "LinkedIn",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "post_url",
+              "value": "https://www.linkedin.com/feed/",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "posting_notes",
+              "value": "Paste the body as one post. Add the hashtags on the last line. Post between 8 and 10 AM IST on a weekday for best reach. Reply to every comment in the first hour.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c60adba3-5837-4572-94b3-db89f56bbd21",
+      "name": "LinkedIn Instructions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "hausofintelligence@gmail.com",
+        "subject": "=POST NOW on {{ $json.platform_label }}: {{ $json.final_hook }}",
+        "message": "=<div style=\"font-family: Calibri, Arial, sans-serif; max-width: 660px;\"><div style=\"background:#000000;color:#C8F135;padding:20px;font-weight:bold;font-size:19px;\">READY TO PUBLISH  ·  {{ $json.platform_label }}</div><div style=\"padding:20px;background:#F4F5F0;color:#000000;\"><p style=\"margin:0 0 4px 0;color:#555555;font-size:13px;\">From: {{ $json.source_title }}  ·  {{ $json.timestamp_ref }}  ·  {{ $json.content_id }}</p><p style=\"margin:0 0 16px 0;\"><span style=\"background:#1B7E42;color:#FFFFFF;padding:3px 9px;font-size:12px;font-weight:bold;\">GUARD SCORE {{ $json.score }}/100</span></p><p style=\"margin:0 0 6px 0;font-weight:bold;\">HOOK</p><div style=\"background:#FFFFFF;border-left:4px solid #C8F135;padding:12px;margin-bottom:16px;white-space:pre-wrap;\">{{ $json.final_hook }}</div><p style=\"margin:0 0 6px 0;font-weight:bold;\">BODY  ·  copy everything below</p><div style=\"background:#FFFFFF;border-left:4px solid #1B7E42;padding:14px;margin-bottom:16px;white-space:pre-wrap;font-size:15px;line-height:1.55;\">{{ $json.final_body }}</div><p style=\"margin:0 0 6px 0;font-weight:bold;\">HASHTAGS</p><div style=\"background:#FFFFFF;padding:10px;margin-bottom:16px;\">{{ $json.final_hashtags }}</div><hr style=\"border:none;border-top:2px solid #1B7E42;\"><p style=\"font-weight:bold;margin:0 0 6px 0;\">HOW TO POST THIS</p><p style=\"margin:0 0 16px 0;\">{{ $json.posting_notes }}</p><p><a href=\"{{ $json.post_url }}\" style=\"display:inline-block;background:#C8F135;color:#000000;padding:12px 22px;text-decoration:none;font-weight:bold;\">Open {{ $json.platform_label }}</a></p><hr style=\"border:none;border-top:1px solid #CCCCCC;\"><p style=\"font-size:12px;color:#666666;\">Editor pass: {{ $json.changes_made }}<br>Brand guard: {{ $json.guard_summary }}<br>Risk notes: {{ $json.risk_notes }}<br>Length: {{ $json.char_count }} characters  ·  Checked {{ $json.checked_at }}<br>Team HOI</p></div></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "1bd56d22-6f3c-4478-ac79-0a310ae6a879",
+      "name": "Send Publish Packet",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        448
+      ],
+      "webhookId": "9b606fde-9010-4380-8a04-9515d4440cc2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "platform_label",
+              "value": "X",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "post_url",
+              "value": "https://x.com/compose/post",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "posting_notes",
+              "value": "For a thread, paste each numbered line as its own tweet in order. For a single, paste the body as one post. Do not add the numbering to the live tweet text.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cc16db4a-5f41-4432-a64d-3bea2df79aa5",
+      "name": "X Instructions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "platform_label",
+              "value": "Reels and Shorts",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "post_url",
+              "value": "https://www.instagram.com/",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "posting_notes",
+              "value": "Record the script to camera. Say the hook in the first 3 seconds before anything else. Add the on screen text lines as captions in the order given. Keep it under 60 seconds.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0c707e75-21ba-42fb-9a87-f213d9b5cca6",
+      "name": "Reels Instructions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "platform_label",
+              "value": "Newsletter",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "post_url",
+              "value": "https://mail.google.com/",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "posting_notes",
+              "value": "The body is ready HTML. Paste it into your email tool in HTML mode. The hook is your subject line. Send Tuesday or Thursday morning for the best open rate.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ac31e4d0-3340-4a0a-8e7c-940e058a0790",
+      "name": "Newsletter Instructions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "platform_label",
+              "value": "Quote Card",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "post_url",
+              "value": "https://www.canva.com/",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "posting_notes",
+              "value": "Build the card in Canva using the design direction in the body. The hook is the quote that goes on the card. Use the caption line as the post text and the alt text for accessibility.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9155078e-e25e-4da9-91c9-01afc02209ee",
+      "name": "Quote Card Instructions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "platform_label",
+              "value": "Unrouted",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "post_url",
+              "value": "https://docs.google.com/spreadsheets/d/142dfvdDw_Se5hDsnsX_FdyKXTkVflqYuOYSM6Qm8F3g/edit",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "posting_notes",
+              "value": "This piece had a platform value the router did not recognise. Check the platform column in the Content Library.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1bdd7fa2-2978-4451-ae55-ba616f01a481",
+      "name": "Other Instructions",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "hausofintelligence@gmail.com",
+        "subject": "=BLOCKED by brand guard: {{ $json.platform }} piece {{ $json.content_id }}",
+        "message": "=<div style=\"font-family: Calibri, Arial, sans-serif; max-width: 660px;\"><div style=\"background:#000000;color:#C8F135;padding:20px;font-weight:bold;font-size:19px;\">HELD BACK BY BRAND GUARD</div><div style=\"padding:20px;background:#F4F5F0;color:#000000;\"><p style=\"margin:0 0 4px 0;color:#555555;font-size:13px;\">{{ $json.content_id }}  ·  {{ $json.platform }}  ·  from {{ $json.source_title }}</p><p style=\"margin:0 0 16px 0;\"><span style=\"background:#000000;color:#C8F135;padding:3px 9px;font-size:12px;font-weight:bold;\">GUARD SCORE {{ $json.score }}/100</span></p><p style=\"font-weight:bold;margin:0 0 6px 0;\">WHY IT WAS HELD</p><div style=\"background:#FFFFFF;border-left:4px solid #1B7E42;padding:12px;margin-bottom:16px;\">{{ $json.guard_summary }}</div><p style=\"font-weight:bold;margin:0 0 6px 0;\">VIOLATIONS</p><div style=\"background:#FFFFFF;padding:12px;margin-bottom:16px;\">{{ $json.violations_text }}</div><p style=\"font-weight:bold;margin:0 0 6px 0;\">BANNED WORDS FOUND</p><div style=\"background:#FFFFFF;padding:12px;margin-bottom:16px;\">{{ $json.banned_text }}</div><p style=\"font-weight:bold;margin:0 0 6px 0;\">RISK NOTES</p><div style=\"background:#FFFFFF;padding:12px;margin-bottom:16px;\">{{ $json.risk_notes }}</div><hr style=\"border:none;border-top:2px solid #1B7E42;\"><p style=\"font-weight:bold;margin:0 0 6px 0;\">THE DRAFT AS IT STANDS</p><div style=\"background:#FFFFFF;padding:14px;white-space:pre-wrap;font-size:14px;\">{{ $json.final_body }}</div><p style=\"margin-top:18px;\">This piece has been set to needs_review in the Content Library. Fix it, set the status back to approved, and it will go out on the next run.</p><p><a href=\"https://docs.google.com/spreadsheets/d/142dfvdDw_Se5hDsnsX_FdyKXTkVflqYuOYSM6Qm8F3g/edit#gid=612816458\" style=\"display:inline-block;background:#C8F135;color:#000000;padding:12px 22px;text-decoration:none;font-weight:bold;\">Open Content Library</a></p><p style=\"font-size:12px;color:#666666;margin-top:18px;\">Checked {{ $json.checked_at }}<br>Team HOI</p></div></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "e1167402-5982-4d89-aa45-f8010ce7887c",
+      "name": "Send Revision Request",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        1152
+      ],
+      "webhookId": "750bbb06-8722-4fce-bde5-a975a0adc2a4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "142dfvdDw_Se5hDsnsX_FdyKXTkVflqYuOYSM6Qm8F3g"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": 612816458,
+          "cachedResultName": "Content_Library",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/142dfvdDw_Se5hDsnsX_FdyKXTkVflqYuOYSM6Qm8F3g/edit#gid=612816458"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content_id": "={{ $(\"Assemble Publish Packet\").item.json.content_id }}",
+            "status": "needs_review",
+            "row_number": 0
+          },
+          "matchingColumns": [
+            "content_id"
+          ],
+          "schema": [
+            {
+              "id": "content_id",
+              "displayName": "content_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_id",
+              "displayName": "source_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source_title",
+              "displayName": "source_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "format",
+              "displayName": "format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "hook",
+              "displayName": "hook",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "cta",
+              "displayName": "cta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "timestamp_ref",
+              "displayName": "timestamp_ref",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scheduled_for",
+              "displayName": "scheduled_for",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "published_at",
+              "displayName": "published_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "91e6192d-cab4-4685-a5a3-b7fc7290781e",
+      "name": "Mark Needs Review",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        1152
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "142dfvdDw_Se5hDsnsX_FdyKXTkVflqYuOYSM6Qm8F3g"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": 612816458,
+          "cachedResultName": "Content_Library",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/142dfvdDw_Se5hDsnsX_FdyKXTkVflqYuOYSM6Qm8F3g/edit#gid=612816458"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "content_id": "={{ $('Assemble Publish Packet').item.json.content_id }}",
+            "status": "published",
+            "published_at": "={{ $now.toFormat(\"yyyy-MM-dd HH:mm\") }}",
+            "row_number": 0
+          },
+          "matchingColumns": [
+            "content_id"
+          ],
+          "schema": [
+            {
+              "id": "content_id",
+              "displayName": "content_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_id",
+              "displayName": "source_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source_title",
+              "displayName": "source_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "format",
+              "displayName": "format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "hook",
+              "displayName": "hook",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "hashtags",
+              "displayName": "hashtags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "cta",
+              "displayName": "cta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "timestamp_ref",
+              "displayName": "timestamp_ref",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scheduled_for",
+              "displayName": "scheduled_for",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "published_at",
+              "displayName": "published_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "1ba04724-ba3b-42be-8f25-da29674f95bc",
+      "name": "Mark Published",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        448
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {
+    "Publish Cron (15 min)": [
+      {
+        "json": {
+          "timestamp": "2026-08-08T11:37:19.459+00:00",
+          "Readable date": "August 8th 2026, 11:37:19 am",
+          "Readable time": "11:37:19 am",
+          "Day of week": "Saturday",
+          "Year": "2026",
+          "Month": "August",
+          "Day of month": "08",
+          "Hour": "11",
+          "Minute": "37",
+          "Second": "19",
+          "Timezone": "UTC (UTC+00:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Publish Cron (15 min)": {
+      "main": [
+        [
+          {
+            "node": "Load Brand Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Brand Voice": {
+      "main": [
+        [
+          {
+            "node": "Read Approved Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Approved Content": {
+      "main": [
+        [
+          {
+            "node": "Filter Due Now",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Due Now": {
+      "main": [
+        [
+          {
+            "node": "Agent 7 - Publish Polish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 7 - Publish Polish": {
+      "main": [
+        [
+          {
+            "node": "Parse Polish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Polish": {
+      "main": [
+        [
+          {
+            "node": "Agent 8 - Brand Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent 8 - Brand Guard": {
+      "main": [
+        [
+          {
+            "node": "Assemble Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Publish Packet": {
+      "main": [
+        [
+          {
+            "node": "Guard Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guard Gate": {
+      "main": [
+        [
+          {
+            "node": "Route by Platform",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Revision Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Platform": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "X Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reels Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Newsletter Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Quote Card Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Other Instructions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Instructions": {
+      "main": [
+        [
+          {
+            "node": "Send Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Publish Packet": {
+      "main": [
+        [
+          {
+            "node": "Mark Published",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X Instructions": {
+      "main": [
+        [
+          {
+            "node": "Send Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reels Instructions": {
+      "main": [
+        [
+          {
+            "node": "Send Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Newsletter Instructions": {
+      "main": [
+        [
+          {
+            "node": "Send Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quote Card Instructions": {
+      "main": [
+        [
+          {
+            "node": "Send Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Other Instructions": {
+      "main": [
+        [
+          {
+            "node": "Send Publish Packet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Revision Request": {
+      "main": [
+        [
+          {
+            "node": "Mark Needs Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5be2bfc6-ee2e-4e23-b844-c74ec86adaf6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "BYsZy0AOei1OEokm",
+  "tags": []
+}
