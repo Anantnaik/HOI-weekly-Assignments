@@ -1,0 +1,812 @@
+{
+  "name": "Inventory & Reorder Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "bf92e145-bbde-4258-808e-aba6eb56a67e",
+      "name": "Run Inventory Check",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1760,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "reorder_buffer_days",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "2",
+              "name": "dead_stock_days",
+              "value": 45,
+              "type": "number"
+            },
+            {
+              "id": "3",
+              "name": "cover_days",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "4",
+              "name": "low_stock_days",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "5",
+              "name": "currency",
+              "value": "Rs ",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "email_to",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "dedupe_enabled",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "8",
+              "name": "run_date",
+              "value": "={{ $now.toFormat(\"yyyy-MM-dd\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5470229f-8998-4aaf-a575-fa84bc8dba8e",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1536,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1j_f45FVGkoJw419-Xt9Tn-ATZqDdUBbiHMzEsemoDt8",
+          "mode": "list",
+          "cachedResultName": "HOI Inventory Master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1j_f45FVGkoJw419-Xt9Tn-ATZqDdUBbiHMzEsemoDt8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1660221395,
+          "mode": "list",
+          "cachedResultName": "Stock_Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1j_f45FVGkoJw419-Xt9Tn-ATZqDdUBbiHMzEsemoDt8/edit#gid=1660221395"
+        },
+        "options": {}
+      },
+      "id": "2c41eb69-7e44-4c39-b37e-3e4724aa10b5",
+      "name": "Read Stock Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1328,
+        272
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst BUFFER = Number(cfg.reorder_buffer_days) || 3;\nconst DEAD = Number(cfg.dead_stock_days) || 45;\nconst COVER = Number(cfg.cover_days) || 30;\nconst LOW = Number(cfg.low_stock_days) || 7;\nconst CUR = cfg.currency || 'Rs ';\nconst runDate = cfg.run_date || '';\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst today = new Date();\nconst daysSince = (d) => { const t = Date.parse(String(d)); if (isNaN(t)) return 9999; return Math.floor((today.getTime() - t) / 86400000); };\nconst inr = (n) => CUR + Math.round(num(n)).toLocaleString('en-IN');\nconst rows = $input.all().map(i => i.json).filter(r => r && (r.SKU || r.sku));\nconst skus = [];\nconst dataIssues = [];\nlet totalValue = 0;\nfor (const r of rows) {\n  const sku = String(r.SKU || r.sku || '').trim();\n  if (!sku) { dataIssues.push('Row skipped: blank SKU'); continue; }\n  const name = String(r.Product_Name || r.product_name || sku);\n  const category = String(r.Category || r.category || 'General');\n  const stock = num(r.Current_Stock);\n  const velocity = num(r.Avg_Daily_Sales);\n  const lead = num(r.Lead_Time_Days) || 7;\n  const cost = num(r.Unit_Cost);\n  const reorderPoint = num(r.Reorder_Point);\n  const supplier = String(r.Supplier || 'Supplier');\n  const supplierEmail = String(r.Supplier_Email || '');\n  const lastSold = String(r.Last_Sold_Date || '');\n  const value = stock * cost;\n  totalValue += value;\n  const dts = velocity > 0 ? Math.floor(stock / velocity) : 9999;\n  const idle = daysSince(lastSold);\n  const isDead = idle >= DEAD && stock > 0 && velocity <= 0.05;\n  const hitReorderPoint = reorderPoint > 0 && stock <= reorderPoint;\n  const needsReorder = velocity > 0 && (dts <= (lead + BUFFER) || hitReorderPoint);\n  const target = Math.ceil(velocity * (lead + COVER));\n  const orderQty = needsReorder ? Math.max(target - stock, 0) : 0;\n  const orderValue = orderQty * cost;\n  skus.push({ sku, name, category, stock, velocity, lead, cost, reorder_point: reorderPoint, supplier, supplier_email: supplierEmail, last_sold: lastSold, value, days_to_stockout: dts, idle_days: idle, is_dead: isDead, needs_reorder: needsReorder, hit_reorder_point: hitReorderPoint, order_qty: orderQty, order_value: orderValue });\n}\nconst reorder = skus.filter(s => s.needs_reorder).sort((a,b) => a.days_to_stockout - b.days_to_stockout);\nreorder.forEach(s => { if (!s.supplier_email) dataIssues.push('No supplier email: ' + s.name); });\nconst dead = skus.filter(s => s.is_dead).sort((a,b) => b.value - a.value);\nconst lowSoon = skus.filter(s => s.needs_reorder && s.days_to_stockout <= LOW);\nconst deadCapital = dead.reduce((a,s) => a + s.value, 0);\nconst reorderSpend = reorder.reduce((a,s) => a + s.order_value, 0);\nconst soonest = reorder.length ? reorder[0].days_to_stockout : null;\nconst soonestSku = reorder.length ? reorder[0].name : '';\nconst healthy = Math.max(skus.length - reorder.length - dead.length, 0);\nconst healthPct = skus.length ? Math.round(healthy / skus.length * 100) : 100;\nconst reorderLines = reorder.map(s => s.sku + ' | ' + s.name + ' | stock ' + s.stock + ' | sells ' + s.velocity + '/day | ' + s.days_to_stockout + ' days left | lead ' + s.lead + 'd | order ' + s.order_qty + ' units (' + inr(s.order_value) + ') | supplier ' + s.supplier + ' <' + s.supplier_email + '>').join('\\n');\nconst deadLines = dead.map(s => s.sku + ' | ' + s.name + ' | ' + s.stock + ' units idle ' + s.idle_days + ' days | ' + inr(s.value) + ' stuck').join('\\n');\nconst chart = reorder.slice(0, 6).map(s => ({ sku: s.sku, name: s.name, days: s.days_to_stockout }));\nif (skus.length === 0) { throw new Error('No stock rows read. Check the Stock_Data tab has data.'); }\nreturn [{ json: {\n  run_date: runDate, currency: CUR,\n  total_skus: skus.length, total_stock_value: totalValue, total_stock_value_fmt: inr(totalValue),\n  reorder_count: reorder.length, low_soon_count: lowSoon.length,\n  soonest_stockout_days: soonest, soonest_stockout_sku: soonestSku,\n  dead_count: dead.length, dead_capital: deadCapital, dead_capital_fmt: inr(deadCapital),\n  total_reorder_spend: reorderSpend, total_reorder_spend_fmt: inr(reorderSpend),\n  inventory_health_pct: healthPct, healthy_count: healthy,\n  data_issues: dataIssues.slice(0, 10), data_issue_count: dataIssues.length,\n  reorder_items: reorder, dead_items: dead, chart_data: chart,\n  reorder_lines: reorderLines, dead_lines: deadLines\n} }];"
+      },
+      "id": "c6c713e5-3b42-49c0-a5e3-9a30b62f62be",
+      "name": "Forecast Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "59b5c116-d47c-47e2-9ccb-f31375e4a13b",
+      "name": "Every Morning 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1760,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1j_f45FVGkoJw419-Xt9Tn-ATZqDdUBbiHMzEsemoDt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2081297531,
+          "mode": "list",
+          "cachedResultName": "Reorder_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1j_f45FVGkoJw419-Xt9Tn-ATZqDdUBbiHMzEsemoDt8/edit#gid=2081297531"
+        },
+        "options": {}
+      },
+      "id": "4b2352ec-499e-42d5-8d7b-dbf4114c9a61",
+      "name": "Read Reorder Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -880,
+        112
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst fc = $('Forecast Engine').first().json;\nconst CUR = fc.currency || 'Rs ';\nconst inr = (n) => CUR + Math.round(Number(n) || 0).toLocaleString('en-IN');\nconst dedupe = (String(cfg.dedupe_enabled) === 'true') || (cfg.dedupe_enabled === true);\nconst today = String(fc.run_date || '');\nconst existing = $('Read Reorder Log').all().map(i => i.json).filter(r => r && (r.sku || r.SKU));\nconst doneToday = new Set(existing.filter(r => String(r.run_date || r.Run_Date || '') === today).map(r => String(r.sku || r.SKU).trim()));\nconst reorder = Array.isArray(fc.reorder_items) ? fc.reorder_items : [];\nconst isDone = (s) => dedupe && doneToday.has(String(s.sku).trim());\nconst newItems = reorder.filter(s => !isDone(s));\nconst alreadyItems = reorder.filter(s => isDone(s));\nconst newLines = newItems.map(s => s.sku + ' | ' + s.name + ' | stock ' + s.stock + ' | sells ' + s.velocity + '/day | ' + s.days_to_stockout + ' days left | lead ' + s.lead + 'd | order ' + s.order_qty + ' units (' + inr(s.order_value) + ') | supplier ' + s.supplier + ' <' + s.supplier_email + '>').join('\\n') || 'none';\nreturn [{ json: { new_items: newItems, new_count: newItems.length, already_count: alreadyItems.length, reorder_lines_new: newLines, dedupe_enabled: dedupe } }];"
+      },
+      "id": "7b54e2e5-d5ca-4382-87cd-9e115ac6425b",
+      "name": "Reconcile (dedupe)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a procurement assistant for an Indian retail business. Below is a list of SKUs that need reordering now. For each one write a short professional reorder email to the supplier in Indian English, crisp and ready to send.\\n\\nSKUS TO REORDER:\\n\" + ($json.reorder_lines_new || \"none\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. The object has one key messages holding an array. Each entry has keys: sku, product, supplier, supplier_email, order_qty, urgency, subject, message.\\nurgency is high if days left is 7 or fewer, otherwise medium.\\nsubject is a clear email subject line.\\nmessage is the full email body, 4 to 6 lines, states the SKU, product name and order quantity, requests order confirmation and an expected dispatch date, and signs off as Purchase Team.\\nNo em-dashes anywhere.\\nIf the list says none, return an empty messages array.\") }} }]}],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "cbdd6c02-8993-4d8e-9850-a56ccfd83516",
+      "name": "Reorder Drafter (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -432,
+        112
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); try { return JSON.parse(t); } catch (err) { return null; } };\nconst cfg = $('Config').first().json;\nconst resp = $input.first().json;\nconst parsed = parseJson(textOf(resp)) || {};\nconst msgs = Array.isArray(parsed.messages) ? parsed.messages : [];\nconst runDate = cfg.run_date || '';\nconst d = new Date();\nconst pad = (n) => String(n).padStart(2, '0');\nconst stamp = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + pad(d.getHours()) + pad(d.getMinutes());\nconst items = Array.isArray($('Reconcile (dedupe)').first().json.new_items) ? $('Reconcile (dedupe)').first().json.new_items : [];\nif (items.length === 0) { return []; }\nconst rows = items.map((s, idx) => {\n  const m = msgs.find(x => String(x.sku || '').trim() === s.sku) || {};\n  return { json: {\n    reorder_id: 'RO' + stamp + '-' + pad(idx + 1),\n    run_date: runDate, sku: s.sku, product: s.name, category: s.category,\n    current_stock: s.stock, days_to_stockout: s.days_to_stockout, order_qty: s.order_qty,\n    supplier: s.supplier, supplier_email: s.supplier_email,\n    urgency: m.urgency || (s.days_to_stockout <= 7 ? 'high' : 'medium'),\n    subject: m.subject || ('Reorder ' + s.sku + ' - ' + s.name),\n    message: m.message || ('Dear ' + s.supplier + ', please process a reorder for ' + s.order_qty + ' units of ' + s.name + ' (SKU ' + s.sku + '). Kindly confirm the order and share an expected dispatch date. Regards, Purchase Team.'),\n    status: 'draft_created'\n  } };\n});\nreturn rows;"
+      },
+      "id": "3cf51659-ffa5-401d-9b77-6b10070abe5f",
+      "name": "Build Reorder Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "=<div style=\"background:#F4F5F0;padding:24px;font-family:Calibri,Arial,sans-serif;\">\n  <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:10px;overflow:hidden;\">\n    <tr><td style=\"background:#000000;padding:24px 28px;\">\n      <div style=\"color:#C8F135;font-size:12px;font-weight:bold;letter-spacing:3px;\">PURCHASE ORDER</div>\n      <div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:23px;font-weight:bold;margin-top:6px;\">{{ $json.product }}</div>\n      <div style=\"color:#B8B8B2;font-size:13px;margin-top:4px;\">PO {{ $json.reorder_id }} &middot; {{ $json.run_date }}</div>\n    </td></tr>\n    <tr><td style=\"padding:22px 28px 8px 28px;\">\n      <span style=\"display:inline-block;background:{{ $json.urgency === 'high' ? '#C0392B' : '#1B7E42' }};color:#FFFFFF;font-size:11px;font-weight:bold;padding:4px 11px;border-radius:4px;letter-spacing:1px;\">{{ $json.urgency === 'high' ? 'PRIORITY ORDER' : 'STANDARD ORDER' }}</span>\n      <div style=\"font-size:14px;color:#1A1A1A;margin-top:16px;\">Dear {{ $json.supplier }} team,</div>\n      <div style=\"font-size:14px;color:#1A1A1A;line-height:1.55;margin-top:8px;\">Please process the following order at the earliest and confirm the dispatch date.</div>\n    </td></tr>\n    <tr><td style=\"padding:10px 28px;\">\n      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E4E4DC;border-radius:8px;\">\n        <tr style=\"background:#F4F5F0;\">\n          <td style=\"padding:10px 14px;font-size:11px;font-weight:bold;color:#666666;letter-spacing:1px;\">ITEM</td>\n          <td style=\"padding:10px 14px;font-size:11px;font-weight:bold;color:#666666;letter-spacing:1px;\">SKU</td>\n          <td align=\"right\" style=\"padding:10px 14px;font-size:11px;font-weight:bold;color:#666666;letter-spacing:1px;\">QUANTITY</td>\n        </tr>\n        <tr>\n          <td style=\"padding:14px;font-size:14px;color:#1A1A1A;font-weight:bold;\">{{ $json.product }}</td>\n          <td style=\"padding:14px;font-size:13px;color:#666666;\">{{ $json.sku }}</td>\n          <td align=\"right\" style=\"padding:14px;font-size:18px;color:#1B7E42;font-weight:bold;\">{{ $json.order_qty }} units</td>\n        </tr>\n      </table>\n    </td></tr>\n    <tr><td style=\"padding:6px 28px 20px 28px;\">\n      <div style=\"font-size:13px;color:#666666;line-height:1.5;\">Kindly confirm receipt and share the expected dispatch date. Reply to this email for any queries.</div>\n      <div style=\"font-size:14px;color:#1A1A1A;margin-top:16px;font-weight:bold;\">Regards,</div>\n      <div style=\"font-size:14px;color:#1A1A1A;\">Purchase Team</div>\n    </td></tr>\n    <tr><td style=\"background:#000000;padding:14px 28px;\">\n      <div style=\"color:#B8B8B2;font-size:11px;\">Sent via Haus of Intelligence Inventory Agent &middot; Build. Automate. Scale.</div>\n    </td></tr>\n  </table>\n</div>",
+        "options": {
+          "sendTo": "naikanant381@gmail.com"
+        }
+      },
+      "id": "43c8e8da-d4f2-4395-889c-6a900252b460",
+      "name": "Draft Supplier POs",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "c4573983-52e6-45a8-bf1c-7ac3f12465a8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1k6sVLt3UcCQlSo_fkguKkKJy471SQMaotXDshjq3Occ",
+          "cachedResultName": "HOI Inventory Master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1k6sVLt3UcCQlSo_fkguKkKJy471SQMaotXDshjq3Occ/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Reorder_Log"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "reorder_id",
+              "displayName": "reorder_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "product",
+              "displayName": "product",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "current_stock",
+              "displayName": "current_stock",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "days_to_stockout",
+              "displayName": "days_to_stockout",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "order_qty",
+              "displayName": "order_qty",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "supplier",
+              "displayName": "supplier",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "supplier_email",
+              "displayName": "supplier_email",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {}
+        },
+        "options": {}
+      },
+      "id": "85827016-6adf-43e0-9fa4-f52e1d27283c",
+      "name": "Log Reorders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are an inventory analyst reporting to a busy shop owner. Write a tight morning brief from this data.\\n\\nTotal SKUs: \" + ($json.total_skus || 0) + \"\\nTotal stock value: \" + ($json.total_stock_value_fmt || \"\") + \"\\nInventory health: \" + ($json.inventory_health_pct || 0) + \" percent healthy\\nSKUs to reorder now: \" + ($json.reorder_count || 0) + \"\\nCash needed to restock: \" + ($json.total_reorder_spend_fmt || \"\") + \"\\nSoonest stockout: \" + ($json.soonest_stockout_sku || \"none\") + \" in \" + ($json.soonest_stockout_days == null ? \"NA\" : $json.soonest_stockout_days) + \" days\\nDead stock SKUs: \" + ($json.dead_count || 0) + \" worth \" + ($json.dead_capital_fmt || \"\") + \"\\n\\nTop reorder list:\\n\" + ($json.reorder_lines || \"none\") + \"\\n\\nDead stock:\\n\" + ($json.dead_lines || \"none\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: headline, summary, actions, risk_note.\\nheadline is one punchy line the owner reads first and must mention the most urgent number.\\nsummary is 2 to 3 sentences in plain Indian English and should mention the cash needed to restock and the dead stock capital.\\nactions is an array of exactly 3 short imperative next steps.\\nrisk_note is one line on the biggest risk if this is ignored.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.6,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "ef94721b-1db0-44de-81a3-3f2201459ab2",
+      "name": "Stock Analyst (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -656,
+        432
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => {\n  const c = resp && resp.candidates && resp.candidates[0];\n  const parts = (c && c.content && c.content.parts) || [];\n  return parts\n    .filter(p => typeof p.text === 'string' && !p.thought)\n    .map(p => p.text)\n    .join('');\n};\n\nconst parseJson = (raw) => {\n  let t = String(raw || '').trim();\n  const s = t.indexOf('{');\n  const e = t.lastIndexOf('}');\n  if (s !== -1 && e !== -1) t = t.slice(s, e + 1);\n\n  try {\n    return JSON.parse(t);\n  } catch (err) {\n    return null;\n  }\n};\n\nconst esc = (s) =>\n  String(s == null ? '' : s)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;');\n\nconst fc = $('Forecast Engine').first().json;\nconst rec = $('Reconcile (dedupe)').first().json || {};\nconst brief = parseJson(textOf($input.first().json)) || {};\n\nconst aiFailed = !brief.headline;\n\nconst headline =\n  brief.headline ||\n  (fc.reorder_count + ' SKUs need reordering now');\n\nconst summary =\n  brief.summary ||\n  'Computed figures below. The AI brief was unavailable this run.';\n\nconst actions = Array.isArray(brief.actions)\n  ? brief.actions\n  : [];\n\nconst riskNote = brief.risk_note || '';\n\nconst issues = Array.isArray(fc.data_issues)\n  ? fc.data_issues\n  : [];\n\n\n/* =========================\n   RGB LIGHT THEME\n   ========================= */\n\nconst WHITE = '#FFFFFF';\nconst BG = '#F5F7FA';\nconst INK = '#172033';\nconst GREY = '#667085';\nconst BORDER = '#E5E7EB';\n\nconst RED = '#EF4444';\nconst GREEN = '#22C55E';\nconst BLUE = '#3B82F6';\n\nconst LIGHT_RED = '#FEF2F2';\nconst LIGHT_GREEN = '#F0FDF4';\nconst LIGHT_BLUE = '#EFF6FF';\n\nconst AMBER = '#F59E0B';\nconst LIGHT_AMBER = '#FFFBEB';\n\n\n/* =========================\n   INVENTORY DATA\n   ========================= */\n\nconst reorder = Array.isArray(fc.reorder_items)\n  ? fc.reorder_items\n  : [];\n\nconst dead = Array.isArray(fc.dead_items)\n  ? fc.dead_items\n  : [];\n\nconst chart = Array.isArray(fc.chart_data)\n  ? fc.chart_data\n  : [];\n\nconst maxDays = Math.max.apply(\n  null,\n  chart.map(c => c.days).concat([1])\n);\n\n\n/* =========================\n   COLOR LOGIC\n   ========================= */\n\nconst barColor = (days) =>\n  days <= 3\n    ? RED\n    : (days <= 7 ? AMBER : GREEN);\n\n\n/* =========================\n   WARNING BANNER\n   ========================= */\n\nlet bannerHtml = '';\n\nif (aiFailed || issues.length) {\n\n  const parts = [];\n\n  if (aiFailed) {\n    parts.push(\n      'AI brief was unavailable this run, showing computed figures.'\n    );\n  }\n\n  if (issues.length) {\n    parts.push(\n      issues.length +\n      ' data issue(s): ' +\n      issues.slice(0, 3).join('; ')\n    );\n  }\n\n  bannerHtml =\n    '<tr>' +\n      '<td style=\"padding:14px 26px 0 26px;\">' +\n        '<div style=\"' +\n          'background:' + LIGHT_RED + ';' +\n          'border-left:4px solid ' + RED + ';' +\n          'border-radius:8px;' +\n          'padding:12px 14px;' +\n          'font-family:Calibri,Arial,sans-serif;' +\n          'font-size:13px;' +\n          'color:#991B1B;' +\n        '\">' +\n          '<strong>Heads up.</strong> ' +\n          esc(parts.join(' ')) +\n        '</div>' +\n      '</td>' +\n    '</tr>';\n}\n\n\n/* =========================\n   STOCK CHART\n   ========================= */\n\nlet chartHtml = '';\n\nchart.forEach(c => {\n\n  const pct = Math.max(\n    14,\n    Math.round(\n      100 - (c.days / (maxDays + 1)) * 82\n    )\n  );\n\n  chartHtml +=\n    '<tr>' +\n\n      '<td style=\"' +\n        'padding:4px 0;' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'color:' + INK + ';' +\n        'width:42%;' +\n      '\">' +\n        esc(c.name) +\n      '</td>' +\n\n      '<td style=\"padding:4px 0;width:58%;\">' +\n\n        '<table cellpadding=\"0\" cellspacing=\"0\" style=\"width:100%;\">' +\n\n          '<tr>' +\n\n            '<td style=\"' +\n              'background:' + barColor(c.days) + ';' +\n              'height:20px;' +\n              'width:' + pct + '%;' +\n              'border-radius:4px;' +\n            '\"></td>' +\n\n            '<td style=\"' +\n              'padding-left:8px;' +\n              'font-family:Calibri,Arial,sans-serif;' +\n              'font-size:12px;' +\n              'font-weight:bold;' +\n              'color:' + INK + ';' +\n              'white-space:nowrap;' +\n            '\">' +\n              c.days + ' days' +\n            '</td>' +\n\n          '</tr>' +\n\n        '</table>' +\n\n      '</td>' +\n\n    '</tr>';\n});\n\n\n/* =========================\n   REORDER TABLE\n   ========================= */\n\nlet reorderHtml = '';\n\nreorder.forEach(s => {\n\n  const uc =\n    s.days_to_stockout <= 3\n      ? RED\n      : (s.days_to_stockout <= 7\n          ? AMBER\n          : GREEN);\n\n  reorderHtml +=\n\n    '<tr>' +\n\n      '<td style=\"' +\n        'padding:10px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'color:' + INK + ';' +\n      '\">' +\n\n        '<strong>' +\n          esc(s.name) +\n        '</strong>' +\n\n        '<br>' +\n\n        '<span style=\"' +\n          'color:' + GREY + ';' +\n          'font-size:11px;' +\n        '\">' +\n          esc(s.sku) +\n          ' &middot; ' +\n          esc(s.supplier) +\n        '</span>' +\n\n      '</td>' +\n\n      '<td align=\"center\" style=\"' +\n        'padding:10px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'font-weight:bold;' +\n        'color:' + uc + ';' +\n      '\">' +\n        s.days_to_stockout + 'd' +\n      '</td>' +\n\n      '<td align=\"center\" style=\"' +\n        'padding:10px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'color:' + INK + ';' +\n      '\">' +\n        s.stock +\n      '</td>' +\n\n      '<td align=\"center\" style=\"' +\n        'padding:10px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'font-weight:bold;' +\n        'color:' + GREEN + ';' +\n      '\">' +\n        s.order_qty +\n      '</td>' +\n\n    '</tr>';\n});\n\n\n/* =========================\n   DEAD STOCK TABLE\n   ========================= */\n\nlet deadHtml = '';\n\ndead.forEach(s => {\n\n  deadHtml +=\n\n    '<tr>' +\n\n      '<td style=\"' +\n        'padding:8px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'color:' + INK + ';' +\n      '\">' +\n\n        '<strong>' +\n          esc(s.name) +\n        '</strong> ' +\n\n        '<span style=\"' +\n          'color:' + GREY + ';' +\n          'font-size:11px;' +\n        '\">' +\n          esc(s.sku) +\n        '</span>' +\n\n      '</td>' +\n\n      '<td align=\"right\" style=\"' +\n        'padding:8px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:12px;' +\n        'color:' + GREY + ';' +\n      '\">' +\n        'idle ' + s.idle_days + 'd' +\n      '</td>' +\n\n      '<td align=\"right\" style=\"' +\n        'padding:8px 12px;' +\n        'border-bottom:1px solid ' + BORDER + ';' +\n        'font-family:Calibri,Arial,sans-serif;' +\n        'font-size:13px;' +\n        'font-weight:bold;' +\n        'color:' + RED + ';' +\n      '\">' +\n        fc.currency +\n        Math.round(s.value).toLocaleString('en-IN') +\n      '</td>' +\n\n    '</tr>';\n});\n\n\n/* =========================\n   ACTIONS\n   ========================= */\n\nlet actionsHtml = '';\n\nactions.forEach(a => {\n\n  actionsHtml +=\n    '<li style=\"margin-bottom:6px;\">' +\n      esc(a) +\n    '</li>';\n\n});\n\n\n/* =========================\n   SUMMARY VALUES\n   ========================= */\n\nconst soonest =\n  fc.soonest_stockout_days == null\n    ? '-'\n    : fc.soonest_stockout_days;\n\nconst poLine =\n  rec.new_count != null\n    ? (\n        rec.new_count +\n        ' new PO(s) drafted, ' +\n        (rec.already_count || 0) +\n        ' already ordered today'\n      )\n    : 'POs drafted in Gmail';\n\n\n/* =========================\n   MAIN HTML\n   ========================= */\n\nconst html =\n\n  '<div style=\"' +\n    'background:' + BG + ';' +\n    'padding:0;' +\n    'margin:0;' +\n  '\">' +\n\n    '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"' +\n      'max-width:680px;' +\n      'margin:0 auto;' +\n      'background:' + BG + ';' +\n      'font-family:Calibri,Arial,sans-serif;' +\n    '\">' +\n\n\n      /* HEADER */\n\n      '<tr>' +\n\n        '<td style=\"' +\n          'background:' + WHITE + ';' +\n          'padding:28px 26px;' +\n          'border-bottom:1px solid ' + BORDER + ';' +\n        '\">' +\n\n          '<div style=\"' +\n            'color:' + BLUE + ';' +\n            'font-size:12px;' +\n            'font-weight:bold;' +\n            'letter-spacing:3px;' +\n          '\">' +\n            'INVENTORY AUTOMATION' +\n          '</div>' +\n\n          '<div style=\"' +\n            'color:' + INK + ';' +\n            'font-family:Georgia,serif;' +\n            'font-size:27px;' +\n            'font-weight:bold;' +\n            'margin-top:8px;' +\n          '\">' +\n            'Inventory and Reorder Brief' +\n          '</div>' +\n\n          '<div style=\"' +\n            'color:' + GREY + ';' +\n            'font-size:14px;' +\n            'margin-top:6px;' +\n          '\">' +\n            esc(fc.run_date) +\n            ' &middot; ' +\n            fc.total_skus +\n            ' SKUs scanned &middot; ' +\n            fc.inventory_health_pct +\n            '% healthy' +\n          '</div>' +\n\n        '</td>' +\n\n      '</tr>' +\n\n      bannerHtml +\n\n\n      /* KPI CARDS */\n\n      '<tr>' +\n\n        '<td style=\"padding:18px 26px 4px 26px;\">' +\n\n          '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">' +\n\n            '<tr>' +\n\n              /* REORDER */\n\n              '<td align=\"center\" style=\"' +\n                'background:' + LIGHT_BLUE + ';' +\n                'border:1px solid #BFDBFE;' +\n                'border-radius:8px;' +\n                'padding:16px 6px;' +\n              '\">' +\n\n                '<div style=\"' +\n                  'color:' + BLUE + ';' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:26px;' +\n                  'font-weight:bold;' +\n                '\">' +\n                  fc.reorder_count +\n                '</div>' +\n\n                '<div style=\"' +\n                  'color:' + GREY + ';' +\n                  'font-size:11px;' +\n                '\">' +\n                  'reorder now' +\n                '</div>' +\n\n              '</td>' +\n\n              '<td width=\"10\"></td>' +\n\n\n              /* STOCKOUT */\n\n              '<td align=\"center\" style=\"' +\n                'background:' + LIGHT_RED + ';' +\n                'border:1px solid #FECACA;' +\n                'border-radius:8px;' +\n                'padding:16px 6px;' +\n              '\">' +\n\n                '<div style=\"' +\n                  'color:' + RED + ';' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:26px;' +\n                  'font-weight:bold;' +\n                '\">' +\n                  soonest +\n                '</div>' +\n\n                '<div style=\"' +\n                  'color:' + GREY + ';' +\n                  'font-size:11px;' +\n                '\">' +\n                  'days to stockout' +\n                '</div>' +\n\n              '</td>' +\n\n              '<td width=\"10\"></td>' +\n\n\n              /* RESTOCK */\n\n              '<td align=\"center\" style=\"' +\n                'background:' + LIGHT_GREEN + ';' +\n                'border:1px solid #BBF7D0;' +\n                'border-radius:8px;' +\n                'padding:16px 6px;' +\n              '\">' +\n\n                '<div style=\"' +\n                  'color:' + GREEN + ';' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:20px;' +\n                  'font-weight:bold;' +\n                '\">' +\n                  esc(fc.total_reorder_spend_fmt) +\n                '</div>' +\n\n                '<div style=\"' +\n                  'color:' + GREY + ';' +\n                  'font-size:11px;' +\n                '\">' +\n                  'to restock' +\n                '</div>' +\n\n              '</td>' +\n\n              '<td width=\"10\"></td>' +\n\n\n              /* DEAD STOCK */\n\n              '<td align=\"center\" style=\"' +\n                'background:' + LIGHT_RED + ';' +\n                'border:1px solid #FECACA;' +\n                'border-radius:8px;' +\n                'padding:16px 6px;' +\n              '\">' +\n\n                '<div style=\"' +\n                  'color:' + RED + ';' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:20px;' +\n                  'font-weight:bold;' +\n                '\">' +\n                  esc(fc.dead_capital_fmt) +\n                '</div>' +\n\n                '<div style=\"' +\n                  'color:' + GREY + ';' +\n                  'font-size:11px;' +\n                '\">' +\n                  'dead stock' +\n                '</div>' +\n\n              '</td>' +\n\n            '</tr>' +\n\n          '</table>' +\n\n        '</td>' +\n\n      '</tr>' +\n\n\n      /* AI SUMMARY */\n\n      '<tr>' +\n\n        '<td style=\"padding:16px 26px 4px 26px;\">' +\n\n          '<div style=\"' +\n            'background:' + WHITE + ';' +\n            'border-radius:8px;' +\n            'padding:16px 18px;' +\n            'border-left:4px solid ' + BLUE + ';' +\n            'border-top:1px solid ' + BORDER + ';' +\n            'border-right:1px solid ' + BORDER + ';' +\n            'border-bottom:1px solid ' + BORDER + ';' +\n          '\">' +\n\n            '<div style=\"' +\n              'font-family:Georgia,serif;' +\n              'font-size:17px;' +\n              'font-weight:bold;' +\n              'color:' + INK + ';' +\n              'line-height:1.35;' +\n            '\">' +\n              esc(headline) +\n            '</div>' +\n\n            '<div style=\"' +\n              'font-size:14px;' +\n              'color:' + INK + ';' +\n              'line-height:1.55;' +\n              'margin-top:8px;' +\n            '\">' +\n              esc(summary) +\n            '</div>' +\n\n          '</div>' +\n\n        '</td>' +\n\n      '</tr>' +\n\n\n      /* DAYS OF STOCK LEFT */\n\n      (\n        chartHtml\n\n        ? (\n\n            '<tr>' +\n\n              '<td style=\"padding:18px 26px 4px 26px;\">' +\n\n                '<div style=\"' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:15px;' +\n                  'font-weight:bold;' +\n                  'color:' + INK + ';' +\n                  'margin-bottom:8px;' +\n                '\">' +\n                  'Days of stock left' +\n                '</div>' +\n\n                '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">' +\n                  chartHtml +\n                '</table>' +\n\n              '</td>' +\n\n            '</tr>'\n\n          )\n\n        : ''\n      ) +\n\n\n      /* REORDER NOW */\n\n      (\n        reorderHtml\n\n        ? (\n\n            '<tr>' +\n\n              '<td style=\"padding:18px 26px 4px 26px;\">' +\n\n                '<div style=\"' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:15px;' +\n                  'font-weight:bold;' +\n                  'color:' + INK + ';' +\n                  'margin-bottom:8px;' +\n                '\">' +\n\n                  'Reorder now ' +\n\n                  '<span style=\"' +\n                    'font-family:Calibri,Arial,sans-serif;' +\n                    'font-size:12px;' +\n                    'font-weight:normal;' +\n                    'color:' + GREEN + ';' +\n                  '\">' +\n\n                    '&middot; ' +\n                    esc(fc.total_reorder_spend_fmt) +\n                    ' to restock &middot; ' +\n                    esc(poLine) +\n\n                  '</span>' +\n\n                '</div>' +\n\n\n                '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"' +\n                  'background:' + WHITE + ';' +\n                  'border:1px solid ' + BORDER + ';' +\n                  'border-radius:8px;' +\n                '\">' +\n\n                  '<tr>' +\n\n                    '<td style=\"' +\n                      'padding:8px 12px;' +\n                      'font-size:11px;' +\n                      'font-weight:bold;' +\n                      'color:' + GREY + ';' +\n                      'letter-spacing:1px;' +\n                    '\">' +\n                      'PRODUCT' +\n                    '</td>' +\n\n                    '<td align=\"center\" style=\"' +\n                      'padding:8px 12px;' +\n                      'font-size:11px;' +\n                      'font-weight:bold;' +\n                      'color:' + GREY + ';' +\n                    '\">' +\n                      'LEFT' +\n                    '</td>' +\n\n                    '<td align=\"center\" style=\"' +\n                      'padding:8px 12px;' +\n                      'font-size:11px;' +\n                      'font-weight:bold;' +\n                      'color:' + GREY + ';' +\n                    '\">' +\n                      'STOCK' +\n                    '</td>' +\n\n                    '<td align=\"center\" style=\"' +\n                      'padding:8px 12px;' +\n                      'font-size:11px;' +\n                      'font-weight:bold;' +\n                      'color:' + GREY + ';' +\n                    '\">' +\n                      'ORDER' +\n                    '</td>' +\n\n                  '</tr>' +\n\n                  reorderHtml +\n\n                '</table>' +\n\n              '</td>' +\n\n            '</tr>'\n\n          )\n\n        : ''\n      ) +\n\n\n      /* DEAD STOCK */\n\n      (\n        deadHtml\n\n        ? (\n\n            '<tr>' +\n\n              '<td style=\"padding:18px 26px 4px 26px;\">' +\n\n                '<div style=\"' +\n                  'font-family:Georgia,serif;' +\n                  'font-size:15px;' +\n                  'font-weight:bold;' +\n                  'color:' + INK + ';' +\n                  'margin-bottom:8px;' +\n                '\">' +\n                  'Dead stock, capital stuck' +\n                '</div>' +\n\n                '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"' +\n                  'background:' + WHITE + ';' +\n                  'border:1px solid ' + BORDER + ';' +\n                  'border-radius:8px;' +\n                '\">' +\n\n                  deadHtml +\n\n                '</table>' +\n\n              '</td>' +\n\n            '</tr>'\n\n          )\n\n        : ''\n      ) +\n\n\n      /* ACTIONS */\n\n      (\n        actionsHtml\n\n        ? (\n\n            '<tr>' +\n\n              '<td style=\"padding:20px 26px;\">' +\n\n                '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"' +\n                  'background:' + LIGHT_BLUE + ';' +\n                  'border:1px solid #BFDBFE;' +\n                  'border-radius:8px;' +\n                '\">' +\n\n                  '<tr>' +\n\n                    '<td style=\"padding:20px 22px;\">' +\n\n                      '<div style=\"' +\n                        'color:' + BLUE + ';' +\n                        'font-family:Georgia,serif;' +\n                        'font-size:16px;' +\n                        'font-weight:bold;' +\n                        'margin-bottom:10px;' +\n                      '\">' +\n                        'Do this today' +\n                      '</div>' +\n\n                      '<ul style=\"' +\n                        'color:' + INK + ';' +\n                        'font-size:14px;' +\n                        'line-height:1.5;' +\n                        'margin:0;' +\n                        'padding-left:20px;' +\n                      '\">' +\n\n                        actionsHtml +\n\n                      '</ul>' +\n\n                      (\n                        riskNote\n\n                        ? (\n\n                            '<div style=\"' +\n                              'color:' + GREY + ';' +\n                              'font-size:12px;' +\n                              'margin-top:12px;' +\n                              'font-style:italic;' +\n                            '\">' +\n\n                              'Risk if ignored: ' +\n                              esc(riskNote) +\n\n                            '</div>'\n\n                          )\n\n                        : ''\n                      ) +\n\n                    '</td>' +\n\n                  '</tr>' +\n\n                '</table>' +\n\n              '</td>' +\n\n            '</tr>'\n\n          )\n\n        : ''\n      ) +\n\n\n      /* FOOTER */\n\n      '<tr>' +\n\n        '<td style=\"padding:6px 26px 28px 26px;\">' +\n\n          '<div style=\"' +\n            'font-size:12px;' +\n            'color:' + GREY + ';' +\n          '\">' +\n\n            'Generated ' +\n            esc(fc.run_date) +\n            ' &middot; Build. Automate. Scale.' +\n\n          '</div>' +\n\n        '</td>' +\n\n      '</tr>' +\n\n\n    '</table>' +\n\n  '</div>';\n\n\n/* =========================\n   OUTPUT\n   ========================= */\n\nreturn [\n  {\n    json: {\n      digest_html: html,\n      reorder_count: fc.reorder_count,\n      dead_capital_fmt: fc.dead_capital_fmt,\n      run_date: fc.run_date\n    }\n  }\n];"
+      },
+      "id": "7f3bb442-2bfc-471a-9e4c-4f96fb2f2b14",
+      "name": "Build Inventory Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "=naikanant381@gmail.com",
+        "subject": "=Inventory Brief - {{ $(\"Forecast Engine\").first().json.reorder_count }} to reorder, {{ $(\"Forecast Engine\").first().json.dead_capital_fmt }} stuck",
+        "message": "={{ $json.digest_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "afeacefb-dc5e-4e66-81f6-cf473d677aa4",
+      "name": "Email the Brief",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -208,
+        432
+      ],
+      "webhookId": "30ee0f62-1013-4259-b94e-45d29e1afb94",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "k1",
+              "leftValue": "={{ $json.soonest_stockout_days !== null && $json.soonest_stockout_days <= ($(\"Config\").first().json.critical_days || 1) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ec7ba922-a388-4dc0-b30d-9c0ca9b183aa",
+      "name": "Critical stockout?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -752,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "=naikanant381@gmail.com",
+        "subject": "=CRITICAL stockout: {{ $(\"Forecast Engine\").first().json.soonest_stockout_sku }} in {{ $(\"Forecast Engine\").first().json.soonest_stockout_days }} day(s)",
+        "message": "=<div style=\"font-family:Arial,sans-serif;max-width:560px;margin:0 auto;\"><div style=\"background:#C0392B;padding:18px 22px;border-radius:8px 8px 0 0;\"><div style=\"color:#FFFFFF;font-size:12px;font-weight:bold;letter-spacing:2px;\">HAUS OF INTELLIGENCE  ·  CRITICAL</div><div style=\"color:#FFFFFF;font-size:22px;font-weight:bold;margin-top:6px;\">Stockout in {{ $(\"Forecast Engine\").first().json.soonest_stockout_days }} day(s)</div></div><div style=\"background:#FFFFFF;border:1px solid #EEE;border-top:none;padding:20px 22px;border-radius:0 0 8px 8px;\"><p style=\"font-size:15px;color:#1A1A1A;margin:0 0 10px;\"><b>{{ $(\"Forecast Engine\").first().json.soonest_stockout_sku }}</b> is about to run out. {{ $(\"Forecast Engine\").first().json.reorder_count }} SKUs need reordering now, {{ $(\"Forecast Engine\").first().json.total_reorder_spend_fmt }} to restock.</p><p style=\"font-size:14px;color:#555;margin:0;\">Open the full morning brief for the reorder list and the drafted POs.</p></div></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "5f257005-a216-45e2-a89e-61c4be6339ac",
+      "name": "Critical Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        656
+      ],
+      "webhookId": "836bb23a-15af-4c53-9bd3-28fe60c80ac4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {
+    "Reorder Drafter (Gemini)": [
+      {
+        "json": {
+          "candidates": [
+            {
+              "content": {
+                "parts": [
+                  {
+                    "text": "{\n  \"messages\": [\n    {\n      \"sku\": \"BEV003\",\n      \"product\": \"Amul Taaza Milk 1L\",\n      \"supplier\": \"Amul Depot\",\n      \"supplier_email\": \"teamlancemart@gmail.com\",\n      \"order_qty\": \"462 units\",\n      \"urgency\": \"high\",\n      \"subject\": \"Urgent Reorder Request: Amul Taaza Milk 1L\",\n      \"message\": \"Dear Amul Depot Team, we would like to place an urgent order for 462 units of Amul Taaza Milk 1L. Our current stock levels are critically low. Please confirm receipt of this order and provide the expected dispatch date at the earliest. We look forward to your prompt response. Regards, Purchase Team.\"\n    },\n    {\n      \"sku\": \"FMCG002\",\n      \"product\": \"Tata Salt 1kg\",\n      \"supplier\": \"Kirana Wholesale\",\n      \"supplier_email\": \"teamlancemart@gmail.com\",\n      \"order_qty\": \"366 units\",\n      \"urgency\": \"high\",\n      \"subject\": \"Reorder Request: Tata Salt 1kg\",\n      \"message\": \"Dear Kirana Wholesale, please process an order for 366 units of Tata Salt 1kg. We require this stock urgently to maintain our inventory levels. Kindly confirm the order and share the tentative delivery schedule. Thank you for your support. Regards, Purchase Team.\"\n    },\n    {\n      \"sku\": \"FMCG001\",\n      \"product\": \"Aashirvaad Atta 5kg\",\n      \"supplier\": \"Rajesh Distributors\",\n      \"supplier_email\": \"teamlancemart@gmail.com\",\n      \"order_qty\": \"248 units\",\n      \"urgency\": \"high\",\n      \"subject\": \"Purchase Order: Aashirvaad Atta 5kg\",\n      \"message\": \"Dear Rajesh Distributors, we are placing an order for 248 units of Aashirvaad Atta 5kg. Please confirm the availability and share the expected dispatch date with us. We appreciate your quick turnaround on this request. Regards, Purchase Team.\"\n    },\n    {\n      \"sku\": \"SNK004\",\n      \"product\": \"Lays Classic 52g\",\n      \"supplier\": \"Pepsico SD\",\n      \"supplier_email\": \"teamlancemart@gmail.com\",\n      \"order_qty\": \"170 units\",\n      \"urgency\": \"high\",\n      \"subject\": \"Reorder Request: Lays Classic 52g\",\n      \"message\": \"Dear Pepsico SD Team, we would like to order 170 units of Lays Classic 52g. Please confirm this order and let us know when we can expect the delivery. We look forward to receiving the shipment soon. Regards, Purchase Team.\"\n    },\n    {\n      \"sku\": \"PC005\",\n      \"product\": \"Colgate MaxFresh 150g\",\n      \"supplier\": \"Colgate Dist\",\n      \"supplier_email\": \"teamlancemart@gmail.com\",\n      \"order_qty\": \"145 units\",\n      \"urgency\": \"high\",\n      \"subject\": \"Purchase Order: Colgate MaxFresh 150g\",\n      \"message\": \"Dear Colgate Dist, please process an order for 145 units of Colgate MaxFresh 150g. Kindly confirm the order receipt and provide an estimated dispatch date. We appreciate your prompt assistance with this requirement. Regards, Purchase Team.\"\n    }\n  ]\n}",
+                    "thoughtSignature": "EnEKbwERTTIPOpR8XVFzeKETu4MpQ8gdmOwlUu2sMcoFu06jwdxbWbsGRF7sKsEXrL/d2p+8WQaaHbvD36DIKsI6YdWLunWLPsbET6uh/EuvdnKhp+QrBdpZ4+MHw4yJ4kW7VAypfFHEo/OzQs+s14QADg=="
+                  }
+                ],
+                "role": "model"
+              },
+              "finishReason": "STOP",
+              "index": 0
+            }
+          ],
+          "usageMetadata": {
+            "promptTokenCount": 525,
+            "candidatesTokenCount": 828,
+            "totalTokenCount": 1353,
+            "promptTokensDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 525
+              }
+            ],
+            "serviceTier": "standard"
+          },
+          "modelVersion": "gemini-3.1-flash-lite",
+          "responseId": "OciFaoSGKMf-4-EPtZaJkQk"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Stock Analyst (Gemini)": [
+      {
+        "json": {
+          "candidates": [
+            {
+              "content": {
+                "parts": [
+                  {
+                    "text": "{\n  \"headline\": \"Urgent: Amul Taaza Milk stockout in 1 day requires immediate attention.\",\n  \"summary\": \"Our inventory health is at 50 percent with Rs 80,850 tied up in dead stock. We need Rs 1,01,094 to restock five critical items immediately to avoid lost sales. Please approve these orders to maintain supply continuity.\",\n  \"actions\": [\n    \"Place order for Amul Taaza Milk today\",\n    \"Authorize Rs 1,01,094 for total replenishment\",\n    \"Initiate clearance discounts on dead stock items\"\n  ],\n  \"risk_note\": \"Failure to restock today will cause a complete stockout of our fastest moving product by tomorrow.\"\n}",
+                    "thoughtSignature": "EnEKbwERTTIPFBID2JaDxzMxMUNcSGcfMWxUmpNyVEvzAQXiLPatTPWiqMewP2zpe0r6ct7U/LI5jrad9yMXot9ynSjLELwsLZGZuILAD0ysDESCKTVp1isiFhWDWrkvlqtaJT3PZF1xpT/MFD/tO8lSDg=="
+                  }
+                ],
+                "role": "model"
+              },
+              "finishReason": "STOP",
+              "index": 0
+            }
+          ],
+          "usageMetadata": {
+            "promptTokenCount": 667,
+            "candidatesTokenCount": 169,
+            "totalTokenCount": 836,
+            "promptTokensDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 667
+              }
+            ],
+            "serviceTier": "standard"
+          },
+          "modelVersion": "gemini-3.1-flash-lite",
+          "responseId": "p8qFau6gNJSug8UP7LrlwAk"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Run Inventory Check": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Stock Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Stock Data": {
+      "main": [
+        [
+          {
+            "node": "Forecast Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forecast Engine": {
+      "main": [
+        [
+          {
+            "node": "Read Reorder Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Stock Analyst (Gemini)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Critical stockout?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Morning 9am": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Reorder Log": {
+      "main": [
+        [
+          {
+            "node": "Reconcile (dedupe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reconcile (dedupe)": {
+      "main": [
+        [
+          {
+            "node": "Reorder Drafter (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reorder Drafter (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Reorder Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reorder Rows": {
+      "main": [
+        [
+          {
+            "node": "Draft Supplier POs",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Reorders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stock Analyst (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Inventory Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Inventory Digest": {
+      "main": [
+        [
+          {
+            "node": "Email the Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Critical stockout?": {
+      "main": [
+        [
+          {
+            "node": "Critical Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5392fc2a-60ba-42c1-8a0b-ba0b56d1675e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "alc80FubcI3MidhM",
+  "tags": []
+}
