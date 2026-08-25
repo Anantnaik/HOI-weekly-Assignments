@@ -1,0 +1,951 @@
+{
+  "name": "Patient Journey Agent V2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0e19077b-648a-42c9-8f51-ade5c6bba546",
+      "name": "Test Intake",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2256,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "patient_name",
+              "value": "Anjali Verma",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "patient_phone",
+              "value": "+919876500112",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "patient_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "message_text",
+              "value": "Namaste doctor, mere papa ko kal raat se chest me tight pain ho raha hai aur left haath me bhi dard ja raha hai. Saans lene me bhi thoda problem hai. Please jaldi appointment mil sakta hai kya",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "channel",
+              "value": "whatsapp",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e43da9a0-f50b-4f7e-83fa-f715e6492b8e",
+      "name": "Demo Patient Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2032,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "clinic_name",
+              "value": "Sunrise Multi Speciality Clinic",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "clinic_phone",
+              "value": "+91 120 4567890",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "clinic_address",
+              "value": "Plot 12, Sector 18, Noida, Uttar Pradesh",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "doctor_email",
+              "value": "hausofintelligence@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "doctor_roster",
+              "value": "Dr Anil Menon|General Medicine;Dr Kavita Rao|Dentistry;Dr Sneha Nair|Paediatrics;Dr Vikram Shah|Orthopaedics;Dr Priya Desai|Dermatology;Dr Rahul Bose|Cardiology",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "open_hour",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "close_hour",
+              "value": 19,
+              "type": "number"
+            },
+            {
+              "id": "8",
+              "name": "slot_minutes",
+              "value": 20,
+              "type": "number"
+            },
+            {
+              "id": "9",
+              "name": "dedupe_minutes",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "10",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "57c5f913-6b32-4883-abc5-ee786aee143f",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1808,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "patient-intake",
+        "options": {}
+      },
+      "id": "8d8f100f-6e20-455c-bb73-7366e57ea742",
+      "name": "Patient Message In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2256,
+        112
+      ],
+      "webhookId": "6502a146-f211-4773-a78b-774addacd8ce"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json;\nconst body = raw.body || raw;\nconst pick = (a, b, c) => String(a || b || c || '').trim();\nconst name = pick(body.patient_name, body.name, body.from_name);\nconst phone = pick(body.patient_phone, body.phone, body.from);\nconst email = pick(body.patient_email, body.email, '');\nconst text = pick(body.message_text, body.message, body.text);\nconst channel = pick(body.channel, 'whatsapp', 'whatsapp');\nconst issues = [];\nif (!text) { issues.push('Empty patient message'); }\nif (!phone) { issues.push('No patient phone captured'); }\nif (!name) { issues.push('No patient name captured'); }\nif (!email) { issues.push('No patient email captured, reply could not be delivered by email'); }\nreturn [{ json: { patient_name: name || 'Unknown Patient', patient_phone: phone, patient_email: email, message_text: text, channel: channel, intake_issues: issues, intake_issue_count: issues.length } }];"
+      },
+      "id": "a8e39e9e-ada9-4ee4-b522-0826810ca015",
+      "name": "Normalise Intake",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1S4Wm3nLD8N2gBPiRZIh9NLqccwDjDX9Imi2stw25UEQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1583467919,
+          "mode": "list",
+          "cachedResultName": "Patient_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S4Wm3nLD8N2gBPiRZIh9NLqccwDjDX9Imi2stw25UEQ/edit#gid=1583467919"
+        },
+        "options": {}
+      },
+      "id": "0a8a1e50-eef6-4e8c-9801-bbedca554ae6",
+      "name": "Read Patient History",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1376,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1S4Wm3nLD8N2gBPiRZIh9NLqccwDjDX9Imi2stw25UEQ",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 868458065,
+          "mode": "list",
+          "cachedResultName": "Clinic_KB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1S4Wm3nLD8N2gBPiRZIh9NLqccwDjDX9Imi2stw25UEQ/edit#gid=868458065"
+        },
+        "options": {}
+      },
+      "id": "6cb7ce38-e161-4229-96b2-176c140e65e7",
+      "name": "Read Clinic KB",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1152,
+        224
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst intake = $('Normalise Intake').first().json;\nconst kbRows = $input.all().map(i => i.json).filter(r => r && (r.question || r.Question));\nlet kb = '';\nkbRows.forEach(r => { kb += String(r.question || r.Question) + ' :: ' + String(r.answer || r.Answer || '') + '\\n'; });\nif (!kb) { kb = 'Clinic timings 10am to 7pm Monday to Saturday. Walk ins allowed but appointment preferred.'; }\nconst roster = String(cfg.doctor_roster || '');\nconst specs = [];\nroster.split(';').forEach(pair => { const bits = pair.split('|'); if (bits.length === 2) { specs.push(bits[1].trim()); } });\nconst phone = String(intake.patient_phone || '').replace(/[^0-9]/g, '').slice(-10);\nconst hist = $('Read Patient History').all().map(i => i.json).filter(r => r && (r.record_id || r.patient_phone));\nconst mine = hist.filter(r => String(r.patient_phone || '').replace(/[^0-9]/g, '').slice(-10) === phone && phone.length === 10);\nlet histText = 'No previous visit on record. Treat as a new patient.';\nif (mine.length) {\n  histText = '';\n  mine.forEach(r => { histText += String(r.appointment_slot || r.received_at || '') + ' | ' + String(r.specialty || '') + ' | ' + String(r.symptoms || '') + ' | seen by ' + String(r.doctor || '') + '\\n'; });\n}\nreturn [{ json: { kb_text: kb, history_text: histText, visit_count: mine.length, is_returning: mine.length > 0, specialty_list: specs.join(', '), patient_name: intake.patient_name, message_text: intake.message_text } }];"
+      },
+      "id": "4eaa1687-c167-4ef8-b802-5ba96f51522c",
+      "name": "Assemble Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a clinic front desk triage assistant in India. You do NOT diagnose and you do NOT suggest any medicine. You only classify, extract and route. Safety first: if there is any sign of a medical emergency, mark it emergency.\\n\\nPATIENT MESSAGE:\\n\" + ($json.message_text || \"\") + \"\\n\\nPATIENT NAME GIVEN: \" + ($json.patient_name || \"unknown\") + \"\\nPREVIOUS VISITS:\\n\" + ($json.history_text || \"none\") + \"\\n\\nAVAILABLE DEPARTMENTS (choose exactly one of these words, nothing else):\\n\" + ($json.specialty_list || \"General Medicine\") + \"\\n\\nCLINIC KNOWLEDGE BASE:\\n\" + ($json.kb_text || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: intent, urgency, specialty, red_flags, symptoms, duration, age_hint, language, summary, kb_answer, key_questions.\\nintent is one of: new_appointment, reschedule, cancel, medical_query, report_review, billing, other.\\nurgency is one of: emergency, urgent, routine.\\nMark emergency for chest pain, breathlessness, stroke signs, severe bleeding, unconsciousness, severe injury, suicidal talk, high fever in an infant, or any life threatening sign.\\nMark urgent for severe pain, high fever, persistent vomiting, or anything that should be seen the same day.\\nOtherwise routine.\\nspecialty MUST be copied character for character from the AVAILABLE DEPARTMENTS list above. Return the department name ONLY. Do NOT return a doctor name. Do NOT include a pipe character. If unsure, return General Medicine.\\nred_flags is an array of short clinical warning signs found in the message, empty array if none.\\nsymptoms is a short factual phrase of what the patient reports, no interpretation.\\nduration is how long it has been going on, or unknown.\\nage_hint is child, adult, elderly or unknown.\\nlanguage is english, hindi or hinglish based on how the patient wrote.\\nsummary is one factual line for the doctor.\\nkb_answer is a direct answer from the clinic knowledge base if the patient asked an admin question, else empty string.\\nkey_questions is an array of exactly 3 short questions the doctor should ask this patient at the visit.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.2,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "4204ca01-6a60-487a-9f2e-879a28670f33",
+      "name": "Triage Agent (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -704,
+        224
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); try { return JSON.parse(t); } catch (err) { return null; } };\nconst cfg = $('Config').first().json;\nconst intake = $('Normalise Intake').first().json;\nconst ctx = $('Assemble Context').first().json;\nconst t = parseJson(textOf($input.first().json)) || {};\nconst aiOk = !!t.urgency;\nconst issues = Array.isArray(intake.intake_issues) ? intake.intake_issues.slice(0) : [];\nif (!aiOk) { issues.push('Triage AI did not return a valid result, defaulted to urgent for safety'); }\nconst urgency = String(t.urgency || (aiOk ? 'routine' : 'urgent')).toLowerCase();\nconst intent = String(t.intent || 'new_appointment');\nconst redFlags = Array.isArray(t.red_flags) ? t.red_flags : [];\nconst keyQ = Array.isArray(t.key_questions) ? t.key_questions : [];\nlet wantedSpec = String(t.specialty || 'General Medicine').trim();\nif (wantedSpec.indexOf('|') !== -1) { const wb = wantedSpec.split('|'); wantedSpec = wb[wb.length - 1].trim(); }\nconst roster = String(cfg.doctor_roster || '');\nconst docs = [];\nroster.split(';').forEach(pair => { const bits = pair.split('|'); if (bits.length === 2) { docs.push({ name: bits[0].trim(), spec: bits[1].trim() }); } });\nconst ws = wantedSpec.toLowerCase();\nlet match = docs.find(d => d.spec.toLowerCase() === ws);\nif (!match) { match = docs.find(d => ws.indexOf(d.spec.toLowerCase()) !== -1); }\nif (!match) { match = docs.find(d => d.spec.toLowerCase().indexOf(ws) !== -1 && ws.length > 3); }\nif (!match) { match = docs.find(d => ws.indexOf(d.name.toLowerCase()) !== -1); }\nif (!match) { match = docs.find(d => d.spec.toLowerCase().indexOf('general') !== -1); }\nif (!match && docs.length) { match = docs[0]; }\nif (match && match.spec.toLowerCase() !== ws && ws.length > 2) { issues.push('Triage asked for ' + wantedSpec + ' which is not on the roster, routed to ' + match.spec); }\nconst doctor = match ? match.name : 'Duty Doctor';\nconst specialty = match ? match.spec : 'General Medicine';\nconst openH = Number(cfg.open_hour) || 10;\nconst closeH = Number(cfg.close_hour) || 19;\nconst slotMin = Number(cfg.slot_minutes) || 20;\nconst TZ = Number(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst fmtDate = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst fmtSlot = (d) => fmtDate(d) + ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes());\nconst now = new Date(Date.now() + TZ * 60000);\nconst hist = $('Read Patient History').all().map(i => i.json).filter(r => r && (r.record_id || r.patient_phone));\nlet slotText = '';\nlet apptDate = '';\nif (urgency === 'emergency') {\n  slotText = 'IMMEDIATE - come to the clinic now or call ' + String(cfg.clinic_phone || '');\n  apptDate = fmtDate(now);\n} else {\n  let target = new Date(now.getTime());\n  if (urgency === 'urgent') {\n    target = new Date(now.getTime() + 2 * 3600000);\n    if (target.getUTCHours() >= closeH) { target.setUTCDate(target.getUTCDate() + 1); target.setUTCHours(openH, 0, 0, 0); }\n    else if (target.getUTCHours() < openH) { target.setUTCHours(openH, 0, 0, 0); }\n    else { target.setUTCMinutes(0, 0, 0); }\n  } else {\n    target = new Date(now.getTime() + 86400000);\n    target.setUTCHours(openH, 0, 0, 0);\n  }\n  const dStr = fmtDate(target);\n  const sameDay = hist.filter(r => String(r.appointment_slot || '').indexOf(dStr) === 0);\n  target = new Date(target.getTime() + sameDay.length * slotMin * 60000);\n  if (target.getUTCHours() >= closeH) { target.setUTCDate(target.getUTCDate() + 1); target.setUTCHours(openH, 0, 0, 0); }\n  slotText = fmtSlot(target);\n  apptDate = fmtDate(target);\n}\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nconst phoneKey = String(intake.patient_phone || '').replace(/[^0-9]/g, '').slice(-10);\nconst dedupeMin = Number(cfg.dedupe_minutes) || 30;\nconst nowMs = now.getTime();\nlet isDuplicate = false;\nhist.forEach(r => { const rp = String(r.patient_phone || '').replace(/[^0-9]/g, '').slice(-10); if (rp && rp === phoneKey) { const ts = Date.parse(String(r.received_at || '').trim().replace(' ', 'T') + 'Z'); if (!isNaN(ts) && (nowMs - ts) < dedupeMin * 60000 && (nowMs - ts) > -60000) { isDuplicate = true; } } });\nlet flagText = 'none';\nif (redFlags.length) { flagText = redFlags.join('; '); }\nlet qText = '';\nkeyQ.forEach(q => { qText += '- ' + String(q) + '\\n'; });\nreturn [{ json: {\n  record_id: 'PR' + stamp,\n  appointment_id: 'AP' + stamp,\n  received_at: fmtSlot(now),\n  channel: intake.channel,\n  patient_name: intake.patient_name,\n  patient_phone: intake.patient_phone,\n  patient_email: intake.patient_email,\n  message_text: intake.message_text,\n  intent: intent,\n  urgency: urgency,\n  is_emergency: urgency === 'emergency',\n  red_flags: redFlags,\n  red_flags_text: flagText,\n  symptoms: String(t.symptoms || 'Not clearly stated'),\n  duration: String(t.duration || 'unknown'),\n  age_hint: String(t.age_hint || 'unknown'),\n  language: String(t.language || 'english'),\n  summary: String(t.summary || 'Patient enquiry received'),\n  kb_answer: String(t.kb_answer || ''),\n  key_questions: keyQ,\n  key_questions_text: qText || '- Confirm the exact onset and duration\\n- Ask about any existing medication\\n- Ask about known allergies\\n',\n  specialty: specialty,\n  doctor: doctor,\n  appointment_slot: slotText,\n  appointment_date: apptDate,\n  is_returning: !!ctx.is_returning,\n  visit_count: Number(ctx.visit_count) || 0,\n  history_text: ctx.history_text,\n  clinic_name: cfg.clinic_name,\n  clinic_phone: cfg.clinic_phone,\n  clinic_address: cfg.clinic_address,\n  doctor_email: cfg.doctor_email,\n  ai_ok: aiOk,\n  is_duplicate: isDuplicate,\n  data_issues: issues,\n  data_issue_count: issues.length,\n  status: urgency === 'emergency' ? 'escalated' : 'booked'\n} }];"
+      },
+      "id": "45e1c1c0-e2dc-4c58-a36a-ae2bebd1077c",
+      "name": "Slot and Route Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.is_emergency }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "82118262-ab89-4ff7-8378-8ff19937e416",
+      "name": "Is Emergency",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -272,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "=naikanant381@gmail.com",
+        "subject": "=EMERGENCY TRIAGE - {{ $json.patient_name }} - {{ $json.symptoms }}",
+        "message": "=<div style=\"font-family:Calibri,Arial,sans-serif;background:#FBE9E7;padding:22px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:10px;overflow:hidden;border-top:6px solid #C0392B;\"><tr><td style=\"padding:22px 26px;\"><div style=\"color:#C0392B;font-size:12px;font-weight:bold;letter-spacing:3px;\">EMERGENCY TRIAGE ALERT</div><div style=\"font-family:Georgia,serif;font-size:24px;font-weight:bold;color:#0F2A3D;margin-top:8px;\">{{ $json.patient_name }}</div><div style=\"font-size:13px;color:#666666;margin-top:4px;\">{{ $json.patient_phone }} &middot; {{ $json.received_at }} &middot; via {{ $json.channel }}</div></td></tr><tr><td style=\"padding:0 26px 16px 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid #C0392B;border-radius:6px;padding:14px 16px;\"><div style=\"font-size:12px;font-weight:bold;color:#7A1F14;letter-spacing:1px;\">RED FLAGS</div><div style=\"font-size:15px;color:#7A1F14;font-weight:bold;margin-top:6px;\">{{ $json.red_flags_text }}</div></div></td></tr><tr><td style=\"padding:0 26px 16px 26px;\"><div style=\"font-size:12px;font-weight:bold;color:#666666;letter-spacing:1px;\">WHAT THE PATIENT SAID</div><div style=\"font-size:14px;color:#1A1A1A;line-height:1.55;margin-top:6px;font-style:italic;\">{{ $json.message_text }}</div></td></tr><tr><td style=\"padding:0 26px 22px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E4E4DC;border-radius:8px;\"><tr><td style=\"padding:12px 14px;font-size:13px;color:#666666;\">Routed to</td><td align=\"right\" style=\"padding:12px 14px;font-size:14px;font-weight:bold;color:#0E7C7B;\">{{ $json.doctor }} &middot; {{ $json.specialty }}</td></tr><tr><td style=\"padding:12px 14px;font-size:13px;color:#666666;border-top:1px solid #E4E4DC;\">Action</td><td align=\"right\" style=\"padding:12px 14px;font-size:14px;font-weight:bold;color:#C0392B;border-top:1px solid #E4E4DC;\">{{ $json.appointment_slot }}</td></tr></table><div style=\"font-size:12px;color:#666666;margin-top:14px;\">Call the patient back immediately. This alert was raised automatically and is not a diagnosis.</div></td></tr><tr><td style=\"background:#0F2A3D;padding:12px 26px;\"><div style=\"color:#9AB2C0;font-size:11px;\">{{ $json.clinic_name }} &middot; Patient Journey Agent &middot; Powered by Haus of Intelligence</div></td></tr></table></div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "209160b3-f9f5-4980-9609-0146a7024d30",
+      "name": "Emergency Alert to Clinic",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "e17409c0-40aa-4cab-ad71-1a43731880ae",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are the front desk of \" + ($json.clinic_name || \"the clinic\") + \" replying to a patient on WhatsApp. Be warm, short and respectful. You must NOT diagnose, must NOT name any illness and must NOT suggest any medicine.\\n\\nPATIENT NAME: \" + ($json.patient_name || \"\") + \"\\nWHAT THEY WROTE: \" + ($json.message_text || \"\") + \"\\nLANGUAGE TO REPLY IN: \" + ($json.language || \"english\") + \"\\nURGENCY: \" + ($json.urgency || \"routine\") + \"\\nDOCTOR ASSIGNED: \" + ($json.doctor || \"\") + \" (\" + ($json.specialty || \"\") + \")\\nAPPOINTMENT: \" + ($json.appointment_slot || \"\") + \"\\nCLINIC PHONE: \" + ($json.clinic_phone || \"\") + \"\\nCLINIC ADDRESS: \" + ($json.clinic_address || \"\") + \"\\nADMIN ANSWER IF ANY: \" + ($json.kb_answer || \"none\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: greeting_line, body_lines, prep_lines, closing_line.\\ngreeting_line is one warm line addressing the patient by name.\\nbody_lines is an array of 2 to 4 short lines confirming what happens next, naming the doctor and the appointment time.\\nIf URGENCY is emergency, the FIRST body line must clearly tell them to come to the clinic immediately or call the clinic number now, and to go to the nearest emergency room if the person becomes worse. Do not soften it and do not name any condition.\\nprep_lines is an array of 2 or 3 short practical things to bring or do before the visit, such as previous reports, a list of current medicines, and coming 10 minutes early.\\nclosing_line is one short reassuring line.\\nIf LANGUAGE is hinglish, write naturally in Roman Hindi mixed with English the way Indian patients message. If hindi, reply in simple Hindi written in Roman script. Otherwise plain Indian English.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.5,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "acae9ab0-59db-43cd-9ad3-5edab75c58e0",
+      "name": "Patient Reply Composer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        272
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst d = $('Slot and Route Engine').first().json;\nconst r = parseJson(textOf($input.first().json)) || {};\nconst replyOk = !!r.greeting_line;\nconst greeting = r.greeting_line || ('Namaste ' + d.patient_name + ',');\nconst bodyLines = Array.isArray(r.body_lines) && r.body_lines.length ? r.body_lines : ['We have received your message and our team will contact you shortly.'];\nconst prepLines = Array.isArray(r.prep_lines) ? r.prep_lines : [];\nconst closing = r.closing_line || 'Thank you.';\nconst SLATE = '#0F2A3D', TEAL = '#0E7C7B', CREAM = '#F4F5F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#666666', RED = '#C0392B', AMBER = '#E67E22';\nconst isEmg = d.urgency === 'emergency';\nconst accent = isEmg ? RED : (d.urgency === 'urgent' ? AMBER : TEAL);\nlet bodyHtml = '';\nbodyLines.forEach(l => { bodyHtml += '<div style=\"font-size:15px;color:' + INK + ';line-height:1.6;margin-bottom:9px;\">' + esc(l) + '</div>'; });\nlet prepHtml = '';\nprepLines.forEach(l => { prepHtml += '<li style=\"margin-bottom:6px;\">' + esc(l) + '</li>'; });\nlet plain = greeting + '\\n\\n';\nbodyLines.forEach(l => { plain += l + '\\n'; });\nif (prepLines.length) { plain += '\\nPlease bring:\\n'; prepLines.forEach(l => { plain += '- ' + l + '\\n'; }); }\nplain += '\\n' + closing;\nconst banner = isEmg ? ('<tr><td style=\"background:' + RED + ';padding:12px 26px;\"><div style=\"color:#FFFFFF;font-size:13px;font-weight:bold;letter-spacing:1px;\">URGENT - PLEASE READ IMMEDIATELY</div></td></tr>') : '';\nconst html = '' +\n'<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\">' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + SLATE + ';padding:22px 26px;\">' +\n'<div style=\"color:#7FD1CE;font-size:11px;font-weight:bold;letter-spacing:3px;\">APPOINTMENT UPDATE</div>' +\n'<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:22px;font-weight:bold;margin-top:6px;\">' + esc(d.clinic_name) + '</div>' +\n'</td></tr>' + banner +\n'<tr><td style=\"padding:22px 26px 6px 26px;\"><div style=\"font-size:16px;font-weight:bold;color:' + INK + ';margin-bottom:12px;\">' + esc(greeting) + '</div>' + bodyHtml + '</td></tr>' +\n'<tr><td style=\"padding:8px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E4E4DC;border-radius:8px;border-left:4px solid ' + accent + ';\">' +\n'<tr><td style=\"padding:12px 14px;font-size:12px;color:' + GREY + ';\">Doctor</td><td align=\"right\" style=\"padding:12px 14px;font-size:14px;font-weight:bold;color:' + SLATE + ';\">' + esc(d.doctor) + '</td></tr>' +\n'<tr><td style=\"padding:12px 14px;font-size:12px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Department</td><td align=\"right\" style=\"padding:12px 14px;font-size:14px;color:' + SLATE + ';border-top:1px solid #E4E4DC;\">' + esc(d.specialty) + '</td></tr>' +\n'<tr><td style=\"padding:12px 14px;font-size:12px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Appointment</td><td align=\"right\" style=\"padding:12px 14px;font-size:14px;font-weight:bold;color:' + accent + ';border-top:1px solid #E4E4DC;\">' + esc(d.appointment_slot) + '</td></tr>' +\n'<tr><td style=\"padding:12px 14px;font-size:12px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Reference</td><td align=\"right\" style=\"padding:12px 14px;font-size:13px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">' + esc(d.appointment_id) + '</td></tr>' +\n'</table></td></tr>' +\n(prepHtml ? ('<tr><td style=\"padding:16px 26px 4px 26px;\"><div style=\"font-size:13px;font-weight:bold;color:' + SLATE + ';margin-bottom:6px;\">Please bring with you</div><ul style=\"font-size:14px;color:' + INK + ';line-height:1.5;margin:0;padding-left:20px;\">' + prepHtml + '</ul></td></tr>') : '') +\n'<tr><td style=\"padding:16px 26px 20px 26px;\"><div style=\"font-size:14px;color:' + INK + ';\">' + esc(closing) + '</div>' +\n'<div style=\"font-size:13px;color:' + GREY + ';margin-top:12px;\">' + esc(d.clinic_address) + '<br>Call us: ' + esc(d.clinic_phone) + '</div></td></tr>' +\n'<tr><td style=\"background:' + CREAM + ';padding:12px 26px;\"><div style=\"font-size:11px;color:' + GREY + ';line-height:1.45;\">This message is an appointment confirmation only. It is not medical advice or a diagnosis. In an emergency please call ' + esc(d.clinic_phone) + ' or go to the nearest emergency room.</div></td></tr>' +\n'</table></div>';\nreturn [{ json: { patient_reply_html: html, patient_reply_text: plain, reply_ok: replyOk } }];"
+      },
+      "id": "46a29512-3f22-4614-a7ad-78b9006709a2",
+      "name": "Build Patient Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Slot and Route Engine\").first().json.patient_email }}",
+        "subject": "={{ $(\"Slot and Route Engine\").first().json.clinic_name }} - your appointment {{ $(\"Slot and Route Engine\").first().json.appointment_id }}",
+        "message": "={{ $json.patient_reply_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "848aad26-d30d-44e8-8f33-da57936ba577",
+      "name": "Send Patient Reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        272
+      ],
+      "webhookId": "6eeefda5-ff96-4d00-94ba-15481873f34d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a clinical scribe preparing a one page pre consultation brief for a doctor in India. You do NOT diagnose and you do NOT suggest treatment or medicine. You only organise what the patient reported so the doctor can read it in 20 seconds.\\n\\nPATIENT: \" + ($(\"Slot and Route Engine\").first().json.patient_name || \"\") + \"\\nAGE GROUP: \" + ($(\"Slot and Route Engine\").first().json.age_hint || \"unknown\") + \"\\nWHAT THEY WROTE: \" + ($(\"Slot and Route Engine\").first().json.message_text || \"\") + \"\\nREPORTED SYMPTOMS: \" + ($(\"Slot and Route Engine\").first().json.symptoms || \"\") + \"\\nDURATION: \" + ($(\"Slot and Route Engine\").first().json.duration || \"unknown\") + \"\\nRED FLAGS FOUND: \" + ($(\"Slot and Route Engine\").first().json.red_flags_text || \"none\") + \"\\nURGENCY: \" + ($(\"Slot and Route Engine\").first().json.urgency || \"\") + \"\\nDEPARTMENT: \" + ($(\"Slot and Route Engine\").first().json.specialty || \"\") + \"\\nPREVIOUS VISITS:\\n\" + ($(\"Slot and Route Engine\").first().json.history_text || \"none\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: chief_complaint, history_note, observations, questions_to_ask, prep_note, caution_note.\\nchief_complaint is one clinical line stating what the patient reports, factual only.\\nhistory_note is one or two lines connecting this to any previous visit, or says first recorded visit.\\nobservations is an array of 3 short factual bullets drawn only from what the patient said, no interpretation and no diagnosis.\\nquestions_to_ask is an array of exactly 4 specific questions the doctor should ask at the visit.\\nprep_note is one line on what the front desk should keep ready, for example previous reports, vitals, or a specific test the doctor may want.\\ncaution_note is one line reminding that this is an automated intake summary and not a clinical assessment.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.3,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "1cc4a743-760e-4658-9dd9-1735cf1c7264",
+      "name": "Doctor Brief Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        400,
+        272
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst d = $('Slot and Route Engine').first().json;\nconst b = parseJson(textOf($input.first().json)) || {};\nconst briefOk = !!b.chief_complaint;\nconst replyOk = !!($('Build Patient Reply').first().json.reply_ok);\nconst chief = b.chief_complaint || d.symptoms || 'Patient enquiry received';\nconst histNote = b.history_note || (d.is_returning ? ('Returning patient with ' + d.visit_count + ' previous visit(s) on record.') : 'First recorded visit.');\nconst obs = Array.isArray(b.observations) ? b.observations : [];\nconst qs = Array.isArray(b.questions_to_ask) && b.questions_to_ask.length ? b.questions_to_ask : (Array.isArray(d.key_questions) ? d.key_questions : []);\nconst prep = b.prep_note || 'Keep previous reports and vitals ready.';\nconst caution = b.caution_note || 'This is an automated intake summary and not a clinical assessment.';\nconst SLATE = '#0F2A3D', TEAL = '#0E7C7B', CREAM = '#F4F5F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#666666', RED = '#C0392B', AMBER = '#E67E22';\nconst uc = d.urgency === 'emergency' ? RED : (d.urgency === 'urgent' ? AMBER : TEAL);\nconst ucLabel = String(d.urgency || 'routine').toUpperCase();\nconst issues = Array.isArray(d.data_issues) ? d.data_issues.slice(0) : [];\nif (!briefOk) { issues.push('Brief AI was unavailable, showing captured intake data only'); }\nif (!replyOk) { issues.push('Patient reply AI was unavailable, a fallback reply was sent'); }\nif (d.is_duplicate) { issues.push('Possible duplicate message from the same number within the dedupe window'); }\nlet bannerHtml = '';\nif (issues.length) { bannerHtml = '<tr><td style=\"padding:12px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RED + ';border-radius:6px;padding:11px 13px;font-size:12.5px;color:#7A1F14;\"><strong>Heads up.</strong> ' + esc(issues.slice(0, 3).join('; ')) + '</div></td></tr>'; }\nlet obsHtml = '';\nobs.forEach(o => { obsHtml += '<li style=\"margin-bottom:6px;\">' + esc(o) + '</li>'; });\nlet qHtml = '';\nqs.forEach(q => { qHtml += '<li style=\"margin-bottom:7px;\">' + esc(q) + '</li>'; });\nconst flagsBlock = (d.red_flags_text && d.red_flags_text !== 'none') ? ('<tr><td style=\"padding:14px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RED + ';border-radius:6px;padding:13px 15px;\"><div style=\"font-size:11px;font-weight:bold;color:#7A1F14;letter-spacing:1px;\">RED FLAGS</div><div style=\"font-size:14.5px;color:#7A1F14;font-weight:bold;margin-top:5px;\">' + esc(d.red_flags_text) + '</div></div></td></tr>') : '';\nconst html = '' +\n'<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\">' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:640px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + SLATE + ';padding:22px 26px;\">' +\n'<div style=\"color:#7FD1CE;font-size:11px;font-weight:bold;letter-spacing:3px;\">PRE CONSULTATION BRIEF</div>' +\n'<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;margin-top:7px;\">' + esc(d.patient_name) + '</div>' +\n'<div style=\"color:#9AB2C0;font-size:13px;margin-top:5px;\">' + esc(d.patient_phone) + ' &middot; ' + esc(d.age_hint) + ' &middot; via ' + esc(d.channel) + ' &middot; ' + esc(d.received_at) + ' IST</div>' +\n'</td></tr>' + bannerHtml +\n'<tr><td style=\"padding:16px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + uc + ';border-radius:6px;padding:12px 6px;\"><div style=\"color:#FFFFFF;font-size:15px;font-weight:bold;\">' + ucLabel + '</div><div style=\"color:#F0F0F0;font-size:10.5px;\">triage</div></td>' +\n'<td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:12px 6px;\"><div style=\"color:' + SLATE + ';font-size:14px;font-weight:bold;\">' + esc(d.specialty) + '</div><div style=\"color:' + GREY + ';font-size:10.5px;\">department</div></td>' +\n'<td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:12px 6px;\"><div style=\"color:' + SLATE + ';font-size:14px;font-weight:bold;\">' + esc(d.doctor) + '</div><div style=\"color:' + GREY + ';font-size:10.5px;\">assigned</div></td>' +\n'<td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:12px 6px;\"><div style=\"color:' + SLATE + ';font-size:13px;font-weight:bold;\">' + esc(d.visit_count) + '</div><div style=\"color:' + GREY + ';font-size:10.5px;\">past visits</div></td>' +\n'</tr></table></td></tr>' + flagsBlock +\n'<tr><td style=\"padding:16px 26px 4px 26px;\"><div style=\"font-family:Georgia,serif;font-size:15px;font-weight:bold;color:' + SLATE + ';\">Chief complaint</div>' +\n'<div style=\"font-size:15px;color:' + INK + ';line-height:1.55;margin-top:5px;\">' + esc(chief) + '</div>' +\n'<div style=\"font-size:13px;color:' + GREY + ';margin-top:7px;\">Duration: ' + esc(d.duration) + '</div></td></tr>' +\n'<tr><td style=\"padding:14px 26px 4px 26px;\"><div style=\"font-family:Georgia,serif;font-size:15px;font-weight:bold;color:' + SLATE + ';\">History</div>' +\n'<div style=\"font-size:14px;color:' + INK + ';line-height:1.55;margin-top:5px;\">' + esc(histNote) + '</div></td></tr>' +\n(obsHtml ? ('<tr><td style=\"padding:14px 26px 4px 26px;\"><div style=\"font-family:Georgia,serif;font-size:15px;font-weight:bold;color:' + SLATE + ';\">Reported by the patient</div><ul style=\"font-size:14px;color:' + INK + ';line-height:1.5;margin:6px 0 0 0;padding-left:20px;\">' + obsHtml + '</ul></td></tr>') : '') +\n(qHtml ? ('<tr><td style=\"padding:16px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + SLATE + ';border-radius:8px;\"><tr><td style=\"padding:18px 20px;\"><div style=\"color:#7FD1CE;font-family:Georgia,serif;font-size:15px;font-weight:bold;margin-bottom:9px;\">Ask the patient</div><ul style=\"color:#E4ECF0;font-size:14px;line-height:1.5;margin:0;padding-left:20px;\">' + qHtml + '</ul></td></tr></table></td></tr>') : '') +\n'<tr><td style=\"padding:0 26px 6px 26px;\"><div style=\"background:' + CREAM + ';border-radius:6px;padding:12px 14px;font-size:13px;color:' + INK + ';\"><strong>Front desk:</strong> ' + esc(prep) + '</div></td></tr>' +\n'<tr><td style=\"padding:8px 26px 18px 26px;\"><div style=\"font-size:11.5px;color:' + GREY + ';line-height:1.45;\">' + esc(caution) + ' Patient words are reproduced as received. Ref ' + esc(d.record_id) + '.</div></td></tr>' +\n'<tr><td style=\"background:' + SLATE + ';padding:12px 26px;\"><div style=\"color:#9AB2C0;font-size:11px;\">' + esc(d.clinic_name) + ' &middot; Patient Journey Agent &middot; Powered by Haus of Intelligence</div></td></tr>' +\n'</table></div>';\nreturn [{ json: { doctor_brief_html: html, brief_ok: briefOk, issue_count: issues.length } }];"
+      },
+      "id": "483e5317-fd54-42a4-9c42-bae74d03a3fa",
+      "name": "Build Doctor Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "=naikanant381@gmail.com",
+        "subject": "=[{{ $(\"Slot and Route Engine\").first().json.urgency }}] {{ $(\"Slot and Route Engine\").first().json.patient_name }} - {{ $(\"Slot and Route Engine\").first().json.specialty }} - {{ $(\"Slot and Route Engine\").first().json.appointment_slot }}",
+        "message": "={{ $json.doctor_brief_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "948d1a83-7921-4179-b878-7b31970e2da1",
+      "name": "Send Doctor Brief",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        272
+      ],
+      "webhookId": "4ac36e3e-3540-43ba-957d-de1b70462a29",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Oizx2WxP5JjZnd9sFgYrQBYdj8Q2u7lxQHD9ORl92F8",
+          "cachedResultName": "HOI Clinic Master",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Oizx2WxP5JjZnd9sFgYrQBYdj8Q2u7lxQHD9ORl92F8/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Patient_Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "record_id",
+              "displayName": "record_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "patient_name",
+              "displayName": "patient_name",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "patient_phone",
+              "displayName": "patient_phone",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "patient_email",
+              "displayName": "patient_email",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "message_text",
+              "displayName": "message_text",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "intent",
+              "displayName": "intent",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "red_flags",
+              "displayName": "red_flags",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "symptoms",
+              "displayName": "symptoms",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "duration",
+              "displayName": "duration",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "specialty",
+              "displayName": "specialty",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "doctor",
+              "displayName": "doctor",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "appointment_id",
+              "displayName": "appointment_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "appointment_slot",
+              "displayName": "appointment_slot",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "patient_reply_sent",
+              "displayName": "patient_reply_sent",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "brief_sent",
+              "displayName": "brief_sent",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "record_id": "={{ $(\"Slot and Route Engine\").first().json.record_id }}",
+            "received_at": "={{ $(\"Slot and Route Engine\").first().json.received_at }}",
+            "channel": "={{ $(\"Slot and Route Engine\").first().json.channel }}",
+            "patient_name": "={{ $(\"Slot and Route Engine\").first().json.patient_name }}",
+            "patient_phone": "={{ $(\"Slot and Route Engine\").first().json.patient_phone }}",
+            "patient_email": "={{ $(\"Slot and Route Engine\").first().json.patient_email }}",
+            "message_text": "={{ $(\"Slot and Route Engine\").first().json.message_text }}",
+            "intent": "={{ $(\"Slot and Route Engine\").first().json.intent }}",
+            "urgency": "={{ $(\"Slot and Route Engine\").first().json.urgency }}",
+            "red_flags": "={{ $(\"Slot and Route Engine\").first().json.red_flags_text }}",
+            "symptoms": "={{ $(\"Slot and Route Engine\").first().json.symptoms }}",
+            "duration": "={{ $(\"Slot and Route Engine\").first().json.duration }}",
+            "specialty": "={{ $(\"Slot and Route Engine\").first().json.specialty }}",
+            "doctor": "={{ $(\"Slot and Route Engine\").first().json.doctor }}",
+            "appointment_id": "={{ $(\"Slot and Route Engine\").first().json.appointment_id }}",
+            "appointment_slot": "={{ $(\"Slot and Route Engine\").first().json.appointment_slot }}",
+            "status": "={{ $(\"Slot and Route Engine\").first().json.status }}",
+            "patient_reply_sent": "={{ $(\"Build Patient Reply\").first().json.reply_ok ? \"yes\" : \"fallback\" }}",
+            "brief_sent": "={{ $(\"Build Doctor Brief\").first().json.brief_ok ? \"yes\" : \"fallback\" }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "1e635ce0-b265-4aa8-8e76-bb949b933de7",
+      "name": "Log Patient Record",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1056,
+        272
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Test Intake": {
+      "main": [
+        [
+          {
+            "node": "Demo Patient Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Demo Patient Message": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Normalise Intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Patient Message In": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalise Intake": {
+      "main": [
+        [
+          {
+            "node": "Read Patient History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Patient History": {
+      "main": [
+        [
+          {
+            "node": "Read Clinic KB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Clinic KB": {
+      "main": [
+        [
+          {
+            "node": "Assemble Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Context": {
+      "main": [
+        [
+          {
+            "node": "Triage Agent (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Triage Agent (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Slot and Route Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slot and Route Engine": {
+      "main": [
+        [
+          {
+            "node": "Is Emergency",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Patient Reply Composer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Emergency": {
+      "main": [
+        [
+          {
+            "node": "Emergency Alert to Clinic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Patient Reply Composer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Patient Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Patient Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Patient Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Patient Reply": {
+      "main": [
+        [
+          {
+            "node": "Doctor Brief Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Doctor Brief Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Doctor Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Doctor Brief": {
+      "main": [
+        [
+          {
+            "node": "Send Doctor Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Doctor Brief": {
+      "main": [
+        [
+          {
+            "node": "Log Patient Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "20484b9d-db28-44f5-8ad4-259aadbf9388",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "DN2u6EBOYOlU4LzP",
+  "tags": []
+}
