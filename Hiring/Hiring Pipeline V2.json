@@ -1,0 +1,786 @@
+{
+  "name": "Hiring Pipeline V2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f3aecff8-9177-4868-af68-71858f896b47",
+      "name": "Run Talent Desk",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2016,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "company_name",
+              "value": "Northbridge Technologies",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "company_location",
+              "value": "Baner, Pune",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "recruiter_name",
+              "value": "Ananya Sharma",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "hiring_manager_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "hire_score_threshold",
+              "value": 7.5,
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "joining_buffer_days",
+              "value": 7,
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "rematch_role_id",
+              "value": "RL002",
+              "type": "string"
+            },
+            {
+              "id": "8",
+              "name": "min_match_score",
+              "value": 55,
+              "type": "number"
+            },
+            {
+              "id": "9",
+              "name": "max_matches",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "10",
+              "name": "ctc_stretch_pct",
+              "value": 15,
+              "type": "number"
+            },
+            {
+              "id": "11",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4b2618bc-a07d-4392-b2d7-573c442af65a",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1792,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "48855a8a-9927-4222-9259-9d6312044967",
+      "name": "Every Morning 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2016,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 18044281,
+          "mode": "list",
+          "cachedResultName": "Interview_Feedback",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo/edit#gid=18044281"
+        },
+        "options": {}
+      },
+      "id": "65a04206-2d0b-4bfe-b649-469fc4ff977a",
+      "name": "Read Interview Feedback",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1568,
+        384
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 228761886,
+          "mode": "list",
+          "cachedResultName": "Candidates",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo/edit#gid=228761886"
+        },
+        "options": {}
+      },
+      "id": "7d349e53-a67c-44ce-96f7-7bcab3f6c56a",
+      "name": "Read Candidates",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1344,
+        384
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1035766577,
+          "mode": "list",
+          "cachedResultName": "Roles",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo/edit#gid=1035766577"
+        },
+        "options": {}
+      },
+      "id": "0539f2de-9259-45b8-8e1f-8da90dfb6a3f",
+      "name": "Read Roles",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1120,
+        384
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "=1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 434251112,
+          "mode": "list",
+          "cachedResultName": "Screening_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo/edit#gid=434251112"
+        },
+        "options": {}
+      },
+      "id": "2664612a-f2f3-42d1-a301-4d5b717ccaf7",
+      "name": "Read Screening Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -896,
+        384
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst fb = uniq($('Read Interview Feedback').all().map(i => i.json).filter(r => r && r.feedback_id), 'feedback_id');\nconst cands = uniq($('Read Candidates').all().map(i => i.json).filter(r => r && r.candidate_id), 'candidate_id');\nconst roles = uniq($('Read Roles').all().map(i => i.json).filter(r => r && r.role_id), 'role_id');\nconst pending = fb.filter(r => String(r.status || '').toLowerCase().trim() !== 'processed');\nif (pending.length === 0) { return []; }\nconst TZ = num(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + TZ * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst today = fd(now);\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nconst thresh = num(cfg.hire_score_threshold) || 7.5;\nconst buffer = num(cfg.joining_buffer_days) || 7;\nconst out = [];\npending.forEach((f, idx) => {\n  const cid = String(f.candidate_id).trim();\n  const c = cands.find(x => String(x.candidate_id).trim() === cid) || {};\n  const role = roles.find(x => String(x.role_id).trim() === String(f.role_id).trim()) || {};\n  const tech = num(f.technical_score); const comm = num(f.communication_score); const own = num(f.ownership_score);\n  const avg = Math.round(((tech + comm + own) / 3) * 10) / 10;\n  const rec = String(f.recommendation || '').toLowerCase().trim();\n  const meetsBar = avg >= thresh;\n  const decision = (rec === 'hire' && meetsBar) ? 'offer' : 'decline';\n  const reasons = ['panel average ' + avg + ' out of 10', 'technical ' + tech + ', communication ' + comm + ', ownership ' + own];\n  if (rec === 'hire' && !meetsBar) { reasons.push('interviewer recommended hire but the average is below the ' + thresh + ' bar'); }\n  if (rec !== 'hire') { reasons.push('interviewer recommendation was ' + (rec || 'not given')); }\n  const expected = num(c.expected_ctc_lakh);\n  const budget = num(role.budget_ctc_lakh);\n  let offered = 0;\n  if (decision === 'offer') { offered = Math.round(Math.min(expected, budget || expected) * 10) / 10; if (expected > budget && budget > 0) { reasons.push('expectation of ' + expected + ' L capped at the ' + budget + ' L budget, needs a conversation'); } }\n  const notice = num(c.notice_days) || 30;\n  out.push({ json: { offer_id: 'OF' + stamp + '-' + pad(idx + 1), run_date: today, feedback_id: String(f.feedback_id), role_id: String(f.role_id), role_title: String(role.title || ''), candidate_id: cid, candidate_name: String(f.candidate_name || c.name || ''), candidate_email: String(f.candidate_email || c.email || ''), interviewer: String(f.interviewer || ''), notes: String(f.notes || ''), technical_score: tech, communication_score: comm, ownership_score: own, panel_avg: avg, recommendation: rec, decision: decision, decision_reasons: reasons.join('; '), expected_ctc: expected, budget_ctc: budget, offered_ctc: offered, notice_days: notice, joining_date: fd(new Date(now.getTime() + (notice + buffer) * 86400000)), company_name: cfg.company_name, company_location: cfg.company_location, recruiter_name: cfg.recruiter_name, hiring_manager_email: cfg.hiring_manager_email, threshold: thresh } });\n});\nreturn out;"
+      },
+      "id": "7bb9b7c4-140f-4b71-9848-3c8ac5390bec",
+      "name": "Outcome Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You write post interview candidate emails for \" + ($json.company_name || \"the company\") + \" in India. Warm, professional, plain Indian English. Never invent a benefit or a policy. Never mention or infer age, gender, religion, caste, nationality, marital status or disability.\\n\\nDECISION: \" + ($json.decision || \"\") + \"\\nCANDIDATE: \" + ($json.candidate_name || \"\") + \"\\nROLE: \" + ($json.role_title || \"\") + \"\\nINTERVIEWER NOTES: \" + ($json.notes || \"\") + \"\\nRECRUITER: \" + ($json.recruiter_name || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: subject, lines, highlight.\\nIf DECISION is offer: subject confirms they have been selected. lines is an array of 4 short sentences: congratulate them, say the team was impressed and reference one genuine specific point from the interviewer notes, say the offer details are below, and ask them to confirm by reply. Do NOT state salary or joining date in lines. highlight is one short sentence on what specifically impressed the panel, drawn only from the notes.\\nIf DECISION is decline: subject is short and respectful. lines is an array of 3 short sentences: thank them for their time, say the panel has decided not to move forward for this particular role, and wish them well. Never list faults, never quote a score. highlight is an empty string.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "26b05226-dc02-4772-8087-04d03bad3041",
+      "name": "Decision Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -448,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst src = $('Outcome Engine').all();\nconst inputs = $input.all();\nconst NAVY = '#12263A', GOLD = '#C9A227', CREAM = '#F4F5F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#666666', GREEN = '#1B7E42';\nconst out = [];\ninputs.forEach((item, i) => {\n  const d = (src[i] && src[i].json) ? src[i].json : {};\n  const a = parseJson(textOf(item.json)) || {};\n  const isOffer = d.decision === 'offer';\n  const subject = a.subject || (isOffer ? ('Offer of employment: ' + d.role_title + ' at ' + d.company_name) : ('Update on your interview with ' + d.company_name));\n  const lines = Array.isArray(a.lines) && a.lines.length ? a.lines : (isOffer ? ['Congratulations on clearing the interview.', 'The team was impressed with your discussion.', 'The formal details are below.', 'Please confirm your acceptance by replying.'] : ['Thank you for taking the time to interview with us.', 'The panel has decided not to move forward for this particular role.', 'We wish you the very best.']);\n  const highlight = a.highlight || '';\n  let body = '';\n  lines.forEach(l => { body += '<div style=\"font-size:15px;color:' + INK + ';line-height:1.6;margin-bottom:9px;\">' + esc(l) + '</div>'; });\n  let terms = '';\n  if (isOffer) { terms = '<tr><td style=\"padding:8px 26px 12px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E4E4DC;border-radius:8px;border-left:4px solid ' + GOLD + ';\">' +\n    '<tr><td style=\"padding:12px 16px;font-size:12.5px;color:' + GREY + ';\">Role</td><td align=\"right\" style=\"padding:12px 16px;font-size:14px;font-weight:bold;color:' + NAVY + ';\">' + esc(d.role_title) + '</td></tr>' +\n    '<tr><td style=\"padding:12px 16px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Annual CTC</td><td align=\"right\" style=\"padding:12px 16px;font-size:17px;font-weight:bold;color:' + GREEN + ';border-top:1px solid #E4E4DC;\">Rs ' + esc(d.offered_ctc) + ' Lakh</td></tr>' +\n    '<tr><td style=\"padding:12px 16px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Expected joining</td><td align=\"right\" style=\"padding:12px 16px;font-size:14px;font-weight:bold;color:' + NAVY + ';border-top:1px solid #E4E4DC;\">' + esc(d.joining_date) + '</td></tr>' +\n    '<tr><td style=\"padding:12px 16px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Location</td><td align=\"right\" style=\"padding:12px 16px;font-size:14px;color:' + NAVY + ';border-top:1px solid #E4E4DC;\">' + esc(d.company_location) + '</td></tr>' +\n    '<tr><td style=\"padding:12px 16px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">Reference</td><td align=\"right\" style=\"padding:12px 16px;font-size:13px;color:' + GREY + ';border-top:1px solid #E4E4DC;\">' + esc(d.offer_id) + '</td></tr></table></td></tr>'; }\n  const hl = (isOffer && highlight) ? ('<tr><td style=\"padding:4px 26px 8px 26px;\"><div style=\"background:' + CREAM + ';border-radius:6px;padding:12px 14px;font-size:13.5px;color:' + INK + ';font-style:italic;\">' + esc(highlight) + '</div></td></tr>') : '';\n  const html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n  '<tr><td style=\"background:' + NAVY + ';padding:22px 26px;\"><div style=\"color:' + (isOffer ? GOLD : '#9AB2C0') + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">' + (isOffer ? 'OFFER OF EMPLOYMENT' : 'INTERVIEW UPDATE') + '</div><div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:22px;font-weight:bold;margin-top:6px;\">' + esc(d.company_name) + '</div><div style=\"color:#9AB2C0;font-size:13px;margin-top:4px;\">' + esc(d.role_title) + ' &middot; ' + esc(d.company_location) + '</div></td></tr>' +\n  '<tr><td style=\"padding:22px 26px 6px 26px;\"><div style=\"font-size:16px;font-weight:bold;color:' + INK + ';margin-bottom:12px;\">Dear ' + esc(d.candidate_name) + ',</div>' + body + '</td></tr>' + hl + terms +\n  '<tr><td style=\"padding:10px 26px 20px 26px;\"><div style=\"font-size:14px;color:' + INK + ';\">Warm regards,</div><div style=\"font-size:14px;color:' + INK + ';font-weight:bold;\">' + esc(d.recruiter_name) + '</div><div style=\"font-size:13px;color:' + GREY + ';\">Talent Team, ' + esc(d.company_name) + '</div></td></tr>' +\n  (isOffer ? ('<tr><td style=\"background:' + CREAM + ';padding:12px 26px;\"><div style=\"font-size:11px;color:' + GREY + ';line-height:1.45;\">This is a summary of the offer terms. A formal letter with full terms will follow on acceptance.</div></td></tr>') : '') + '</table></div>';\n  out.push({ json: { to: d.candidate_email, subject: subject, html: html, offer_id: d.offer_id, run_date: d.run_date, role_id: d.role_id, candidate_id: d.candidate_id, candidate_name: d.candidate_name, decision: d.decision, offered_ctc: isOffer ? d.offered_ctc : 0, joining_date: isOffer ? d.joining_date : '', panel_avg: d.panel_avg, decision_reasons: d.decision_reasons, notes: d.notes, interviewer: d.interviewer, technical_score: d.technical_score, communication_score: d.communication_score, ownership_score: d.ownership_score, role_title: d.role_title, hiring_manager_email: d.hiring_manager_email, threshold: d.threshold } });\n});\nreturn out;"
+      },
+      "id": "8805ff29-9010-48da-8879-ba30f65a1bc9",
+      "name": "Build Outcome Emails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f9ac8046-ec51-45d4-b531-ed525fb075ec",
+      "name": "Send Candidate Outcome",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d5b1a42e-9151-4709-ad34-986e2150cdd6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst rows = $input.all().map(i => i.json);\nconst NAVY = '#12263A', GOLD = '#C9A227', CREAM = '#F4F5F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#666666', GREEN = '#1B7E42';\nconst offers = rows.filter(r => r.decision === 'offer');\nconst declines = rows.filter(r => r.decision !== 'offer');\nlet totalCtc = 0;\noffers.forEach(r => { totalCtc += Number(r.offered_ctc) || 0; });\nlet cards = '';\nrows.forEach(r => {\n  const isOffer = r.decision === 'offer';\n  const col = isOffer ? GREEN : GREY;\n  cards += '<tr><td style=\"padding:0 26px 14px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E4E4DC;border-radius:8px;border-left:4px solid ' + col + ';background:#FFFFFF;\">' +\n  '<tr><td style=\"padding:14px 16px 4px 16px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td><div style=\"font-family:Georgia,serif;font-size:18px;font-weight:bold;color:' + NAVY + ';\">' + esc(r.candidate_name) + '</div><div style=\"font-size:12px;color:' + GREY + ';margin-top:3px;\">' + esc(r.candidate_id) + ' &middot; interviewed by ' + esc(r.interviewer) + '</div></td><td align=\"right\"><div style=\"display:inline-block;background:' + col + ';color:#FFFFFF;font-size:11px;font-weight:bold;padding:4px 11px;border-radius:4px;\">' + (isOffer ? 'OFFER SENT' : 'DECLINED') + '</div></td></tr></table></td></tr>' +\n  '<tr><td style=\"padding:6px 16px 6px 16px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n  '<td align=\"center\" style=\"background:' + CREAM + ';border-radius:5px;padding:9px 4px;\"><div style=\"font-size:16px;font-weight:bold;color:' + NAVY + ';\">' + esc(r.technical_score) + '</div><div style=\"font-size:9.5px;color:' + GREY + ';\">technical</div></td><td width=\"6\"></td>' +\n  '<td align=\"center\" style=\"background:' + CREAM + ';border-radius:5px;padding:9px 4px;\"><div style=\"font-size:16px;font-weight:bold;color:' + NAVY + ';\">' + esc(r.communication_score) + '</div><div style=\"font-size:9.5px;color:' + GREY + ';\">communication</div></td><td width=\"6\"></td>' +\n  '<td align=\"center\" style=\"background:' + CREAM + ';border-radius:5px;padding:9px 4px;\"><div style=\"font-size:16px;font-weight:bold;color:' + NAVY + ';\">' + esc(r.ownership_score) + '</div><div style=\"font-size:9.5px;color:' + GREY + ';\">ownership</div></td><td width=\"6\"></td>' +\n  '<td align=\"center\" style=\"background:' + col + ';border-radius:5px;padding:9px 4px;\"><div style=\"font-size:16px;font-weight:bold;color:#FFFFFF;\">' + esc(r.panel_avg) + '</div><div style=\"font-size:9.5px;color:#F0F0F0;\">average</div></td></tr></table></td></tr>' +\n  (isOffer ? ('<tr><td style=\"padding:4px 16px 6px 16px;\"><div style=\"font-size:13.5px;color:' + GREEN + ';font-weight:bold;\">Offered Rs ' + esc(r.offered_ctc) + ' L, joining ' + esc(r.joining_date) + '</div></td></tr>') : '') +\n  '<tr><td style=\"padding:2px 16px 8px 16px;\"><div style=\"font-size:12.5px;color:' + INK + ';line-height:1.5;\">' + esc(r.notes) + '</div></td></tr>' +\n  '<tr><td style=\"padding:0 16px 12px 16px;\"><div style=\"font-size:11.5px;color:' + GREY + ';\">Decision basis: ' + esc(r.decision_reasons) + '</div></td></tr></table></td></tr>';\n});\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:680px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + NAVY + ';padding:24px 26px;\"><div style=\"color:' + GOLD + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">INTERVIEW OUTCOMES</div><div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;margin-top:7px;\">' + offers.length + ' offer(s) sent, ' + declines.length + ' declined</div></td></tr>' +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + GREEN + ';border-radius:6px;padding:15px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:26px;font-weight:bold;\">' + offers.length + '</div><div style=\"color:#D6EBDD;font-size:10.5px;\">offers out</div></td><td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:15px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;\">Rs ' + Math.round(totalCtc * 10) / 10 + ' L</div><div style=\"color:' + GREY + ';font-size:10.5px;\">committed cost</div></td><td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:15px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;\">' + esc(rows.length ? rows[0].threshold : 0) + '</div><div style=\"color:' + GREY + ';font-size:10.5px;\">hire bar</div></td></tr></table></td></tr>' + cards +\n'<tr><td style=\"background:' + NAVY + ';padding:12px 26px;\"><div style=\"color:#9AB2C0;font-size:11px;\">Talent Desk &middot; Interview Outcomes &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\nreturn [{ json: { summary_html: html, offer_count: offers.length, decline_count: declines.length, hiring_manager_email: rows.length ? rows[0].hiring_manager_email : '' } }];"
+      },
+      "id": "5248cacc-a48c-4464-b364-f42b1a9f82cf",
+      "name": "Build Outcome Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.hiring_manager_email }}",
+        "subject": "=Interview outcomes: {{ $json.offer_count }} offer(s) sent, {{ $json.decline_count }} declined",
+        "message": "={{ $json.summary_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0f214480-7610-4c82-949e-0d93eb1ccd15",
+      "name": "Send Outcome Summary",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        384
+      ],
+      "webhookId": "6f0a3477-79f9-4b15-87e4-ce12aa8e24c8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst roles = uniq($('Read Roles').all().map(i => i.json).filter(r => r && r.role_id), 'role_id');\nconst cands = uniq($('Read Candidates').all().map(i => i.json).filter(r => r && r.candidate_id), 'candidate_id');\nconst logs = uniq($('Read Screening Log').all().map(i => i.json).filter(r => r && r.screen_id), 'screen_id');\nconst want = String(cfg.rematch_role_id || '').trim();\nconst role = roles.find(r => String(r.role_id).trim() === want);\nif (!role) { return []; }\nconst poolIds = {}; const poolMeta = {}; const alreadyThisRole = {};\nlogs.forEach(l => {\n  const rid = String(l.role_id || '').trim();\n  const cid = String(l.candidate_id).trim();\n  if (rid === String(role.role_id).trim()) { alreadyThisRole[cid] = true; return; }\n  const v = String(l.verdict || '').toLowerCase().trim();\n  if (v === 'talent_pool' || v === 'not_progressing') { poolIds[cid] = true; if (!poolMeta[cid] || num(l.score) > num(poolMeta[cid].score)) { poolMeta[cid] = { score: num(l.score), role_id: rid }; } }\n});\nconst splitList = (s) => String(s || '').toLowerCase().split(',').map(x => x.trim()).filter(x => x);\nconst must = splitList(role.must_have);\nconst nice = splitList(role.good_to_have);\nconst budget = num(role.budget_ctc_lakh);\nconst stretch = 1 + (num(cfg.ctc_stretch_pct) || 15) / 100;\nconst minY = num(role.min_years); const maxY = num(role.max_years);\nconst roleLoc = String(role.location || '').toLowerCase().trim();\nconst maxNotice = num(role.notice_max_days) || 90;\nconst minScore = num(cfg.min_match_score) || 55;\nconst matches = [];\ncands.forEach(c => {\n  const cid = String(c.candidate_id).trim();\n  if (!poolIds[cid] || alreadyThisRole[cid]) { return; }\n  const skills = splitList(c.skills);\n  const yrs = num(c.years_exp); const exp = num(c.expected_ctc_lakh); const notice = num(c.notice_days);\n  const loc = String(c.location || '').toLowerCase().trim();\n  let mustHit = 0; const missing = [];\n  must.forEach(m => { if (skills.indexOf(m) !== -1) { mustHit += 1; } else { missing.push(m); } });\n  let niceHit = 0;\n  nice.forEach(m => { if (skills.indexOf(m) !== -1) { niceHit += 1; } });\n  const why = [];\n  let pts = Math.round((must.length ? mustHit / must.length : 1) * 40);\n  if (mustHit === must.length) { why.push('has all ' + must.length + ' must haves for this role'); }\n  else { why.push(mustHit + ' of ' + must.length + ' must haves, missing ' + missing.join(' and ')); }\n  if (nice.length) { pts += Math.round((niceHit / nice.length) * 10); }\n  if (yrs >= minY && yrs <= maxY) { pts += 20; why.push(yrs + ' years, inside the new band'); }\n  else if (yrs > maxY && yrs <= maxY + 2) { pts += 10; why.push(yrs + ' years, slightly over'); }\n  else if (yrs >= minY - 1 && yrs < minY) { pts += 9; why.push(yrs + ' years, just under'); }\n  else { pts += 3; why.push(yrs + ' years, outside the band'); }\n  if (budget > 0 && exp > 0) {\n    if (exp <= budget) { pts += 15; why.push('expects ' + exp + ' L, now inside the ' + budget + ' L budget'); }\n    else if (exp <= budget * stretch) { pts += 8; why.push('expects ' + exp + ' L, slightly over'); }\n    else { why.push('expects ' + exp + ' L against ' + budget + ' L'); }\n  } else { pts += 8; }\n  if (!roleLoc || loc === roleLoc) { pts += 8; } else { pts += 2; why.push('based in ' + c.location); }\n  if (notice <= 30) { pts += 7; } else if (notice <= maxNotice) { pts += 4; } else { why.push(notice + ' day notice'); }\n  const score = Math.max(0, Math.min(100, pts));\n  if (score < minScore) { return; }\n  const meta = poolMeta[cid] || {};\n  matches.push({ candidate_id: cid, name: String(c.name), email: String(c.email || ''), phone: String(c.phone || ''), current_role: String(c.current_role || ''), current_company: String(c.current_company || ''), years_exp: yrs, expected_ctc: exp, location: String(c.location || ''), summary: String(c.summary || ''), score: score, prev_score: num(meta.score), prev_role: String(meta.role_id || ''), why: why.join(', ') });\n});\nmatches.sort((a, b) => b.score - a.score);\nconst top = matches.slice(0, num(cfg.max_matches) || 10);\nif (top.length === 0) { return []; }\nlet lines = '';\ntop.forEach((m, i) => { lines += (i + 1) + '. ' + m.name + ' | ' + m.candidate_id + ' | new fit ' + m.score + ' | previously scored ' + m.prev_score + ' for ' + m.prev_role + ' | ' + m.years_exp + ' yrs | ' + m.current_role + ' at ' + m.current_company + ' | expects ' + m.expected_ctc + ' L | ' + m.location + ' | ' + m.summary + '\\n'; });\nreturn [{ json: { role_id: String(role.role_id), title: String(role.title), must_have: String(role.must_have || ''), budget_ctc_lakh: budget, location: String(role.location || ''), min_years: minY, max_years: maxY, notes: String(role.notes || ''), matches: top, match_count: top.length, pool_size: Object.keys(poolIds).length, match_lines: lines, company_name: cfg.company_name, recruiter_email: cfg.hiring_manager_email } }];"
+      },
+      "id": "82d5a41e-cd2c-47c3-98fd-cbb3b3544e65",
+      "name": "Talent Pool Matcher",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a recruitment lead. A role is open and the system has re matched it against candidates who applied for earlier roles and were not hired. Write the note telling the recruiter who to call back. Never invent a fact. Never mention or infer age, gender, religion, caste, nationality, marital status or disability.\\n\\nROLE: \" + ($json.title || \"\") + \" at \" + ($json.company_name || \"\") + \"\\nMUST HAVE: \" + ($json.must_have || \"\") + \"\\nEXPERIENCE BAND: \" + ($json.min_years || 0) + \" to \" + ($json.max_years || 0) + \" years\\nBUDGET: \" + ($json.budget_ctc_lakh || 0) + \" lakh\\nNOTES: \" + ($json.notes || \"\") + \"\\nHOW MANY MATCHED: \" + ($json.match_count || 0) + \"\\n\\nCANDIDATES ALREADY IN THE DATABASE WHO NOW FIT:\\n\" + ($json.match_lines || \"none\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: headline, why_now, call_first, outreach_message.\\nheadline is one punchy line and MUST use the exact number given in HOW MANY MATCHED.\\nwhy_now is 2 short sentences explaining what changed, for example a different experience band or budget that now suits people who were previously out of range.\\ncall_first is one line naming the single candidate to call first and why, using a name from the list.\\noutreach_message is 4 to 5 short lines in plain Indian English, referring to their earlier application and inviting them to a quick call. Write it so it can go to any of them, no specific name.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "bb999863-687b-4a74-bab5-72f3bc43f3cc",
+      "name": "Rematch Analyst (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -448,
+        576
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst d = $('Talent Pool Matcher').first().json;\nconst a = parseJson(textOf($input.first().json)) || {};\nconst NAVY = '#12263A', GOLD = '#C9A227', CREAM = '#F4F5F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#666666', GREEN = '#1B7E42';\nconst headline = a.headline || (d.match_count + ' candidates already in your database fit this role');\nconst whyNow = a.why_now || 'These people applied for an earlier role and were not progressed at that time.';\nconst callFirst = a.call_first || ('Start with ' + (d.matches[0] ? d.matches[0].name : 'the top match') + '.');\nconst outreach = a.outreach_message || 'We have an opening that looks closer to your profile than the role you applied for earlier. Would you be open to a quick call this week?';\nlet rows = '';\n(Array.isArray(d.matches) ? d.matches : []).forEach(m => {\n  const gc = m.score >= 85 ? GREEN : (m.score >= 70 ? GOLD : GREY);\n  const arrow = m.score > m.prev_score ? ' &uarr;' : '';\n  rows += '<tr><td style=\"padding:10px 12px;border-bottom:1px solid #E4E4DC;font-size:13px;color:' + INK + ';\"><strong>' + esc(m.name) + '</strong><br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(m.current_role) + ' at ' + esc(m.current_company) + ' &middot; ' + esc(m.candidate_id) + '</span></td>' +\n  '<td align=\"center\" style=\"padding:10px 12px;border-bottom:1px solid #E4E4DC;font-size:12.5px;color:' + INK + ';\">' + esc(m.years_exp) + ' yrs<br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(m.expected_ctc) + ' L</span></td>' +\n  '<td align=\"center\" style=\"padding:10px 12px;border-bottom:1px solid #E4E4DC;font-size:11.5px;color:' + GREY + ';\">was ' + esc(m.prev_score) + '<br>for ' + esc(m.prev_role) + '</td>' +\n  '<td align=\"right\" style=\"padding:10px 12px;border-bottom:1px solid #E4E4DC;font-size:15px;font-weight:bold;color:' + gc + ';\">' + esc(m.score) + arrow + '</td></tr>';\n});\nlet outHtml = '';\nString(outreach).split('\\n').forEach(l => { if (l.trim()) { outHtml += '<div style=\"font-size:14px;color:#E4ECF0;line-height:1.6;margin-bottom:7px;\">' + esc(l.trim()) + '</div>'; } });\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:680px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + NAVY + ';padding:24px 26px;\"><div style=\"color:' + GOLD + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">OPEN ROLE, CANDIDATES ALREADY WAITING</div><div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;margin-top:7px;\">' + esc(d.title) + '</div><div style=\"color:#9AB2C0;font-size:13px;margin-top:5px;\">' + esc(d.min_years) + ' to ' + esc(d.max_years) + ' yrs &middot; up to ' + esc(d.budget_ctc_lakh) + ' L &middot; ' + esc(d.location) + '</div></td></tr>' +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + GREEN + ';border-radius:6px;padding:15px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:28px;font-weight:bold;\">' + esc(d.match_count) + '</div><div style=\"color:#D6EBDD;font-size:10.5px;\">already fit</div></td><td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:15px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:28px;font-weight:bold;\">' + esc(d.pool_size) + '</div><div style=\"color:' + GREY + ';font-size:10.5px;\">in the pool</div></td><td width=\"8\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:15px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:28px;font-weight:bold;\">0</div><div style=\"color:' + GREY + ';font-size:10.5px;\">spent on sourcing</div></td></tr></table></td></tr>' +\n'<tr><td style=\"padding:16px 26px 4px 26px;\"><div style=\"background:' + CREAM + ';border-radius:8px;padding:15px 17px;border-left:4px solid ' + GOLD + ';\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';line-height:1.35;\">' + esc(headline) + '</div><div style=\"font-size:14px;color:' + INK + ';line-height:1.55;margin-top:8px;\">' + esc(whyNow) + '</div></div></td></tr>' +\n(rows ? ('<tr><td style=\"padding:18px 26px 4px 26px;\"><div style=\"font-family:Georgia,serif;font-size:15px;font-weight:bold;color:' + NAVY + ';margin-bottom:8px;\">Call these people back</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E4E4DC;border-radius:8px;\"><tr style=\"background:' + CREAM + ';\"><td style=\"padding:8px 12px;font-size:10.5px;font-weight:bold;color:' + GREY + ';letter-spacing:1px;\">CANDIDATE</td><td align=\"center\" style=\"padding:8px 12px;font-size:10.5px;font-weight:bold;color:' + GREY + ';\">PROFILE</td><td align=\"center\" style=\"padding:8px 12px;font-size:10.5px;font-weight:bold;color:' + GREY + ';\">PREVIOUSLY</td><td align=\"right\" style=\"padding:8px 12px;font-size:10.5px;font-weight:bold;color:' + GREY + ';\">NEW FIT</td></tr>' + rows + '</table><div style=\"font-size:13px;color:' + GREEN + ';margin-top:9px;\"><strong>Call first:</strong> ' + esc(callFirst) + '</div></td></tr>') : '') +\n'<tr><td style=\"padding:18px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + NAVY + ';border-radius:8px;\"><tr><td style=\"padding:18px 20px;\"><div style=\"color:' + GOLD + ';font-family:Georgia,serif;font-size:16px;font-weight:bold;margin-bottom:10px;\">Ready to send message</div><div style=\"background:#1B3550;border-radius:6px;padding:14px 16px;\">' + outHtml + '</div></td></tr></table></td></tr>' +\n'<tr><td style=\"background:' + NAVY + ';padding:12px 26px;\"><div style=\"color:#9AB2C0;font-size:11px;\">' + esc(d.company_name) + ' &middot; Talent Desk &middot; Pool Re-match &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\nreturn [{ json: { alert_html: html, match_count: d.match_count, title: d.title, recruiter_email: d.recruiter_email } }];"
+      },
+      "id": "76485e91-2848-48e9-959b-cedb7b4d859c",
+      "name": "Build Rematch Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.recruiter_email }}",
+        "subject": "={{ $json.match_count }} candidates you already have fit the {{ $json.title }} role",
+        "message": "={{ $json.alert_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "d48b1db3-6bb5-410c-8c0f-168aae860fe1",
+      "name": "Send Rematch Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        576
+      ],
+      "webhookId": "d8a4e751-b80d-4243-9677-4e0ffb386d85",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1G60rXkE1P_0yfMoj7kpgNCFBh7eo6j3xM-2VixtclWo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Offers"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "offer_id",
+              "displayName": "offer_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "role_id",
+              "displayName": "role_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "candidate_id",
+              "displayName": "candidate_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "candidate_name",
+              "displayName": "candidate_name",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "ctc_lakh",
+              "displayName": "ctc_lakh",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "joining_date",
+              "displayName": "joining_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "panel_avg",
+              "displayName": "panel_avg",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "offer_id": "={{ $json.offer_id }}",
+            "run_date": "={{ $json.run_date }}",
+            "role_id": "={{ $json.role_id }}",
+            "candidate_id": "={{ $json.candidate_id }}",
+            "candidate_name": "={{ $json.candidate_name }}",
+            "ctc_lakh": "={{ $json.offered_ctc }}",
+            "joining_date": "={{ $json.joining_date }}",
+            "panel_avg": "={{ $json.panel_avg }}",
+            "status": "={{ $json.decision }}_sent"
+          }
+        },
+        "options": {}
+      },
+      "id": "a7486bad-b401-4173-8809-04457bd826bd",
+      "name": "Log Offers1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        16,
+        192
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Talent Desk": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Interview Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Morning 9am": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Interview Feedback": {
+      "main": [
+        [
+          {
+            "node": "Read Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Candidates": {
+      "main": [
+        [
+          {
+            "node": "Read Roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Roles": {
+      "main": [
+        [
+          {
+            "node": "Read Screening Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Screening Log": {
+      "main": [
+        [
+          {
+            "node": "Outcome Engine",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Talent Pool Matcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Outcome Engine": {
+      "main": [
+        [
+          {
+            "node": "Decision Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Outcome Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Outcome Emails": {
+      "main": [
+        [
+          {
+            "node": "Send Candidate Outcome",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Outcome Summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Offers1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Outcome Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Outcome Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Talent Pool Matcher": {
+      "main": [
+        [
+          {
+            "node": "Rematch Analyst (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rematch Analyst (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Rematch Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Rematch Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Rematch Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c801cb1e-4b5d-4104-ae17-f05017fa067a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "FSuTY8ZEegrd0BOB",
+  "tags": []
+}
