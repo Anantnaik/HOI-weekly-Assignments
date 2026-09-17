@@ -1,0 +1,1138 @@
+{
+  "name": "Product Launch Desk V1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "23241d9c-0059-4fe2-a5ba-fb06f3a68ba3",
+      "name": "Build Launch Kit",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2416,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "brand_name",
+              "value": "Ember Coffee Co",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "owner_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "owner_name",
+              "value": "Aditi Menon",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "store_url",
+              "value": "https://embercoffee.in",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "target_product_id",
+              "value": "PD001",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "max_creatives",
+              "value": 2,
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "dedupe_enabled",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "8",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "31e1ac6a-a4b5-4057-8155-b5ca5457caab",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2208,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "launch-product",
+        "options": {}
+      },
+      "id": "d0e85765-7457-46cb-8b2d-6238fd6f6db5",
+      "name": "New Product In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2416,
+        128
+      ],
+      "webhookId": "bf366299-7ec9-462b-a887-07e878ba8dd6"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 70156585,
+          "mode": "list",
+          "cachedResultName": "Products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8/edit#gid=70156585"
+        },
+        "options": {}
+      },
+      "id": "74d8b28b-0724-4266-9a29-7682d41889c8",
+      "name": "Read Products",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1984,
+        240
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1987149044,
+          "mode": "list",
+          "cachedResultName": "Launch_Assets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8/edit#gid=1987149044"
+        },
+        "options": {}
+      },
+      "id": "49e7f0cc-bdce-443e-b2f1-9de179454c09",
+      "name": "Read Launch Assets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1760,
+        240
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst prods = uniq($('Read Products').all().map(i => i.json).filter(r => r && r.product_id), 'product_id');\nconst assets = uniq($('Read Launch Assets').all().map(i => i.json).filter(r => r && r.asset_id), 'asset_id');\nconst want = String(cfg.target_product_id || '').trim();\nlet p = prods.find(r => String(r.product_id).trim() === want);\nif (!p) { p = prods.find(r => String(r.status || '').toLowerCase() === 'new'); }\nif (!p) { throw new Error('No product found in the Products tab.'); }\nconst dedupe = (String(cfg.dedupe_enabled) === 'true') || (cfg.dedupe_enabled === true);\nconst done = assets.filter(a => String(a.product_id).trim() === String(p.product_id).trim()).length;\nconst issues = [];\nif (dedupe && done > 0) { issues.push(done + ' assets already exist for this product, this run adds another set'); }\nconst TZ = Number(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + TZ * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst today = fd(now);\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nlet launch = String(p.launch_date || '').trim().slice(0, 10);\nif (launch.length !== 10) { launch = fd(new Date(now.getTime() + 7 * 86400000)); }\nconst lt = Date.parse(launch + 'T00:00:00Z');\nconst dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];\nconst monNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];\nconst offsets = [-7, -5, -3, -1, 0, 0, 2, 5, 7];\nconst plan = ['teaser','story','proof','countdown','launch','launch_social','objection','last_call','thank_you'];\nconst chan = ['email','social','email','social','email','social','email','email','social'];\nconst slots = [];\noffsets.forEach((o, i) => {\n  const d = new Date(lt + o * 86400000);\n  const lbl = o === 0 ? 'Launch day' : (o < 0 ? ('T minus ' + Math.abs(o)) : ('T plus ' + o));\n  slots.push({ offset: o, date: fd(d), label: lbl, pretty: dayNames[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + monNames[d.getUTCMonth()], slot_type: plan[i], channel: chan[i] });\n});\nreturn [{ json: { product_id: String(p.product_id), name: String(p.name), tagline: String(p.tagline || ''), category: String(p.category || ''), description: String(p.description || ''), price_inr: Number(p.price_inr) || 0, target_audience: String(p.target_audience || ''), competitors: String(p.competitors || ''), key_features: String(p.key_features || ''), proof_points: String(p.proof_points || ''), launch_date: launch, today: today, stamp: stamp, slots: slots, brand_name: cfg.brand_name, owner_email: cfg.owner_email, owner_name: cfg.owner_name, store_url: cfg.store_url, max_creatives: Number(cfg.max_creatives) || 2, existing_assets: done, data_issues: issues } }];"
+      },
+      "id": "12da23ea-6db4-4cdd-a576-63a97f9acc58",
+      "name": "Assemble Product Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1536,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a positioning strategist for Indian D2C brands. You are sharp and specific. Never restate the product description back as positioning, that is the most common failure. Find the angle that makes a buyer switch. Never invent a feature, a statistic or a claim that is not given to you.\\n\\nPRODUCT: \" + ($json.name || \"\") + \"\\nBRAND: \" + ($json.brand_name || \"\") + \"\\nCATEGORY: \" + ($json.category || \"\") + \"\\nPRICE: Rs \" + ($json.price_inr || 0) + \"\\nDESCRIPTION: \" + ($json.description || \"\") + \"\\nTARGET AUDIENCE: \" + ($json.target_audience || \"\") + \"\\nCOMPETITORS: \" + ($json.competitors || \"\") + \"\\nKEY FEATURES: \" + ($json.key_features || \"\") + \"\\nPROOF POINTS: \" + ($json.proof_points || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: one_liner, the_enemy, icp, core_pain, the_promise, category_frame, differentiation, angles, price_justification.\\none_liner is the single sentence the brand should lead with everywhere. Under 15 words. No jargon.\\nthe_enemy is what the customer is actually escaping from, named plainly. Not a competitor brand, the situation.\\nicp is 2 sentences describing exactly who this is for, sharper than the audience given to you.\\ncore_pain is one sentence on the thing that actually annoys them today.\\nthe_promise is one sentence on the outcome they get, not the feature.\\ncategory_frame is one line on what shelf this sits on in the buyer mind, and why that framing wins.\\ndifferentiation is an array of exactly 3 short lines, each naming a real point of difference against the named competitors, drawn only from the features and proof points given.\\nangles is an array of exactly 3 objects with keys name, hook and who_it_lands_with. Each is a genuinely different positioning angle.\\nprice_justification is one sentence making the price feel obvious, using only the proof points given.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.6,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "217fa876-8f53-4200-9123-df00d986692d",
+      "name": "Positioning Strategist (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1328,
+        240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You write landing page copy for Indian D2C brands. Short sentences. No fluff. Never invent a feature, a review or a statistic beyond what is given.\\n\\nPRODUCT: \" + ($(\"Assemble Product Context\").first().json.name || \"\") + \" at Rs \" + ($(\"Assemble Product Context\").first().json.price_inr || 0) + \"\\nDESCRIPTION: \" + ($(\"Assemble Product Context\").first().json.description || \"\") + \"\\nKEY FEATURES: \" + ($(\"Assemble Product Context\").first().json.key_features || \"\") + \"\\nPROOF POINTS: \" + ($(\"Assemble Product Context\").first().json.proof_points || \"\") + \"\\n\\nPOSITIONING TO FOLLOW:\\n\" + ($json.candidates[0].content.parts[0].text || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: hero_headline, hero_subhead, cta_primary, cta_secondary, benefits, how_it_works, proof_strip, closing_headline, closing_line.\\nhero_headline is under 10 words and must reflect the positioning one_liner.\\nhero_subhead is one sentence under 25 words naming who it is for and the outcome.\\ncta_primary is 2 to 4 action words. cta_secondary is 2 to 4 words for a softer action.\\nbenefits is an array of exactly 3 objects with keys title and line.\\nhow_it_works is an array of exactly 3 objects with keys step and line.\\nproof_strip is an array of exactly 3 short stat lines drawn ONLY from the proof points given, each under 8 words.\\nclosing_headline is one line under 10 words. closing_line removes the last hesitation.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.6,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "3f715fe4-fc6b-4de6-b087-a30f581651d2",
+      "name": "Landing Page Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1104,
+        240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You write launch email sequences for Indian D2C brands. Plain Indian English, warm, never pushy. Each email must earn the next one. Never invent a discount, a deadline or a claim that is not given.\\n\\nPRODUCT: \" + ($(\"Assemble Product Context\").first().json.name || \"\") + \" at Rs \" + ($(\"Assemble Product Context\").first().json.price_inr || 0) + \"\\nBRAND: \" + ($(\"Assemble Product Context\").first().json.brand_name || \"\") + \"\\nFROM: \" + ($(\"Assemble Product Context\").first().json.owner_name || \"\") + \"\\nLAUNCH DATE: \" + ($(\"Assemble Product Context\").first().json.launch_date || \"\") + \"\\nDESCRIPTION: \" + ($(\"Assemble Product Context\").first().json.description || \"\") + \"\\nPROOF POINTS: \" + ($(\"Assemble Product Context\").first().json.proof_points || \"\") + \"\\n\\nPOSITIONING TO FOLLOW:\\n\" + ($(\"Positioning Strategist (Gemini)\").first().json.candidates[0].content.parts[0].text || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. One key emails holding an array of exactly 5 objects, keys: slot_type, subject, preview, goal, lines.\\nThe five slot_type values in order must be exactly: teaser, proof, launch, objection, last_call.\\nsubject is under 8 words, no emoji, written like a person not a brand.\\npreview is one line under 12 words. goal is one short line for the owner, not the customer.\\nlines is an array of 4 to 6 short sentences forming the body. No greeting, no sign off.\\nteaser hints at something coming. proof leads with the strongest proof point. launch says it is live and what to do. objection names the biggest reason not to buy and answers it. last_call is short with no false urgency.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.6,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "4881bf29-c47a-4f88-a641-7251df4c33ad",
+      "name": "Email Sequencer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -880,
+        240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You prepare the FAQ and the sales objection sheet for an Indian D2C launch. Be honest. Never invent a policy, a warranty, a delivery time or a claim that is not given to you.\\n\\nPRODUCT: \" + ($(\"Assemble Product Context\").first().json.name || \"\") + \" at Rs \" + ($(\"Assemble Product Context\").first().json.price_inr || 0) + \"\\nDESCRIPTION: \" + ($(\"Assemble Product Context\").first().json.description || \"\") + \"\\nKEY FEATURES: \" + ($(\"Assemble Product Context\").first().json.key_features || \"\") + \"\\nPROOF POINTS: \" + ($(\"Assemble Product Context\").first().json.proof_points || \"\") + \"\\nCOMPETITORS: \" + ($(\"Assemble Product Context\").first().json.competitors || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: faqs, objections.\\nfaqs is an array of exactly 8 objects with keys q and a. Real questions a buyer asks before paying. Answers under 40 words, drawn only from what is given. If a detail is genuinely not provided, write the answer and end it with the marker BRAND TO CONFIRM.\\nobjections is an array of exactly 5 objects with keys objection, why_they_say_it, response and proof.\\nobjection is the sentence a real customer would say. why_they_say_it is the real fear underneath. response is 2 short honest sentences. proof is a single proof point taken only from those given, or the words no proof available yet.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.5,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "fc9b8c37-3570-428a-b354-d293b58a88c1",
+      "name": "FAQ and Objection Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -656,
+        240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You write launch social content for Indian D2C brands. Each channel sounds different. Never invent a claim. Never use hashtag spam.\\n\\nPRODUCT: \" + ($(\"Assemble Product Context\").first().json.name || \"\") + \" at Rs \" + ($(\"Assemble Product Context\").first().json.price_inr || 0) + \"\\nBRAND: \" + ($(\"Assemble Product Context\").first().json.brand_name || \"\") + \"\\nFOUNDER: \" + ($(\"Assemble Product Context\").first().json.owner_name || \"\") + \"\\nDESCRIPTION: \" + ($(\"Assemble Product Context\").first().json.description || \"\") + \"\\nPROOF POINTS: \" + ($(\"Assemble Product Context\").first().json.proof_points || \"\") + \"\\n\\nPOSITIONING TO FOLLOW:\\n\" + ($(\"Positioning Strategist (Gemini)\").first().json.candidates[0].content.parts[0].text || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: linkedin, instagram, x_thread, whatsapp, ad_hooks.\\nlinkedin is an object with keys hook and lines. hook stops the scroll. lines is an array of 5 to 7 short sentences in the founder first person. No emoji.\\ninstagram is an object with keys caption and hashtags. caption is 3 to 4 short warm lines. hashtags is an array of exactly 6 tags without the hash symbol.\\nx_thread is an array of exactly 5 short posts under 200 characters each.\\nwhatsapp is an object with key message, 3 short lines for a broadcast to existing customers.\\nad_hooks is an array of exactly 3 objects with keys angle, hook and body.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.7,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "78cd2d33-0cfb-4f9f-bcdf-ccf39a347944",
+      "name": "Social Pack Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -432,
+        240
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst P = $('Assemble Product Context').first().json;\nconst pos = parseJson(textOf($('Positioning Strategist (Gemini)').first().json)) || {};\nconst lp = parseJson(textOf($('Landing Page Writer (Gemini)').first().json)) || {};\nconst es = parseJson(textOf($('Email Sequencer (Gemini)').first().json)) || {};\nconst fo = parseJson(textOf($('FAQ and Objection Writer (Gemini)').first().json)) || {};\nconst so = parseJson(textOf($input.first().json)) || {};\nconst issues = Array.isArray(P.data_issues) ? P.data_issues.slice(0) : [];\nif (!pos.one_liner) { issues.push('Positioning agent returned nothing, the kit is missing its spine'); }\nif (!lp.hero_headline) { issues.push('Landing page agent returned nothing'); }\nif (!Array.isArray(es.emails) || es.emails.length === 0) { issues.push('Email sequencer returned nothing'); }\nif (!Array.isArray(fo.faqs) || fo.faqs.length === 0) { issues.push('FAQ agent returned nothing'); }\nif (!so.linkedin) { issues.push('Social pack agent returned nothing'); }\nconst emails = Array.isArray(es.emails) ? es.emails : [];\nconst faqs = Array.isArray(fo.faqs) ? fo.faqs : [];\nconst objs = Array.isArray(fo.objections) ? fo.objections : [];\nconst pad = (n) => String(n).padStart(2, '0');\nlet n = 0;\nconst assetRows = [];\nconst addAsset = (type, channel, title, body) => { n += 1; assetRows.push({ asset_id: 'AS' + P.stamp + '-' + pad(n), product_id: P.product_id, created_at: P.today, asset_type: type, channel: channel, title: String(title || ''), body: String(body || '') }); };\naddAsset('positioning', 'internal', 'One liner', pos.one_liner || '');\naddAsset('positioning', 'internal', 'The enemy', pos.the_enemy || '');\naddAsset('positioning', 'internal', 'ICP', pos.icp || '');\naddAsset('positioning', 'internal', 'The promise', pos.the_promise || '');\naddAsset('positioning', 'internal', 'Category frame', pos.category_frame || '');\naddAsset('positioning', 'internal', 'Price justification', pos.price_justification || '');\n(Array.isArray(pos.differentiation) ? pos.differentiation : []).forEach((d, i) => { addAsset('positioning', 'internal', 'Differentiator ' + (i + 1), d); });\n(Array.isArray(pos.angles) ? pos.angles : []).forEach(a => { addAsset('angle', 'internal', String(a.name || 'Angle'), String(a.hook || '') + ' | lands with: ' + String(a.who_it_lands_with || '')); });\naddAsset('landing_page', 'web', 'Hero headline', lp.hero_headline || '');\naddAsset('landing_page', 'web', 'Hero subhead', lp.hero_subhead || '');\naddAsset('landing_page', 'web', 'Primary CTA', lp.cta_primary || '');\n(Array.isArray(lp.benefits) ? lp.benefits : []).forEach(b => { addAsset('landing_page', 'web', String(b.title || 'Benefit'), String(b.line || '')); });\n(Array.isArray(lp.how_it_works) ? lp.how_it_works : []).forEach(h => { addAsset('landing_page', 'web', String(h.step || 'Step'), String(h.line || '')); });\nemails.forEach(e => { let b = ''; (Array.isArray(e.lines) ? e.lines : []).forEach(l => { b += l + '\\n'; }); addAsset('email', 'email', String(e.subject || ''), b.trim()); });\nfaqs.forEach(f => { addAsset('faq', 'web', String(f.q || ''), String(f.a || '')); });\nobjs.forEach(o => { addAsset('objection', 'sales', String(o.objection || ''), 'Why: ' + String(o.why_they_say_it || '') + ' | Say: ' + String(o.response || '') + ' | Proof: ' + String(o.proof || '')); });\nif (so.linkedin) { let b = ''; (Array.isArray(so.linkedin.lines) ? so.linkedin.lines : []).forEach(l => { b += l + '\\n'; }); addAsset('social', 'linkedin', String(so.linkedin.hook || 'LinkedIn post'), b.trim()); }\nif (so.instagram) { addAsset('social', 'instagram', 'Instagram caption', String(so.instagram.caption || '') + '\\n\\n' + (Array.isArray(so.instagram.hashtags) ? so.instagram.hashtags.join(' ') : '')); }\nif (Array.isArray(so.x_thread) && so.x_thread.length) { let b = ''; so.x_thread.forEach((x, i) => { b += (i + 1) + '. ' + x + '\\n'; }); addAsset('social', 'x', 'X thread', b.trim()); }\nif (so.whatsapp) { addAsset('social', 'whatsapp', 'WhatsApp broadcast', String(so.whatsapp.message || '')); }\n(Array.isArray(so.ad_hooks) ? so.ad_hooks : []).forEach(a => { addAsset('ad', 'meta', String(a.angle || 'Ad angle'), String(a.hook || '') + '\\n' + String(a.body || '')); });\nconst slots = Array.isArray(P.slots) ? P.slots : [];\nconst emailBySlot = {};\nemails.forEach(e => { emailBySlot[String(e.slot_type || '').trim()] = e; });\nconst socialCopy = {};\nsocialCopy.story = so.linkedin ? (String(so.linkedin.hook || '') + '\\n\\n' + (Array.isArray(so.linkedin.lines) ? so.linkedin.lines.join('\\n') : '')) : '';\nsocialCopy.countdown = so.instagram ? String(so.instagram.caption || '') : '';\nsocialCopy.launch_social = Array.isArray(so.x_thread) ? so.x_thread.join('\\n\\n') : '';\nsocialCopy.thank_you = so.whatsapp ? String(so.whatsapp.message || '') : '';\nlet m = 0;\nconst calRows = [];\nslots.forEach(s => {\n  m += 1;\n  let subject = ''; let body = '';\n  if (s.channel === 'email') {\n    const key = s.slot_type === 'story' ? 'teaser' : s.slot_type;\n    const e = emailBySlot[key] || emailBySlot[s.slot_type] || null;\n    if (e) { subject = String(e.subject || ''); body = (Array.isArray(e.lines) ? e.lines.join('\\n') : ''); }\n  } else {\n    subject = String(s.slot_type).replace(/_/g, ' ');\n    body = socialCopy[s.slot_type] || socialCopy.story || '';\n  }\n  calRows.push({ item_id: 'CI' + P.stamp + '-' + pad(m), product_id: P.product_id, scheduled_date: s.date, day_label: s.label + ' (' + s.pretty + ')', asset_type: s.slot_type, channel: s.channel, subject: subject, body: body, status: 'scheduled' });\n});\nconst briefs = [];\nbriefs.push({ label: 'Hero image', purpose: 'landing page hero', idea: String(lp.hero_headline || P.tagline || P.name) });\n(Array.isArray(pos.angles) ? pos.angles : []).forEach(a => { briefs.push({ label: String(a.name || 'Angle'), purpose: 'Meta ad creative', idea: String(a.hook || '') }); });\nconst chosen = briefs.slice(0, Number(P.max_creatives) || 2);\nlet briefLines = '';\nchosen.forEach((b, i) => { briefLines += (i + 1) + '. LABEL: ' + b.label + ' | PURPOSE: ' + b.purpose + ' | IDEA TO ILLUSTRATE: ' + b.idea + '\\n'; });\nreturn [{ json: { positioning: pos, landing: lp, emails: emails, faqs: faqs, objections: objs, social: so, asset_rows: assetRows, asset_count: assetRows.length, cal_rows: calRows, cal_count: calRows.length, brief_lines: briefLines, brief_count: chosen.length, data_issues: issues, product: P } }];"
+      },
+      "id": "29c29100-e120-44b1-941d-8f557d888064",
+      "name": "Assemble Launch Kit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const K = $('Assemble Launch Kit').first().json;\nconst rows = Array.isArray(K.asset_rows) ? K.asset_rows : [];\nif (rows.length === 0) { return []; }\nreturn rows.map(r => ({ json: r }));"
+      },
+      "id": "e85db722-434d-4712-b636-23d88f238be5",
+      "name": "Split Assets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const K = $('Assemble Launch Kit').first().json;\nconst rows = Array.isArray(K.cal_rows) ? K.cal_rows : [];\nif (rows.length === 0) { return []; }\nreturn rows.map(r => ({ json: r }));"
+      },
+      "id": "41ae1cae-61b4-4ccc-9023-2901403aeee8",
+      "name": "Split Calendar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are an art director briefing a product photographer for an Indian D2C brand. You write image generation prompts. Describe a real photographable scene. Never ask for any text, words, letters, logos or watermarks in the image, image models render text badly. Never describe a recognisable real person or a competitor brand.\\n\\nPRODUCT: \" + ($json.product.name || \"\") + \"\\nWHAT IT IS: \" + ($json.product.description || \"\") + \"\\nCATEGORY: \" + ($json.product.category || \"\") + \"\\nKEY FEATURES: \" + ($json.product.key_features || \"\") + \"\\n\\nCREATIVE BRIEFS TO ILLUSTRATE:\\n\" + ($json.brief_lines || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. One key creatives holding an array with one entry per brief above, in the same order. Each entry has keys: label, prompt, caption.\\nlabel must be copied exactly from the brief label.\\nprompt is a single detailed image generation prompt, 40 to 70 words. Describe the subject, the setting, the lighting, the camera angle, the colour palette and the mood. Set it in a believable Indian home or workspace. End every prompt with the words: photorealistic product photography, no text, no logos, no watermarks.\\ncaption is one short line the brand could use with this image on social.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.7,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "43f24b44-29ee-47ed-a759-c8a03ccf3c0d",
+      "name": "Art Director (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst K = $('Assemble Launch Kit').first().json;\nconst P = K.product || {};\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst cre = Array.isArray(parsed.creatives) ? parsed.creatives : [];\nif (cre.length === 0) { return []; }\nconst pad = (n) => String(n).padStart(2, '0');\nreturn cre.map((c, i) => ({ json: { seq: i + 1, label: String(c.label || ('Creative ' + (i + 1))), prompt: String(c.prompt || ''), caption: String(c.caption || ''), file_name: 'creative-' + pad(i + 1) + '.png', product_name: String(P.name || ''), owner_email: String(P.owner_email || ''), total: cre.length } }));"
+      },
+      "id": "72fe1e9f-235e-43d2-8fd3-59e657a0ba15",
+      "name": "Split Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify($json.prompt) }} }]}]}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "787f7839-da2c-4897-af5a-0f1103c80ae9",
+      "name": "Creative Generator (Nano Banana)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('Split Prompts').all();\nconst inputs = $input.all();\nconst out = [];\ninputs.forEach((item, i) => {\n  const meta = (src[i] && src[i].json) ? src[i].json : {};\n  const resp = item.json || {};\n  const c = resp.candidates && resp.candidates[0];\n  const parts = (c && c.content && c.content.parts) || [];\n  let b64 = '';\n  let mime = 'image/png';\n  parts.forEach(p => { if (p && p.inlineData && p.inlineData.data) { b64 = String(p.inlineData.data); mime = String(p.inlineData.mimeType || 'image/png'); } });\n  if (!b64) { return; }\n  out.push({ json: { image_b64: b64, mime_type: mime, label: meta.label, caption: meta.caption, prompt: meta.prompt, file_name: meta.file_name, product_name: meta.product_name, owner_email: meta.owner_email, seq: meta.seq, total: meta.total } });\n});\nreturn out;"
+      },
+      "id": "f0d8a393-30f1-4dfb-8416-2c1cf7e962c5",
+      "name": "Extract Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "image_b64",
+        "options": {
+          "fileName": "={{ $json.file_name }}",
+          "mimeType": "={{ $json.mime_type }}"
+        }
+      },
+      "id": "220c30f8-b3be-4e5c-8b30-7443ab99c012",
+      "name": "Convert To Image File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        352
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Extract Image\").item.json.owner_email }}",
+        "subject": "=Creative {{ $(\"Extract Image\").item.json.seq }} of {{ $(\"Extract Image\").item.json.total }}: {{ $(\"Extract Image\").item.json.label }}",
+        "message": "=<div style=\"background:#FBF7F0;padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:#FFFFFF;border-radius:10px;overflow:hidden;\"><tr><td style=\"background:#241A14;padding:22px 26px;\"><div style=\"color:#C97B3C;font-size:11px;font-weight:bold;letter-spacing:3px;\">LAUNCH CREATIVE</div><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:23px;font-weight:bold;margin-top:6px;\">{{ $(\"Extract Image\").item.json.label }}</div><div style=\"color:#D8C4B0;font-size:13px;margin-top:4px;\">{{ $(\"Extract Image\").item.json.product_name }}</div></td></tr><tr><td style=\"padding:22px 26px 8px 26px;\"><div style=\"font-size:11px;font-weight:bold;color:#6A6A6A;letter-spacing:1px;\">SUGGESTED CAPTION</div><div style=\"font-size:16px;color:#1A1A1A;line-height:1.55;margin-top:6px;\">{{ $(\"Extract Image\").item.json.caption }}</div></td></tr><tr><td style=\"padding:8px 26px 20px 26px;\"><div style=\"background:#FBF7F0;border-radius:8px;border-left:4px solid #C97B3C;padding:13px 15px;\"><div style=\"font-size:11px;font-weight:bold;color:#6A6A6A;letter-spacing:1px;\">THE BRIEF THAT MADE IT</div><div style=\"font-size:13px;color:#1A1A1A;line-height:1.55;margin-top:5px;\">{{ $(\"Extract Image\").item.json.prompt }}</div></div></td></tr><tr><td style=\"padding:0 26px 20px 26px;\"><div style=\"font-size:13px;color:#6A6A6A;\">Attached as {{ $(\"Extract Image\").item.json.file_name }}. Tweak the brief and rerun if the framing is not right.</div></td></tr><tr><td style=\"background:#241A14;padding:12px 26px;\"><div style=\"color:#9A8878;font-size:11px;\">Product Launch Desk &middot; Creative &middot; Powered by Haus of Intelligence</div></td></tr></table></div>",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "30cdcc42-b710-4ab4-b537-8fdf1f7f7154",
+      "name": "Send Creative",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1104,
+        352
+      ],
+      "webhookId": "e348a2f3-30ed-4406-808d-1e2c50e73ccb",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst K = $('Assemble Launch Kit').first().json;\nconst P = K.product || {};\nconst lp = K.landing || {};\nconst pos = K.positioning || {};\nconst faqs = Array.isArray(K.faqs) ? K.faqs : [];\nconst INK = '#1A1A1A', CREAM = '#FBF7F0', WHITE = '#FFFFFF', GREY = '#6A6A6A', ESP = '#6F4E37', AMBER = '#C97B3C', DARK = '#241A14';\nlet benHtml = '';\n(Array.isArray(lp.benefits) ? lp.benefits : []).forEach(b => {\n  benHtml += '<td width=\"33%\" valign=\"top\" style=\"padding:0 10px;\"><div style=\"background:' + WHITE + ';border-radius:10px;padding:22px 20px;border-top:3px solid ' + AMBER + ';\"><div style=\"font-family:Georgia,serif;font-size:18px;font-weight:bold;color:' + DARK + ';margin-bottom:8px;\">' + esc(b.title) + '</div><div style=\"font-size:14px;color:' + INK + ';line-height:1.6;\">' + esc(b.line) + '</div></div></td>';\n});\nlet stepHtml = '';\n(Array.isArray(lp.how_it_works) ? lp.how_it_works : []).forEach((h, i) => {\n  stepHtml += '<tr><td width=\"46\" valign=\"top\" style=\"padding:10px 0;\"><div style=\"width:34px;height:34px;background:' + ESP + ';border-radius:17px;color:#FFFFFF;font-family:Georgia,serif;font-size:16px;font-weight:bold;text-align:center;line-height:34px;\">' + (i + 1) + '</div></td><td valign=\"top\" style=\"padding:12px 0 12px 6px;\"><div style=\"font-size:16px;font-weight:bold;color:' + DARK + ';\">' + esc(h.step) + '</div><div style=\"font-size:14px;color:' + INK + ';line-height:1.6;margin-top:3px;\">' + esc(h.line) + '</div></td></tr>';\n});\nlet proofHtml = '';\n(Array.isArray(lp.proof_strip) ? lp.proof_strip : []).forEach(s => { proofHtml += '<td width=\"33%\" align=\"center\" style=\"padding:16px 8px;\"><div style=\"font-size:14px;color:#F0E4D8;line-height:1.5;\">' + esc(s) + '</div></td>'; });\nlet faqHtml = '';\nfaqs.slice(0, 6).forEach(f => { faqHtml += '<tr><td style=\"padding:14px 0;border-bottom:1px solid #E8DDD0;\"><div style=\"font-size:15px;font-weight:bold;color:' + DARK + ';margin-bottom:5px;\">' + esc(f.q) + '</div><div style=\"font-size:14px;color:' + INK + ';line-height:1.6;\">' + esc(f.a) + '</div></td></tr>'; });\nconst html = '<div style=\"background:' + CREAM + ';font-family:Calibri,Helvetica,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:720px;margin:0 auto;background:' + CREAM + ';\">' +\n'<tr><td style=\"background:' + DARK + ';padding:16px 30px;\"><div style=\"font-family:Georgia,serif;font-size:19px;font-weight:bold;color:' + WHITE + ';letter-spacing:1px;\">' + esc(P.brand_name) + '</div></td></tr>' +\n'<tr><td style=\"background:' + ESP + ';padding:52px 34px 46px 34px;\" align=\"center\"><div style=\"font-family:Georgia,serif;font-size:38px;font-weight:bold;color:' + WHITE + ';line-height:1.2;max-width:560px;\">' + esc(lp.hero_headline) + '</div><div style=\"font-size:17px;color:#F0E4D8;line-height:1.55;margin-top:16px;max-width:500px;\">' + esc(lp.hero_subhead) + '</div><div style=\"margin-top:28px;\"><a href=\"' + esc(P.store_url) + '\" style=\"display:inline-block;background:' + AMBER + ';color:#FFFFFF;font-size:16px;font-weight:bold;text-decoration:none;padding:15px 36px;border-radius:8px;\">' + esc(lp.cta_primary) + '</a></div><div style=\"font-size:13px;color:#D8C4B0;margin-top:14px;\">Rs ' + esc(P.price_inr) + ' &middot; ' + esc(P.tagline) + '</div></td></tr>' +\n(proofHtml ? ('<tr><td style=\"background:' + DARK + ';\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' + proofHtml + '</tr></table></td></tr>') : '') +\n(benHtml ? ('<tr><td style=\"padding:44px 24px 10px 24px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' + benHtml + '</tr></table></td></tr>') : '') +\n(stepHtml ? ('<tr><td style=\"padding:34px 34px 10px 34px;\"><div style=\"font-family:Georgia,serif;font-size:26px;font-weight:bold;color:' + DARK + ';margin-bottom:10px;\">How it works</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">' + stepHtml + '</table></td></tr>') : '') +\n(faqHtml ? ('<tr><td style=\"padding:30px 34px 10px 34px;\"><div style=\"font-family:Georgia,serif;font-size:26px;font-weight:bold;color:' + DARK + ';margin-bottom:6px;\">Questions people ask</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">' + faqHtml + '</table></td></tr>') : '') +\n'<tr><td style=\"padding:40px 34px;\" align=\"center\"><div style=\"background:' + DARK + ';border-radius:12px;padding:40px 30px;\"><div style=\"font-family:Georgia,serif;font-size:28px;font-weight:bold;color:' + WHITE + ';line-height:1.25;\">' + esc(lp.closing_headline) + '</div><div style=\"font-size:15px;color:#D8C4B0;line-height:1.6;margin-top:12px;max-width:440px;margin-left:auto;margin-right:auto;\">' + esc(lp.closing_line) + '</div><div style=\"margin-top:24px;\"><a href=\"' + esc(P.store_url) + '\" style=\"display:inline-block;background:' + AMBER + ';color:#FFFFFF;font-size:16px;font-weight:bold;text-decoration:none;padding:15px 36px;border-radius:8px;\">' + esc(lp.cta_primary) + '</a></div></div></td></tr>' +\n'<tr><td style=\"background:' + DARK + ';padding:18px 30px;\"><div style=\"color:#9A8878;font-size:11.5px;\">' + esc(P.brand_name) + ' &middot; ' + esc(pos.one_liner) + ' &middot; Generated by the Product Launch Desk</div></td></tr></table></div>';\nreturn [{ json: { page_html: html, product_name: P.name, owner_email: P.owner_email } }];"
+      },
+      "id": "9dfc6980-e654-4c66-af59-4b3b8af3fd12",
+      "name": "Render Landing Page",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.owner_email }}",
+        "subject": "=Landing page ready: {{ $json.product_name }}",
+        "message": "={{ $json.page_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "dff1c6ba-91ba-4d74-aed4-166d8fac44a5",
+      "name": "Send Landing Page",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        528
+      ],
+      "webhookId": "800a17ee-20c9-4592-88ec-a019237551a5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst K = $('Assemble Launch Kit').first().json;\nconst P = K.product || {};\nconst pos = K.positioning || {};\nconst emails = Array.isArray(K.emails) ? K.emails : [];\nconst objs = Array.isArray(K.objections) ? K.objections : [];\nconst so = K.social || {};\nconst cal = Array.isArray(K.cal_rows) ? K.cal_rows : [];\nconst NAVY = '#241A14', ESP = '#6F4E37', AMBER = '#C97B3C', CREAM = '#FBF7F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', RED = '#C0392B', GREEN = '#1B7E42';\nconst issues = Array.isArray(K.data_issues) ? K.data_issues : [];\nlet banner = '';\nif (issues.length) { banner = '<tr><td style=\"padding:12px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RED + ';border-radius:6px;padding:11px 13px;font-size:12.5px;color:#7A1F14;\"><strong>Heads up.</strong> ' + esc(issues.slice(0, 3).join('; ')) + '</div></td></tr>'; }\nlet angHtml = '';\n(Array.isArray(pos.angles) ? pos.angles : []).forEach((a, i) => {\n  angHtml += '<tr><td style=\"padding:0 26px 10px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8DDD0;border-radius:8px;border-left:4px solid ' + AMBER + ';background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + NAVY + ';\">Angle ' + (i + 1) + ': ' + esc(a.name) + '</div><div style=\"font-size:14px;color:' + INK + ';line-height:1.55;margin-top:5px;\">' + esc(a.hook) + '</div><div style=\"font-size:12px;color:' + GREY + ';margin-top:5px;\">Lands with: ' + esc(a.who_it_lands_with) + '</div></td></tr></table></td></tr>';\n});\nlet calHtml = '';\ncal.forEach(c => {\n  const isEmail = c.channel === 'email';\n  calHtml += '<tr><td style=\"padding:8px 12px;border-bottom:1px solid #E8DDD0;font-size:12.5px;color:' + INK + ';\"><strong>' + esc(c.day_label) + '</strong></td><td align=\"center\" style=\"padding:8px 12px;border-bottom:1px solid #E8DDD0;\"><span style=\"display:inline-block;background:' + (isEmail ? ESP : AMBER) + ';color:#FFFFFF;font-size:10.5px;font-weight:bold;padding:3px 9px;border-radius:3px;\">' + esc(String(c.channel).toUpperCase()) + '</span></td><td style=\"padding:8px 12px;border-bottom:1px solid #E8DDD0;font-size:12.5px;color:' + GREY + ';\">' + esc(c.subject) + '</td></tr>';\n});\nlet objHtml = '';\nobjs.slice(0, 3).forEach(o => {\n  objHtml += '<tr><td style=\"padding:0 26px 10px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8DDD0;border-radius:8px;background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\"><div style=\"font-size:14.5px;font-weight:bold;color:' + RED + ';\">“' + esc(o.objection) + '”</div><div style=\"font-size:12px;color:' + GREY + ';margin-top:4px;\">Really means: ' + esc(o.why_they_say_it) + '</div><div style=\"font-size:13.5px;color:' + INK + ';line-height:1.55;margin-top:7px;\">' + esc(o.response) + '</div><div style=\"font-size:12px;color:' + GREEN + ';margin-top:5px;\">Proof: ' + esc(o.proof) + '</div></td></tr></table></td></tr>';\n});\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + NAVY + ';padding:24px 26px;\"><div style=\"color:' + AMBER + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">LAUNCH KIT READY</div><div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:27px;font-weight:bold;margin-top:7px;\">' + esc(P.name) + '</div><div style=\"color:#D8C4B0;font-size:13px;margin-top:5px;\">Rs ' + esc(P.price_inr) + ' &middot; launching ' + esc(P.launch_date) + '</div></td></tr>' + banner +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + ESP + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:25px;font-weight:bold;\">' + esc(K.asset_count) + '</div><div style=\"color:#E8D5C4;font-size:10px;\">assets written</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + AMBER + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:25px;font-weight:bold;\">' + esc(K.cal_count) + '</div><div style=\"color:#F5E3D4;font-size:10px;\">days scheduled</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;\">' + esc(emails.length) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">emails</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;\">' + esc((K.faqs || []).length) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">FAQs</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;\">' + esc(K.brief_count) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">creatives</div></td>' +\n'</tr></table></td></tr>' +\n'<tr><td style=\"padding:18px 26px 6px 26px;\"><div style=\"background:' + CREAM + ';border-radius:8px;padding:16px 18px;border-left:4px solid ' + AMBER + ';\"><div style=\"font-size:11px;font-weight:bold;color:' + GREY + ';letter-spacing:1px;\">LEAD WITH THIS</div><div style=\"font-family:Georgia,serif;font-size:21px;font-weight:bold;color:' + NAVY + ';line-height:1.3;margin-top:7px;\">' + esc(pos.one_liner) + '</div><div style=\"font-size:13.5px;color:' + INK + ';line-height:1.55;margin-top:10px;\"><strong>The enemy:</strong> ' + esc(pos.the_enemy) + '</div><div style=\"font-size:13.5px;color:' + INK + ';line-height:1.55;margin-top:5px;\"><strong>The promise:</strong> ' + esc(pos.the_promise) + '</div><div style=\"font-size:13.5px;color:' + INK + ';line-height:1.55;margin-top:5px;\"><strong>Why the price is fine:</strong> ' + esc(pos.price_justification) + '</div></div></td></tr>' +\n'<tr><td style=\"padding:16px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';\">Three angles to test</div></td></tr>' + angHtml +\n(calHtml ? ('<tr><td style=\"padding:14px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';margin-bottom:8px;\">The 15 day calendar</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8DDD0;border-radius:8px;\">' + calHtml + '</table></td></tr>') : '') +\n(objHtml ? ('<tr><td style=\"padding:14px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';\">What they will push back on</div></td></tr>' + objHtml) : '') +\n(so.linkedin ? ('<tr><td style=\"padding:14px 26px 20px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + NAVY + ';border-radius:8px;\"><tr><td style=\"padding:18px 20px;\"><div style=\"color:' + AMBER + ';font-family:Georgia,serif;font-size:16px;font-weight:bold;margin-bottom:9px;\">Founder post, ready to publish</div><div style=\"color:#FFFFFF;font-size:14.5px;font-weight:bold;line-height:1.5;\">' + esc(so.linkedin.hook) + '</div><div style=\"color:#E8D5C4;font-size:13.5px;line-height:1.6;margin-top:8px;\">' + esc((Array.isArray(so.linkedin.lines) ? so.linkedin.lines : []).join(' ')) + '</div></td></tr></table></td></tr>') : '') +\n'<tr><td style=\"background:' + NAVY + ';padding:12px 26px;\"><div style=\"color:#9A8878;font-size:11px;\">' + esc(P.brand_name) + ' &middot; Product Launch Desk &middot; every asset saved to the sheet &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\nreturn [{ json: { kit_html: html, product_name: P.name, asset_count: K.asset_count, cal_count: K.cal_count, owner_email: P.owner_email } }];"
+      },
+      "id": "91c6e275-54bc-44db-9e2e-595e73dfdc06",
+      "name": "Build Kit Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.owner_email }}",
+        "subject": "=Launch kit: {{ $json.asset_count }} assets and a {{ $json.cal_count }} day plan for {{ $json.product_name }}",
+        "message": "={{ $json.kit_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "50d1d676-60d0-4a84-beb1-c03d0991cb36",
+      "name": "Send Launch Kit",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        720
+      ],
+      "webhookId": "9f48d89d-e92c-4175-a915-8a7481916f8d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Launch_Assets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "asset_id",
+              "displayName": "asset_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "asset_type",
+              "displayName": "asset_type",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "asset_id": "={{ $json.asset_id }}",
+            "product_id": "={{ $json.product_id }}",
+            "created_at": "={{ $json.created_at }}",
+            "asset_type": "={{ $json.asset_type }}",
+            "channel": "={{ $json.channel }}",
+            "title": "={{ $json.title }}",
+            "body": "={{ $json.body }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "349bc9f8-ef2a-4516-87ed-94f10638d624",
+      "name": "Save Launch Assets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Launch_Calendar"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "item_id",
+              "displayName": "item_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "scheduled_date",
+              "displayName": "scheduled_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "day_label",
+              "displayName": "day_label",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "asset_type",
+              "displayName": "asset_type",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "item_id": "={{ $json.item_id }}",
+            "product_id": "={{ $json.product_id }}",
+            "scheduled_date": "={{ $json.scheduled_date }}",
+            "day_label": "={{ $json.day_label }}",
+            "asset_type": "={{ $json.asset_type }}",
+            "channel": "={{ $json.channel }}",
+            "subject": "={{ $json.subject }}",
+            "body": "={{ $json.body }}",
+            "status": "={{ $json.status }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "4ba7c074-874d-4344-9f24-7f116cab6e83",
+      "name": "Save Launch Calendar",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        176
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Build Launch Kit": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Product In": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Products": {
+      "main": [
+        [
+          {
+            "node": "Read Launch Assets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Launch Assets": {
+      "main": [
+        [
+          {
+            "node": "Assemble Product Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Product Context": {
+      "main": [
+        [
+          {
+            "node": "Positioning Strategist (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Positioning Strategist (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Landing Page Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Landing Page Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Email Sequencer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Sequencer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "FAQ and Objection Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ and Objection Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Social Pack Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Social Pack Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Assemble Launch Kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Launch Kit": {
+      "main": [
+        [
+          {
+            "node": "Split Assets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Calendar",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Art Director (Gemini)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Render Landing Page",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Kit Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Assets": {
+      "main": [
+        [
+          {
+            "node": "Save Launch Assets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Calendar": {
+      "main": [
+        [
+          {
+            "node": "Save Launch Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Art Director (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Split Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Prompts": {
+      "main": [
+        [
+          {
+            "node": "Creative Generator (Nano Banana)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creative Generator (Nano Banana)": {
+      "main": [
+        [
+          {
+            "node": "Extract Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image": {
+      "main": [
+        [
+          {
+            "node": "Convert To Image File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert To Image File": {
+      "main": [
+        [
+          {
+            "node": "Send Creative",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render Landing Page": {
+      "main": [
+        [
+          {
+            "node": "Send Landing Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Kit Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Launch Kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9c11eb53-4759-4141-9766-32a6243a5db0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "zXDN9FYnjHB5G5yf",
+  "tags": []
+}

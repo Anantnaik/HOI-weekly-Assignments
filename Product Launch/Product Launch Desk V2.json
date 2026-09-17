@@ -1,0 +1,540 @@
+{
+  "name": "Product Launch Desk V2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7a7a6ef5-3d10-4224-b840-d2ef0baca9ca",
+      "name": "Run Launch Day",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "brand_name",
+              "value": "Ember Coffee Co",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "owner_email",
+              "value": "naikanant381@gmail.com@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "owner_name",
+              "value": "Aditi Menon",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "store_url",
+              "value": "https://embercoffee.in",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "max_recipients",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "dedupe_enabled",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "7",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f453a7a2-4dc6-4271-b354-2aa655ca95ca",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1104,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "e1bd21da-2e7a-4fb7-a1a9-5a38efe6815c",
+      "name": "Every Morning 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1328,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1589318671,
+          "mode": "list",
+          "cachedResultName": "Launch_Calendar",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8/edit#gid=1589318671"
+        },
+        "options": {}
+      },
+      "id": "c98b8c21-b779-464d-a6bf-38d078713938",
+      "name": "Read Launch Calendar",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -880,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 386250401,
+          "mode": "list",
+          "cachedResultName": "Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8/edit#gid=386250401"
+        },
+        "options": {}
+      },
+      "id": "83ccf0b2-292f-4bfa-b7ac-d232caeab4f0",
+      "name": "Read Subscribers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -656,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2061961498,
+          "mode": "list",
+          "cachedResultName": "Send_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8/edit#gid=2061961498"
+        },
+        "options": {}
+      },
+      "id": "de8e6ab0-4f33-4725-b424-22ca18bcc9f3",
+      "name": "Read Send Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -448,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst cal = uniq($('Read Launch Calendar').all().map(i => i.json).filter(r => r && r.item_id), 'item_id');\nconst subs = uniq($('Read Subscribers').all().map(i => i.json).filter(r => r && r.sub_id), 'sub_id');\nconst logs = uniq($('Read Send Log').all().map(i => i.json).filter(r => r && r.log_id), 'log_id');\nconst dedupe = (String(cfg.dedupe_enabled) === 'true') || (cfg.dedupe_enabled === true);\nconst done = {};\nlogs.forEach(l => { done[String(l.item_id || '').trim()] = true; });\nconst TZ = num(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + TZ * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst today = fd(now);\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nconst dueAll = cal.filter(c => String(c.scheduled_date || '').trim().slice(0, 10) <= today);\nlet skipped = 0;\nconst due = [];\ndueAll.forEach(c => { if (dedupe && done[String(c.item_id).trim()]) { skipped += 1; return; } due.push(c); });\nconst active = subs.filter(s => String(s.status || '').toLowerCase().trim() === 'active' && String(s.email || '').trim());\nconst unsub = subs.length - active.length;\nconst cap = num(cfg.max_recipients) || 3;\nconst recips = active.slice(0, cap);\nconst upcoming = cal.filter(c => String(c.scheduled_date || '').trim().slice(0, 10) > today).slice(0, 4);\nlet upLines = '';\nupcoming.forEach(u => { upLines += String(u.day_label || '') + ' | ' + String(u.channel || '') + ' | ' + String(u.subject || '') + '\\n'; });\nif (due.length === 0) { return [{ json: { nothing_due: true, today: today, stamp: stamp, skipped: skipped, total_items: cal.length, active_subs: active.length, unsub_count: unsub, upcoming: upcoming, upcoming_lines: upLines || 'none', brand_name: cfg.brand_name, owner_email: cfg.owner_email, owner_name: cfg.owner_name, store_url: cfg.store_url, email_items: [], social_items: [], sent_count: 0 } }]; }\nconst emailItems = due.filter(c => String(c.channel || '').toLowerCase().trim() === 'email');\nconst socialItems = due.filter(c => String(c.channel || '').toLowerCase().trim() !== 'email');\nreturn [{ json: { nothing_due: false, today: today, stamp: stamp, skipped: skipped, total_items: cal.length,\n  active_subs: active.length, unsub_count: unsub, recipients: recips, recipient_count: recips.length,\n  email_items: emailItems, social_items: socialItems, due_count: due.length,\n  upcoming: upcoming, upcoming_lines: upLines || 'none',\n  brand_name: cfg.brand_name, owner_email: cfg.owner_email, owner_name: cfg.owner_name, store_url: cfg.store_url } }];"
+      },
+      "id": "e3a44a0a-9f17-436a-aa67-bcd5846f2516",
+      "name": "Today Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst D = $('Today Engine').first().json;\nif (D.nothing_due) { return []; }\nconst items = Array.isArray(D.email_items) ? D.email_items : [];\nconst recips = Array.isArray(D.recipients) ? D.recipients : [];\nif (items.length === 0 || recips.length === 0) { return []; }\nconst NAVY = '#241A14', ESP = '#6F4E37', AMBER = '#C97B3C', CREAM = '#FBF7F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A';\nconst pad = (n) => String(n).padStart(2, '0');\nconst out = [];\nlet k = 0;\nitems.forEach(it => {\n  const lines = String(it.body || '').split('\\n').filter(l => l.trim());\n  recips.forEach(r => {\n    k += 1;\n    let body = '';\n    lines.forEach(l => { body += '<div style=\"font-size:15.5px;color:' + INK + ';line-height:1.65;margin-bottom:11px;\">' + esc(l.trim()) + '</div>'; });\n    const html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:580px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n    '<tr><td style=\"background:' + NAVY + ';padding:20px 26px;\"><div style=\"font-family:Georgia,serif;font-size:19px;font-weight:bold;color:' + WHITE + ';letter-spacing:1px;\">' + esc(D.brand_name) + '</div></td></tr>' +\n    '<tr><td style=\"padding:24px 26px 6px 26px;\"><div style=\"font-size:16px;font-weight:bold;color:' + INK + ';margin-bottom:14px;\">Hi ' + esc(r.name) + ',</div>' + body + '</td></tr>' +\n    '<tr><td style=\"padding:6px 26px 22px 26px;\"><a href=\"' + esc(D.store_url) + '\" style=\"display:inline-block;background:' + AMBER + ';color:#FFFFFF;font-size:15px;font-weight:bold;text-decoration:none;padding:13px 30px;border-radius:7px;\">Have a look</a></td></tr>' +\n    '<tr><td style=\"padding:0 26px 20px 26px;\"><div style=\"font-size:14px;color:' + INK + ';\">Warmly,</div><div style=\"font-size:14px;color:' + INK + ';font-weight:bold;\">' + esc(D.owner_name) + '</div><div style=\"font-size:13px;color:' + GREY + ';\">' + esc(D.brand_name) + '</div></td></tr>' +\n    '<tr><td style=\"background:' + CREAM + ';padding:12px 26px;\"><div style=\"font-size:11px;color:' + GREY + ';\">You are receiving this because you joined the ' + esc(r.segment) + ' list. Reply with the word stop and we will remove you.</div></td></tr>' +\n    '</table></div>';\n    out.push({ json: { to: String(r.email), subject: String(it.subject || ''), html: html, item_id: String(it.item_id), product_id: String(it.product_id), channel: 'email', day_label: String(it.day_label || ''), asset_type: String(it.asset_type || ''), recipient_name: String(r.name), seq: k } });\n  });\n});\nreturn out;"
+      },
+      "id": "0ff52864-70f1-4b09-8c43-ec7ffaa06dba",
+      "name": "Build Subscriber Emails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8587e628-e000-44ba-bdbb-34d6e9db20a0",
+      "name": "Send To Subscribers",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "webhookId": "406e02e4-d1eb-4f96-ae82-4b6dec764a0f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const D = $('Today Engine').first().json;\nif (D.nothing_due) { return []; }\nconst pad = (n) => String(n).padStart(2, '0');\nconst email = Array.isArray(D.email_items) ? D.email_items : [];\nconst social = Array.isArray(D.social_items) ? D.social_items : [];\nconst rc = Number(D.recipient_count) || 0;\nconst out = [];\nlet n = 0;\nemail.forEach(it => { n += 1; out.push({ json: { log_id: 'LG' + D.stamp + '-' + pad(n), run_date: D.today, item_id: String(it.item_id), product_id: String(it.product_id), channel: 'email', recipients: rc, status: 'sent' } }); });\nsocial.forEach(it => { n += 1; out.push({ json: { log_id: 'LG' + D.stamp + '-' + pad(n), run_date: D.today, item_id: String(it.item_id), product_id: String(it.product_id), channel: String(it.channel), recipients: 0, status: 'owner_notified' } }); });\nreturn out;"
+      },
+      "id": "bb7a3204-a749-4acf-802d-40f6d8236101",
+      "name": "Build Log Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst D = $('Today Engine').first().json;\nconst NAVY = '#241A14', ESP = '#6F4E37', AMBER = '#C97B3C', CREAM = '#FBF7F0', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42';\nconst email = Array.isArray(D.email_items) ? D.email_items : [];\nconst social = Array.isArray(D.social_items) ? D.social_items : [];\nconst rc = Number(D.recipient_count) || 0;\nlet emHtml = '';\nemail.forEach(it => {\n  emHtml += '<tr><td style=\"padding:0 26px 12px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8DDD0;border-radius:8px;border-left:4px solid ' + GREEN + ';background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\">' +\n  '<div style=\"font-size:11px;font-weight:bold;color:' + GREEN + ';letter-spacing:1px;\">SENT &middot; ' + esc(it.day_label) + '</div>' +\n  '<div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';margin-top:5px;\">' + esc(it.subject) + '</div>' +\n  '<div style=\"font-size:12.5px;color:' + GREY + ';margin-top:4px;\">Delivered to ' + rc + ' subscriber(s)</div></td></tr></table></td></tr>';\n});\nlet soHtml = '';\nsocial.forEach(it => {\n  let b = '';\n  String(it.body || '').split('\\n').filter(l => l.trim()).forEach(l => { b += '<div style=\"font-size:14px;color:#E8D5C4;line-height:1.6;margin-bottom:7px;\">' + esc(l.trim()) + '</div>'; });\n  soHtml += '<tr><td style=\"padding:0 26px 14px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + NAVY + ';border-radius:8px;\"><tr><td style=\"padding:17px 19px;\">' +\n  '<div style=\"color:' + AMBER + ';font-size:11px;font-weight:bold;letter-spacing:1px;\">POST THIS TODAY &middot; ' + esc(String(it.asset_type).replace(/_/g, ' ').toUpperCase()) + '</div>' +\n  '<div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:15px;font-weight:bold;margin-top:6px;margin-bottom:10px;\">' + esc(it.day_label) + '</div>' +\n  '<div style=\"background:#3A2A1E;border-radius:6px;padding:14px 16px;\">' + b + '</div></td></tr></table></td></tr>';\n});\nlet upHtml = '';\n(Array.isArray(D.upcoming) ? D.upcoming : []).forEach(u => {\n  upHtml += '<tr><td style=\"padding:8px 12px;border-bottom:1px solid #E8DDD0;font-size:12.5px;color:' + INK + ';\">' + esc(u.day_label) + '</td>' +\n  '<td align=\"center\" style=\"padding:8px 12px;border-bottom:1px solid #E8DDD0;\"><span style=\"display:inline-block;background:' + (u.channel === 'email' ? ESP : AMBER) + ';color:#FFFFFF;font-size:10px;font-weight:bold;padding:3px 8px;border-radius:3px;\">' + esc(String(u.channel).toUpperCase()) + '</span></td>' +\n  '<td style=\"padding:8px 12px;border-bottom:1px solid #E8DDD0;font-size:12.5px;color:' + GREY + ';\">' + esc(u.subject) + '</td></tr>';\n});\nconst headline = D.nothing_due ? 'Nothing scheduled today' : (email.length + social.length) + ' launch action(s) today';\nconst sub = D.nothing_due ? ('Next up: ' + (D.upcoming.length ? String(D.upcoming[0].day_label) : 'nothing on the calendar')) : (email.length + ' email(s) sent, ' + social.length + ' post(s) for you to publish');\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:660px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + NAVY + ';padding:24px 26px;\"><div style=\"color:' + AMBER + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">LAUNCH DAY BRIEF</div>' +\n'<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;margin-top:7px;\">' + esc(headline) + '</div>' +\n'<div style=\"color:#D8C4B0;font-size:13px;margin-top:5px;\">' + esc(D.today) + ' &middot; ' + esc(sub) + '</div></td></tr>' +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + ESP + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(email.length) + '</div><div style=\"color:#E8D5C4;font-size:10px;\">emails sent</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + AMBER + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(social.length) + '</div><div style=\"color:#F5E3D4;font-size:10px;\">to post</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.active_subs) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">active list</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + NAVY + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.skipped) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">already sent</div></td>' +\n'</tr></table>' +\n'<div style=\"font-size:11.5px;color:' + GREY + ';margin-top:8px;text-align:center;\">' + esc(D.unsub_count) + ' unsubscribed contact(s) skipped &middot; ' + esc(D.total_items) + ' items on the calendar</div></td></tr>' +\n(soHtml ? ('<tr><td style=\"padding:16px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';\">Your job today</div></td></tr>' + soHtml) : '') +\n(emHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + NAVY + ';\">Already handled for you</div></td></tr>' + emHtml) : '') +\n(upHtml ? ('<tr><td style=\"padding:12px 26px 18px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + NAVY + ';margin-bottom:8px;\">Coming up</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8DDD0;border-radius:8px;\">' + upHtml + '</table></td></tr>') : '') +\n'<tr><td style=\"background:' + NAVY + ';padding:12px 26px;\"><div style=\"color:#9A8878;font-size:11px;\">' + esc(D.brand_name) + ' &middot; Product Launch Desk &middot; nothing is ever sent twice &middot; Powered by Haus of Intelligence</div></td></tr>' +\n'</table></div>';\nreturn [{ json: { brief_html: html, headline: headline, today: D.today, owner_email: D.owner_email, email_count: email.length, social_count: social.length } }];"
+      },
+      "id": "d88f6920-6b9c-4dbe-8a5d-0224ed5940da",
+      "name": "Build Daily Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.owner_email }}",
+        "subject": "=Launch brief {{ $json.today }} - {{ $json.headline }}",
+        "message": "={{ $json.brief_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "56b06710-559d-4db6-ad5f-2252780a8fce",
+      "name": "Send Daily Brief",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        416
+      ],
+      "webhookId": "77fac87e-2eb2-4f32-9fc7-8aea8bab03e1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1awzV37_03iRgRL3p9M0IDUbEeZ3bTt_HoSSgY5YyOt8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Send_Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "item_id",
+              "displayName": "item_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "product_id",
+              "displayName": "product_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "recipients",
+              "displayName": "recipients",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "log_id": "={{ $json.log_id }}",
+            "run_date": "={{ $json.run_date }}",
+            "item_id": "={{ $json.item_id }}",
+            "product_id": "={{ $json.product_id }}",
+            "channel": "={{ $json.channel }}",
+            "recipients": "={{ $json.recipients }}",
+            "status": "={{ $json.status }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "92459778-d9ab-458c-bb9a-f7c5abd78f18",
+      "name": "Log Sends",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Launch Day": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Launch Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Morning 9am": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Launch Calendar": {
+      "main": [
+        []
+      ]
+    },
+    "Read Subscribers": {
+      "main": [
+        [
+          {
+            "node": "Read Send Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Send Log": {
+      "main": [
+        [
+          {
+            "node": "Today Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Today Engine": {
+      "main": [
+        [
+          {
+            "node": "Build Subscriber Emails",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Log Rows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Daily Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Subscriber Emails": {
+      "main": [
+        [
+          {
+            "node": "Send To Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Log Rows": {
+      "main": [
+        [
+          {
+            "node": "Log Sends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Daily Brief": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "797b2d01-77bd-4694-b6ec-413a2b0c98d1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "K4ZfOjhNqRiDZNY8",
+  "tags": []
+}
