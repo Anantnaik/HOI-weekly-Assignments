@@ -1,0 +1,1040 @@
+{
+  "name": "Returns Control Desk V1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "3fb1d466-4bf0-434d-a4f1-8c7dbfc210c5",
+      "name": "Run Returns Desk",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3088,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "brand_name",
+              "value": "Indigo Thread",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "support_name",
+              "value": "Nandini",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "ops_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "support_phone",
+              "value": "+91 141 4567 890",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "loyal_ltv_inr",
+              "value": 15000,
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "max_per_run",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "dedupe_enabled",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "8",
+              "name": "write_back_enabled",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "9",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8e74e8dc-8f75-433a-88cd-0e3c63fb92c4",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2864,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "return-request",
+        "options": {}
+      },
+      "id": "7e747297-287a-456d-9e8b-0c9ed56fba23",
+      "name": "Return Request In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3088,
+        176
+      ],
+      "webhookId": "885ce83a-c7f0-48b9-9a9c-80f44af9d44e"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1858463198,
+          "mode": "list",
+          "cachedResultName": "Policy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=1858463198"
+        },
+        "options": {}
+      },
+      "id": "d015b48c-4908-4bb8-8f9e-911d31ca7000",
+      "name": "Read Policy",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2656,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 143113812,
+          "mode": "list",
+          "cachedResultName": "Products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=143113812"
+        },
+        "options": {}
+      },
+      "id": "6fa1157e-be10-4e7d-aa38-d2b9043619fa",
+      "name": "Read Products",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2432,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 250741941,
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=250741941"
+        },
+        "options": {}
+      },
+      "id": "e49d4b55-d20b-4198-b6fa-6553a40fae56",
+      "name": "Read Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2208,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 966121705,
+          "mode": "list",
+          "cachedResultName": "Customers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=966121705"
+        },
+        "options": {}
+      },
+      "id": "e3c8bf41-67a4-4439-b792-d640394cae12",
+      "name": "Read Customers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1984,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 725413860,
+          "mode": "list",
+          "cachedResultName": "Return_Requests",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=725413860"
+        },
+        "options": {}
+      },
+      "id": "fa0423b3-8270-4da7-891d-11775a094ecf",
+      "name": "Read Return Requests",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1776,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 409249911,
+          "mode": "list",
+          "cachedResultName": "Decision_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=409249911"
+        },
+        "options": {}
+      },
+      "id": "760b7201-e31b-4508-9ff4-5c4c27a67c35",
+      "name": "Read Decision Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1552,
+        288
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst pol = uniq($('Read Policy').all().map(i => i.json).filter(r => r && r.policy_key), 'policy_key');\nconst prods = uniq($('Read Products').all().map(i => i.json).filter(r => r && r.sku), 'sku');\nconst orders = uniq($('Read Orders').all().map(i => i.json).filter(r => r && r.order_id), 'order_id');\nconst custs = uniq($('Read Customers').all().map(i => i.json).filter(r => r && r.customer_id), 'customer_id');\nconst reqs = uniq($('Read Return Requests').all().map(i => i.json).filter(r => r && r.request_id), 'request_id');\nconst logs = uniq($('Read Decision Log').all().map(i => i.json).filter(r => r && r.decision_id), 'decision_id');\nconst P = {};\npol.forEach(r => { P[String(r.policy_key).trim()] = r.policy_value; });\nconst prodBy = {};\nprods.forEach(r => { prodBy[String(r.sku).trim()] = r; });\nconst orderBy = {};\norders.forEach(r => { orderBy[String(r.order_id).trim()] = r; });\nconst custBy = {};\ncusts.forEach(r => { custBy[String(r.customer_id).trim()] = r; });\nconst dedupe = (String(cfg.dedupe_enabled) === 'true') || (cfg.dedupe_enabled === true);\nconst done = {};\nlogs.forEach(l => { if (String(l.decision || '').trim() === 'rto_save_sent') { return; } done[String(l.request_id || '').trim()] = true; });\nconst TZ = num(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + TZ * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst today = fd(now);\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nconst tMs = Date.parse(today + 'T00:00:00Z');\nconst daysBetween = (ds) => { const t = Date.parse(String(ds || '').trim().slice(0, 10) + 'T00:00:00Z'); if (isNaN(t)) { return -1; } return Math.round((tMs - t) / 86400000); };\nconst issues = [];\nlet skipped = 0;\nconst open = [];\nreqs.forEach(r => {\n  const rid = String(r.request_id).trim();\n  if (String(r.status || '').toLowerCase().trim() === 'processed') { skipped += 1; return; }\n  if (dedupe && done[rid]) { skipped += 1; return; }\n  const o = orderBy[String(r.order_id || '').trim()];\n  if (!o) { issues.push('No order found for request ' + rid); return; }\n  const p = prodBy[String(o.sku || '').trim()] || {};\n  const c = custBy[String(r.customer_id || '').trim()] || {};\n  const sinceDelivery = daysBetween(o.delivery_date);\n  const transitDays = (String(o.ship_date || '') && String(o.delivery_date || '')) ? Math.round((Date.parse(String(o.delivery_date).slice(0, 10) + 'T00:00:00Z') - Date.parse(String(o.ship_date).slice(0, 10) + 'T00:00:00Z')) / 86400000) : -1;\n  open.push({ request_id: rid, received_at: String(r.received_at || ''), raw_text: String(r.raw_text || ''), images_attached: String(r.images_attached || 'no').toLowerCase().trim(),\n    order_id: String(o.order_id), sku: String(o.sku), product_name: String(o.product_name || p.name || ''), category: String(p.category || ''), returnable: String(p.returnable || 'yes').toLowerCase().trim(),\n    order_value: num(o.order_value_inr), cogs: num(p.cogs_inr), payment_mode: String(o.payment_mode || '').toLowerCase().trim(), courier: String(o.courier || ''), pincode: String(o.pincode || ''), city: String(o.city || ''),\n    delivery_date: String(o.delivery_date || ''), days_since_delivery: sinceDelivery, transit_days: transitDays,\n    customer_id: String(r.customer_id || ''), customer_name: String(o.customer_name || c.name || ''), customer_email: String(o.customer_email || c.email || ''),\n    returns_90d: num(c.returns_last_90d), total_orders: num(c.total_orders), total_returns: num(c.total_returns), ltv: num(c.lifetime_value_inr), cust_flag: String(c.flag || '') });\n});\nconst batch = open.slice(0, num(cfg.max_per_run) || 10);\nlet blob = '';\nbatch.forEach(b => { blob += '=== REQUEST ' + b.request_id + ' ===\\nPRODUCT: ' + b.product_name + ' (' + b.category + '), Rs ' + b.order_value + ', paid by ' + b.payment_mode + '\\nDELIVERED: ' + b.days_since_delivery + ' days ago\\nIMAGES ATTACHED: ' + b.images_attached + '\\nCUSTOMER WROTE: ' + b.raw_text + '\\n\\n'; });\nreturn [{ json: { policy: P, requests: batch, open_count: batch.length, skipped: skipped, request_blob: blob || 'none',\n  today: today, stamp: stamp, total_requests: reqs.length, data_issues: issues,\n  write_back: (String(cfg.write_back_enabled) === 'true') || (cfg.write_back_enabled === true),\n  brand_name: cfg.brand_name, support_name: cfg.support_name, ops_email: cfg.ops_email, support_phone: cfg.support_phone, loyal_ltv: num(cfg.loyal_ltv_inr) } }];"
+      },
+      "id": "eab460e5-e8ae-44d6-9dd9-20bc79a1e8d2",
+      "name": "Assemble Request Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You classify return and replacement requests for an Indian D2C brand. Customers write casually, often in Hinglish. Your job is to find the REAL reason, not the polite one. You do not decide the outcome, a rules engine does that. Never invent a fact that is not in the message.\\n\\n\" + ($json.request_blob || \"none\") + \"\\n\\nIf the text above says none, return an empty requests array.\\nReturn ONLY valid JSON, no markdown fences. One key requests holding an array, one entry per REQUEST block above, in the same order. Each entry has keys: request_id, reason_category, reason_detail, evidence_claimed, sentiment, language, wants, summary.\\nrequest_id must be copied exactly from the REQUEST header line.\\nreason_category must be exactly one of: size, damaged, wrong_item, quality_defect, changed_mind, late_delivery, other.\\nUse size when the item does not fit. Use damaged when it arrived broken or torn. Use wrong_item when the brand shipped something different from what was ordered. Use quality_defect when the item failed after use, such as stitching coming apart. Use changed_mind when the customer simply does not want it and nothing is wrong with the product. Use late_delivery when the complaint is about timing.\\nreason_detail is one short factual line quoting what actually happened, in English.\\nevidence_claimed is yes if the customer says they have photos or proof, otherwise no.\\nsentiment is calm, frustrated or angry.\\nlanguage is english, hindi or hinglish based on how they wrote.\\nwants is refund, replacement, exchange or unclear, based on what they asked for.\\nsummary is one line the support team can read at a glance.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.2,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "0ff41be9-ba77-4855-82fa-04d38fdf0941",
+      "name": "Reason Classifier (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1104,
+        288
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst A = $('Assemble Request Context').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst P = A.policy || {};\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst cls = Array.isArray(parsed.requests) ? parsed.requests : [];\nconst pendingCount = (A.requests || []).length;\nconst aiOk = cls.length > 0;\nconst issues = Array.isArray(A.data_issues) ? A.data_issues.slice(0) : [];\nif (!aiOk && pendingCount > 0) { issues.push('Reason classifier returned nothing for ' + pendingCount + ' open request(s), they all fell back to manual review'); }\nconst clsBy = {};\ncls.forEach(c => { clsBy[String(c.request_id || '').trim()] = c; });\nconst abuseCount = num(P.abuse_return_count) || 3;\nconst abuseWindow = num(P.abuse_window_days) || 90;\nconst out = [];\n(Array.isArray(A.requests) ? A.requests : []).forEach(r => {\n  const c = clsBy[r.request_id] || {};\n  const reason = String(c.reason_category || 'other').toLowerCase().trim();\n  let risk = 0;\n  const flags = [];\n  if (r.returns_90d >= abuseCount) { risk += 45; flags.push(r.returns_90d + ' returns in the last ' + abuseWindow + ' days, above the limit of ' + abuseCount); }\n  else if (r.returns_90d === abuseCount - 1) { risk += 20; flags.push(r.returns_90d + ' returns in the last ' + abuseWindow + ' days, one below the limit'); }\n  const rate = r.total_orders > 0 ? r.total_returns / r.total_orders : 0;\n  if (rate >= 0.5 && r.total_orders >= 4) { risk += 25; flags.push(Math.round(rate * 100) + ' percent of their orders end in a return'); }\n  if (String(r.cust_flag).toLowerCase() === 'watch') { risk += 20; flags.push('Already flagged for watching by the team'); }\n  if (r.payment_mode === 'cod' && reason === 'changed_mind') { risk += 10; flags.push('COD order with a change of mind claim'); }\n  if (reason === 'damaged' && r.images_attached !== 'yes') { risk += 15; flags.push('Damage claimed with no image attached'); }\n  if (r.ltv >= num(A.loyal_ltv) || String(r.cust_flag).toLowerCase() === 'loyal') { risk -= 20; flags.push('High value customer, lifetime spend Rs ' + r.ltv); }\n  risk = Math.max(0, Math.min(100, risk));\n  const band = risk >= 55 ? 'HIGH' : (risk >= 30 ? 'MEDIUM' : 'LOW');\n  out.push(Object.assign({}, r, { reason_category: reason, reason_detail: String(c.reason_detail || ''), evidence_claimed: String(c.evidence_claimed || 'no').toLowerCase().trim(), sentiment: String(c.sentiment || 'calm'), language: String(c.language || 'english'), wants: String(c.wants || 'unclear'), ai_summary: String(c.summary || ''), risk_score: risk, risk_band: band, risk_flags: flags, classified: !!c.reason_category }));\n});\nreturn [{ json: { scored: out, ai_ok: aiOk, data_issues: issues } }];"
+      },
+      "id": "e8b58bcb-f4e0-4d9b-a915-440e2fa634de",
+      "name": "Risk Scorer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const A = $('Assemble Request Context').first().json;\nconst S = $input.first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst P = A.policy || {};\nconst yes = (v) => String(v || '').toLowerCase().trim() === 'yes';\nconst retWindow = num(P.return_window_days) || 7;\nconst excWindow = num(P.exchange_window_days) || 14;\nconst nonRet = String(P.non_returnable_categories || '').toLowerCase().split(',').map(x => x.trim()).filter(x => x);\nconst needPhoto = yes(P.damaged_requires_photo);\nconst autoUnder = num(P.auto_approve_under_inr) || 0;\nconst pickupAbove = num(P.pickup_required_above_inr) || 999999;\nconst refundPrepaid = String(P.refund_mode_prepaid || 'original payment method');\nconst refundCod = String(P.refund_mode_cod || 'bank transfer');\nconst wrongAuto = yes(P.wrong_item_auto_approve);\nconst lateDays = num(P.late_delivery_days) || 10;\nconst restock = num(P.restocking_fee_pct) || 0;\nconst out = [];\nlet approved = 0, rejected = 0, manual = 0, evidence = 0;\nlet refundTotal = 0, cogsAtRisk = 0;\n(Array.isArray(S.scored) ? S.scored : []).forEach(r => {\n  const why = [];\n  let decision = '';\n  let refund = 0;\n  let pickup = false;\n  let refundMode = r.payment_mode === 'cod' ? refundCod : refundPrepaid;\n  const reason = r.reason_category;\n  const withinRet = r.days_since_delivery >= 0 && r.days_since_delivery <= retWindow;\n  const withinExc = r.days_since_delivery >= 0 && r.days_since_delivery <= excWindow;\n  const isNonRet = r.returnable === 'no' || nonRet.indexOf(String(r.category).toLowerCase()) !== -1;\n  if (isNonRet) {\n    decision = 'reject';\n    why.push(r.category + ' is a non returnable category under the current policy');\n  } else if (reason === 'wrong_item' && wrongAuto) {\n    decision = 'refund';\n    refund = r.order_value;\n    pickup = true;\n    why.push('Wrong item shipped, this is our error so policy says approve without argument');\n    why.push('Pickup raised so the original item comes back');\n  } else if (r.risk_band === 'HIGH') {\n    decision = 'manual_review';\n    why.push('Risk score ' + r.risk_score + ' out of 100, above the review threshold');\n    (r.risk_flags || []).forEach(f => { why.push(f); });\n  } else if (reason === 'late_delivery' && r.transit_days >= lateDays) {\n    decision = 'refund';\n    refund = r.order_value;\n    pickup = r.order_value >= pickupAbove;\n    why.push('Took ' + r.transit_days + ' days in transit against a ' + lateDays + ' day service promise');\n    why.push('Counted as a service failure, not a customer change of mind');\n  } else if (reason === 'damaged' && needPhoto && r.images_attached !== 'yes' && r.evidence_claimed !== 'yes') {\n    decision = 'pending_evidence';\n    why.push('Damage claimed but no image attached, and policy requires a photo');\n  } else if (reason === 'damaged') {\n    decision = 'refund';\n    refund = r.order_value;\n    pickup = r.order_value >= pickupAbove;\n    why.push('Damage evidenced, approved under the damaged goods clause');\n    if (pickup) { why.push('Value Rs ' + r.order_value + ' is above the Rs ' + pickupAbove + ' pickup threshold'); }\n  } else if (reason === 'size' && withinExc) {\n    decision = 'replacement';\n    pickup = true;\n    why.push('Size exchange requested ' + r.days_since_delivery + ' days after delivery, inside the ' + excWindow + ' day exchange window');\n    why.push('Replacement sent, original collected on the same trip');\n  } else if (reason === 'quality_defect' && withinRet) {\n    decision = r.order_value >= pickupAbove ? 'pickup_and_inspect' : 'refund';\n    if (decision === 'refund') { refund = r.order_value; }\n    why.push('Quality complaint inside the ' + retWindow + ' day window');\n    why.push(decision === 'refund' ? ('Value Rs ' + r.order_value + ' is under the Rs ' + pickupAbove + ' threshold, refunded without inspection to save cost') : ('Value Rs ' + r.order_value + ' needs the item back for QC before refund'));\n    if (decision === 'pickup_and_inspect') { pickup = true; }\n  } else if (!withinRet && reason !== 'size') {\n    decision = 'reject';\n    why.push('Raised ' + r.days_since_delivery + ' days after delivery, outside the ' + retWindow + ' day return window');\n  } else if (!withinExc && reason === 'size') {\n    decision = 'reject';\n    why.push('Raised ' + r.days_since_delivery + ' days after delivery, outside the ' + excWindow + ' day exchange window');\n  } else if (reason === 'changed_mind') {\n    decision = 'refund';\n    refund = Math.round(r.order_value * (1 - restock / 100));\n    pickup = r.order_value >= pickupAbove;\n    why.push('Change of mind inside the ' + retWindow + ' day window');\n    if (restock > 0) { why.push(restock + ' percent restocking fee applied'); }\n  } else {\n    decision = 'manual_review';\n    why.push('Reason did not match any policy rule cleanly, sending to a human');\n  }\n  if (decision === 'refund' && r.order_value < autoUnder) { pickup = false; why.push('Under the Rs ' + autoUnder + ' auto approve line, no pickup raised because collection would cost more than the item'); }\n  let exception = false;\n  if (decision === 'reject' && (String(r.cust_flag).toLowerCase() === 'loyal' || r.ltv >= num(A.loyal_ltv))) { exception = true; why.push('Policy says reject, but this customer has spent Rs ' + r.ltv + ' with us. Worth a human deciding whether to make an exception.'); }\n  const countsAsReturn = (decision === 'refund' || decision === 'replacement' || decision === 'pickup_and_inspect');\n  if (countsAsReturn) { approved += 1; if (decision === 'replacement') { cogsAtRisk += r.cogs; } else { refundTotal += refund; } }\n  else if (decision === 'reject') { rejected += 1; }\n  else if (decision === 'manual_review') { manual += 1; }\n  else if (decision === 'pending_evidence') { evidence += 1; }\n  out.push(Object.assign({}, r, { decision: decision, refund_amount: refund, refund_mode: refundMode, pickup_required: pickup, exception_suggested: exception, counts_as_return: countsAsReturn, decision_reasons: why, decision_reasons_text: why.join('; ') }));\n});\nlet lines = '';\nout.forEach((r, i) => { lines += (i + 1) + '. ' + r.request_id + ' | ' + r.customer_name + ' | ' + r.product_name + ' Rs ' + r.order_value + ' | reason: ' + r.reason_category + ' | DECISION: ' + r.decision + (r.refund_amount ? (' Rs ' + r.refund_amount) : '') + (r.pickup_required ? ' + pickup' : '') + ' | language: ' + r.language + ' | sentiment: ' + r.sentiment + ' | why: ' + r.decision_reasons_text + '\\n'; });\nreturn [{ json: { decided: out, decided_count: out.length, approved: approved, rejected: rejected, manual: manual, evidence: evidence,\n  refund_total: refundTotal, cogs_at_risk: cogsAtRisk, decision_lines: lines || 'none',\n  ai_ok: S.ai_ok, data_issues: S.data_issues } }];"
+      },
+      "id": "6996a915-8976-40e3-9fea-e034ab240906",
+      "name": "Policy Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You write return and refund replies for \" + ($(\"Assemble Request Context\").first().json.brand_name || \"the brand\") + \", an Indian D2C clothing label. Warm, human, never corporate. The decision has already been made by a rules engine, you only write the message. Never change the decision. Never promise a timeline, an amount or a policy that is not given to you.\\n\\nSUPPORT AGENT NAME: \" + ($(\"Assemble Request Context\").first().json.support_name || \"\") + \"\\nSUPPORT PHONE: \" + ($(\"Assemble Request Context\").first().json.support_phone || \"\") + \"\\n\\nDECISIONS TO WRITE REPLIES FOR:\\n\" + ($json.decision_lines || \"none\") + \"\\n\\nIf the text above says none, return an empty replies array.\\nReturn ONLY valid JSON, no markdown fences. One key replies holding an array, one entry per decision above, in the same order. Each entry has keys: request_id, subject, lines, next_step.\\nrequest_id must be copied exactly.\\nsubject is a short clear email subject, under 9 words, no order ID, no emoji.\\nlines is an array of 3 to 5 short sentences forming the body. No greeting, no sign off, those are added separately.\\nnext_step is one short line telling the customer exactly what happens now.\\nWrite in the language given for that request. If hinglish, write naturally in Roman Hindi mixed with English the way Indian customers message. If hindi, simple Hindi in Roman script. Otherwise plain Indian English.\\nMatch the tone to the sentiment. If the customer is angry, acknowledge the problem in the first line before anything else.\\nFor a refund, confirm it is approved and name the refund route given in the decision.\\nFor a replacement, confirm the exchange and that the original will be collected.\\nFor a reject, be kind and explain the reason plainly in one sentence without quoting policy jargon. Never apologise three times, once is enough.\\nFor pending_evidence, ask for the photo clearly and say why it is needed.\\nFor manual_review, say a team member is personally looking at it and will revert, do not mention risk or suspicion of any kind.\\nFor pickup_and_inspect, explain the item will be collected and checked, and the refund follows.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.5,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "d4ed0bc8-12d4-4f00-b97d-4dc705083043",
+      "name": "Customer Reply Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -432,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst A = $('Assemble Request Context').first().json;\nconst D = $('Policy Engine').first().json;\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst reps = Array.isArray(parsed.replies) ? parsed.replies : [];\nconst repBy = {};\nreps.forEach(r => { repBy[String(r.request_id || '').trim()] = r; });\nconst INDIGO = '#1F2A44', SAFFRON = '#C86B2B', CREAM = '#FBF6EF', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42';\nconst labelOf = (d) => { if (d === 'refund') { return 'REFUND APPROVED'; } if (d === 'replacement') { return 'EXCHANGE CONFIRMED'; } if (d === 'reject') { return 'ABOUT YOUR REQUEST'; } if (d === 'pending_evidence') { return 'ONE THING NEEDED'; } if (d === 'manual_review') { return 'WE ARE ON IT'; } return 'PICKUP SCHEDULED'; };\nconst accentOf = (d) => { if (d === 'refund' || d === 'replacement') { return '#7FD6A0'; } if (d === 'reject') { return '#C9C3BA'; } return '#F0C078'; };\nconst out = [];\n(Array.isArray(D.decided) ? D.decided : []).forEach(r => {\n  if (!r.customer_email) { return; }\n  const rep = repBy[r.request_id] || {};\n  const subject = rep.subject || (r.decision === 'reject' ? ('About your return request') : ('Update on your ' + r.product_name));\n  const lines = Array.isArray(rep.lines) && rep.lines.length ? rep.lines : ['We have reviewed your request and our team will be in touch shortly.'];\n  const nextStep = rep.next_step || 'Our team will contact you if anything else is needed.';\n  let body = '';\n  lines.forEach(l => { body += '<div style=\"font-size:15.5px;color:' + INK + ';line-height:1.65;margin-bottom:10px;\">' + esc(l) + '</div>'; });\n  let detailRow = '';\n  if (r.decision === 'refund' && r.refund_amount > 0) {\n    detailRow = '<tr><td style=\"padding:6px 26px 12px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;border-left:4px solid ' + GREEN + ';background:' + CREAM + ';\">' +\n    '<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';\">Refund amount</td><td align=\"right\" style=\"padding:12px 15px;font-size:18px;font-weight:bold;color:' + GREEN + ';\">Rs ' + esc(r.refund_amount) + '</td></tr>' +\n    '<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E6DED2;\">Sent to</td><td align=\"right\" style=\"padding:12px 15px;font-size:13.5px;color:' + INDIGO + ';border-top:1px solid #E6DED2;\">' + esc(r.refund_mode) + '</td></tr>' +\n    (r.pickup_required ? ('<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E6DED2;\">Pickup</td><td align=\"right\" style=\"padding:12px 15px;font-size:13.5px;color:' + INDIGO + ';border-top:1px solid #E6DED2;\">Our courier will collect the item</td></tr>') : '') +\n    '</table></td></tr>';\n  } else if (r.decision === 'replacement') {\n    detailRow = '<tr><td style=\"padding:6px 26px 12px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;border-left:4px solid ' + GREEN + ';background:' + CREAM + ';\">' +\n    '<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';\">Item</td><td align=\"right\" style=\"padding:12px 15px;font-size:13.5px;font-weight:bold;color:' + INDIGO + ';\">' + esc(r.product_name) + '</td></tr>' +\n    '<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E6DED2;\">Exchange</td><td align=\"right\" style=\"padding:12px 15px;font-size:13.5px;color:' + INDIGO + ';border-top:1px solid #E6DED2;\">New size dispatched, original collected on the same trip</td></tr>' +\n    '</table></td></tr>';\n  }\n  const html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n  '<tr><td style=\"background:' + INDIGO + ';padding:22px 26px;\"><div style=\"color:' + accentOf(r.decision) + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">' + labelOf(r.decision) + '</div>' +\n  '<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:23px;font-weight:bold;margin-top:6px;\">' + esc(A.brand_name) + '</div>' +\n  '<div style=\"color:#B9C2D4;font-size:12.5px;margin-top:4px;\">Order ' + esc(r.order_id) + ' &middot; ' + esc(r.product_name) + '</div></td></tr>' +\n  '<tr><td style=\"padding:22px 26px 6px 26px;\"><div style=\"font-size:16px;font-weight:bold;color:' + INK + ';margin-bottom:12px;\">Hi ' + esc(r.customer_name) + ',</div>' + body + '</td></tr>' + detailRow +\n  '<tr><td style=\"padding:6px 26px 14px 26px;\"><div style=\"background:#F4EFE7;border-radius:7px;padding:12px 14px;font-size:13.5px;color:' + INK + ';\"><strong>What happens next.</strong> ' + esc(nextStep) + '</div></td></tr>' +\n  '<tr><td style=\"padding:4px 26px 20px 26px;\"><div style=\"font-size:14px;color:' + INK + ';\">Warmly,</div><div style=\"font-size:14px;color:' + INK + ';font-weight:bold;\">' + esc(A.support_name) + '</div><div style=\"font-size:13px;color:' + GREY + ';\">' + esc(A.brand_name) + ' &middot; ' + esc(A.support_phone) + '</div></td></tr>' +\n  '</table></div>';\n  out.push({ json: { to: r.customer_email, subject: subject, html: html, request_id: r.request_id, order_id: r.order_id, customer_id: r.customer_id, customer_name: r.customer_name, sku: r.sku, reason_category: r.reason_category, decision: r.decision, refund_amount: r.refund_amount, risk_score: r.risk_score, reasons: r.decision_reasons_text, run_date: A.today, counts_as_return: r.counts_as_return, reply_ok: !!rep.subject } });\n});\nreturn out;"
+      },
+      "id": "e54e2303-d4a0-4fb0-a095-afc9ec6db88e",
+      "name": "Build Customer Emails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "5ba31506-ac2c-4f35-a032-145cbb4ee776",
+      "name": "Send Customer Replies",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "6c9727be-6323-4b20-8386-74f7c9699be7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const A = $('Assemble Request Context').first().json;\nif (!A.write_back) { return []; }\nconst rows = $input.all().map(i => i.json).filter(r => r && r.counts_as_return);\nif (rows.length === 0) { return []; }\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (arr, key) => { const seen = {}; const out = []; arr.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst custs = uniq($('Read Customers').all().map(i => i.json).filter(r => r && r.customer_id), 'customer_id');\nconst custBy = {};\ncusts.forEach(c => { custBy[String(c.customer_id).trim()] = c; });\nconst tally = {};\nrows.forEach(r => { const cid = String(r.customer_id || '').trim(); if (!cid) { return; } tally[cid] = (tally[cid] || 0) + 1; });\nconst out = [];\nObject.keys(tally).forEach(cid => {\n  const c = custBy[cid];\n  if (!c) { return; }\n  out.push({ json: { customer_id: cid, total_returns: num(c.total_returns) + tally[cid], returns_last_90d: num(c.returns_last_90d) + tally[cid], added: tally[cid], name: String(c.name || '') } });\n});\nreturn out;"
+      },
+      "id": "05cdf10f-fa9c-45fd-b0e7-c4e95bcea88c",
+      "name": "Build Customer Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst A = $('Assemble Request Context').first().json;\nconst D = $('Policy Engine').first().json;\nconst INDIGO = '#1F2A44', SAFFRON = '#C86B2B', CREAM = '#FBF6EF', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42', RED = '#C0392B', AMBER = '#E08A1E';\nconst issues = Array.isArray(D.data_issues) ? D.data_issues.slice(0) : [];\nlet banner = '';\nif (issues.length) { banner = '<tr><td style=\"padding:12px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RED + ';border-radius:6px;padding:11px 13px;font-size:12.5px;color:#7A1F14;\"><strong>Heads up.</strong> ' + esc(issues.slice(0, 3).join('; ')) + '</div></td></tr>'; }\nconst colOf = (d) => { if (d === 'refund' || d === 'replacement') { return GREEN; } if (d === 'reject') { return GREY; } if (d === 'manual_review') { return RED; } return AMBER; };\nconst dec = Array.isArray(D.decided) ? D.decided : [];\nif (dec.length === 0) {\n  const quiet = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:640px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n  '<tr><td style=\"background:' + INDIGO + ';padding:24px 26px;\"><div style=\"color:' + SAFFRON + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">RETURNS DESK</div>' +\n  '<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;margin-top:7px;\">Nothing new to decide</div>' +\n  '<div style=\"color:#B9C2D4;font-size:13px;margin-top:5px;\">' + esc(A.today) + ' &middot; ' + esc(A.skipped) + ' request(s) already decided on an earlier run</div></td></tr>' +\n  '<tr><td style=\"padding:20px 26px;\"><div style=\"font-size:14.5px;color:' + INK + ';line-height:1.6;\">Every open request in the sheet has already been processed and the customer informed. Nothing was sent again.</div></td></tr>' +\n  '<tr><td style=\"background:' + INDIGO + ';padding:12px 26px;\"><div style=\"color:#8C97AD;font-size:11px;\">' + esc(A.brand_name) + ' &middot; Returns Control Desk &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\n  return [{ json: { digest_html: quiet, decided_count: 0, approved: 0, refund_total: 0, ops_email: A.ops_email, today: A.today } }];\n}\nconst pickups = dec.filter(r => r.pickup_required);\nconst exceptions = dec.filter(r => r.exception_suggested);\nconst manualOnes = dec.filter(r => r.decision === 'manual_review');\nlet cards = '';\ndec.forEach(r => {\n  let whyHtml = '';\n  (r.decision_reasons || []).forEach(w => { whyHtml += '<li style=\"margin-bottom:4px;\">' + esc(w) + '</li>'; });\n  cards += '<tr><td style=\"padding:0 26px 13px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;border-left:4px solid ' + colOf(r.decision) + ';background:#FFFFFF;\">' +\n  '<tr><td style=\"padding:13px 15px 4px 15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n  '<td><div style=\"font-family:Georgia,serif;font-size:16.5px;font-weight:bold;color:' + INDIGO + ';\">' + esc(r.customer_name) + '</div>' +\n  '<div style=\"font-size:12px;color:' + GREY + ';margin-top:3px;\">' + esc(r.product_name) + ' &middot; Rs ' + esc(r.order_value) + ' &middot; ' + esc(r.payment_mode) + ' &middot; ' + esc(r.request_id) + '</div></td>' +\n  '<td align=\"right\"><div style=\"display:inline-block;background:' + colOf(r.decision) + ';color:#FFFFFF;font-size:10.5px;font-weight:bold;padding:4px 10px;border-radius:4px;\">' + esc(String(r.decision).replace(/_/g, ' ').toUpperCase()) + '</div>' +\n  (r.refund_amount > 0 ? ('<div style=\"font-size:15px;font-weight:bold;color:' + GREEN + ';margin-top:5px;\">Rs ' + esc(r.refund_amount) + '</div>') : '') + '</td>' +\n  '</tr></table></td></tr>' +\n  '<tr><td style=\"padding:4px 15px 4px 15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">reason: <strong>' + esc(r.reason_category) + '</strong></td>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">delivered ' + esc(r.days_since_delivery) + 'd ago</td>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">risk ' + esc(r.risk_score) + ' ' + esc(r.risk_band) + '</td>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">' + (r.pickup_required ? 'pickup needed' : 'no pickup') + '</td>' +\n  '</tr></table></td></tr>' +\n  '<tr><td style=\"padding:4px 15px 6px 15px;\"><div style=\"font-size:12.5px;color:' + GREY + ';font-style:italic;\">“' + esc(String(r.raw_text).slice(0, 150)) + '”</div></td></tr>' +\n  (whyHtml ? ('<tr><td style=\"padding:2px 15px 12px 15px;\"><div style=\"background:' + CREAM + ';border-radius:6px;padding:10px 12px;\"><div style=\"font-size:10.5px;font-weight:bold;color:' + GREY + ';letter-spacing:1px;\">WHY THIS DECISION</div><ul style=\"font-size:12.5px;color:' + INK + ';line-height:1.45;margin:6px 0 0 0;padding-left:18px;\">' + whyHtml + '</ul></div></td></tr>') : '') +\n  (r.exception_suggested ? ('<tr><td style=\"padding:0 15px 12px 15px;\"><div style=\"background:#FFF4E0;border-left:3px solid ' + AMBER + ';border-radius:5px;padding:9px 12px;font-size:12.5px;color:#7A4A10;\"><strong>Worth a human call.</strong> Lifetime spend Rs ' + esc(r.ltv) + '. The policy rejects this, you may not want to.</div></td></tr>') : '') +\n  '</table></td></tr>';\n});\nlet pickHtml = '';\npickups.forEach(r => { pickHtml += '<tr><td style=\"padding:8px 12px;border-bottom:1px solid #E6DED2;font-size:12.5px;color:' + INK + ';\"><strong>' + esc(r.customer_name) + '</strong><br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(r.city) + ' ' + esc(r.pincode) + '</span></td><td style=\"padding:8px 12px;border-bottom:1px solid #E6DED2;font-size:12.5px;color:' + INK + ';\">' + esc(r.product_name) + '</td><td align=\"right\" style=\"padding:8px 12px;border-bottom:1px solid #E6DED2;font-size:12px;color:' + GREY + ';\">' + esc(r.courier) + '</td></tr>'; });\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + INDIGO + ';padding:24px 26px;\"><div style=\"color:' + SAFFRON + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">RETURNS DESK</div>' +\n'<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;margin-top:7px;\">' + esc(D.decided_count) + ' request(s) decided</div>' +\n'<div style=\"color:#B9C2D4;font-size:13px;margin-top:5px;\">' + esc(A.today) + ' &middot; every decision taken against your written policy</div></td></tr>' + banner +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + GREEN + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.approved) + '</div><div style=\"color:#D6EBDD;font-size:10px;\">approved</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + GREY + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.rejected) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">rejected</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + RED + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.manual) + '</div><div style=\"color:#F5D5D0;font-size:10px;\">manual review</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + INDIGO + ';font-family:Georgia,serif;font-size:20px;font-weight:bold;\">Rs ' + esc(D.refund_total) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">refunds approved</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + INDIGO + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(pickups.length) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">pickups to raise</div></td>' +\n'</tr></table></td></tr>' +\n(manualOnes.length || exceptions.length ? ('<tr><td style=\"padding:16px 26px 4px 26px;\"><div style=\"background:#FFF4E0;border-radius:8px;border-left:4px solid ' + AMBER + ';padding:13px 15px;\"><div style=\"font-size:11px;font-weight:bold;color:#7A4A10;letter-spacing:1px;\">NEEDS A HUMAN TODAY</div><div style=\"font-size:13.5px;color:#7A4A10;margin-top:6px;line-height:1.5;\">' + esc(manualOnes.length) + ' held for review, ' + esc(exceptions.length) + ' rejection(s) where the customer is worth more than the policy.</div></div></td></tr>') : '') +\n'<tr><td style=\"padding:16px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + INDIGO + ';\">Every decision, with its reasoning</div></td></tr>' + cards +\n(pickHtml ? ('<tr><td style=\"padding:10px 26px 18px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + INDIGO + ';margin-bottom:8px;\">Pickups to raise with the courier</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;\">' + pickHtml + '</table></td></tr>') : '') +\n'<tr><td style=\"background:' + INDIGO + ';padding:12px 26px;\"><div style=\"color:#8C97AD;font-size:11px;\">' + esc(A.brand_name) + ' &middot; Returns Control Desk &middot; ' + esc(A.skipped) + ' already decided and skipped &middot; Powered by Haus of Intelligence</div></td></tr>' +\n'</table></div>';\nreturn [{ json: { digest_html: html, decided_count: D.decided_count, approved: D.approved, refund_total: D.refund_total, ops_email: A.ops_email, today: A.today } }];"
+      },
+      "id": "fa9b3c36-c0c3-41ba-9652-e214040f4be2",
+      "name": "Build Ops Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.ops_email }}",
+        "subject": "=Returns desk {{ $json.today }} - {{ $json.decided_count }} decided, {{ $json.approved }} approved, Rs {{ $json.refund_total }} refunded",
+        "message": "={{ $json.digest_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fab9f477-e9a8-4cde-b4c9-7c72462f89d1",
+      "name": "Send Ops Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        688
+      ],
+      "webhookId": "830220e8-740a-480a-8f72-1d14cae1217e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Decision_Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "decision_id",
+              "displayName": "decision_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "reason_category",
+              "displayName": "reason_category",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "decision",
+              "displayName": "decision",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "refund_amount_inr",
+              "displayName": "refund_amount_inr",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "risk_score",
+              "displayName": "risk_score",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "reasons",
+              "displayName": "reasons",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "email_sent",
+              "displayName": "email_sent",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "decision_id": "={{ \"DC\" + $now.toFormat(\"yyyyMMddHHmm\") + \"-\" + $json.request_id }}",
+            "run_date": "={{ $json.run_date }}",
+            "request_id": "={{ $json.request_id }}",
+            "order_id": "={{ $json.order_id }}",
+            "customer_id": "={{ $json.customer_id }}",
+            "customer_name": "={{ $json.customer_name }}",
+            "sku": "={{ $json.sku }}",
+            "reason_category": "={{ $json.reason_category }}",
+            "decision": "={{ $json.decision }}",
+            "refund_amount_inr": "={{ $json.refund_amount }}",
+            "risk_score": "={{ $json.risk_score }}",
+            "reasons": "={{ $json.reasons }}",
+            "email_sent": "={{ $json.reply_ok ? \"yes\" : \"fallback\" }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "74fac9e0-d754-4bfa-a66c-094e5133424d",
+      "name": "Log Decisions",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        112,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Return_Requests"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "request_id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "request_id": "={{ $json.request_id }}",
+            "status": "=processed"
+          }
+        },
+        "options": {}
+      },
+      "id": "88f6c0db-90c3-4c14-91a9-210ac09ea315",
+      "name": "Mark Requests Processed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        112,
+        336
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Customers"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "customer_id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": true
+            },
+            {
+              "id": "total_returns",
+              "displayName": "total_returns",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "returns_last_90d",
+              "displayName": "returns_last_90d",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "customer_id": "={{ $json.customer_id }}",
+            "total_returns": "={{ $json.total_returns }}",
+            "returns_last_90d": "={{ $json.returns_last_90d }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "181d0599-0d34-4320-bc08-d03edffbbb8e",
+      "name": "Update Customer Counters",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        512
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Returns Desk": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Request In": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Policy": {
+      "main": [
+        [
+          {
+            "node": "Read Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Products": {
+      "main": [
+        [
+          {
+            "node": "Read Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Orders": {
+      "main": [
+        [
+          {
+            "node": "Read Customers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Customers": {
+      "main": [
+        [
+          {
+            "node": "Read Return Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Return Requests": {
+      "main": [
+        [
+          {
+            "node": "Read Decision Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Decision Log": {
+      "main": [
+        [
+          {
+            "node": "Assemble Request Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Request Context": {
+      "main": [
+        [
+          {
+            "node": "Reason Classifier (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reason Classifier (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Risk Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk Scorer": {
+      "main": [
+        [
+          {
+            "node": "Policy Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Policy Engine": {
+      "main": [
+        [
+          {
+            "node": "Customer Reply Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Ops Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Reply Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Customer Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Customer Emails": {
+      "main": [
+        [
+          {
+            "node": "Send Customer Replies",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Customer Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Decisions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Mark Requests Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Customer Updates": {
+      "main": [
+        [
+          {
+            "node": "Update Customer Counters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Ops Digest": {
+      "main": [
+        [
+          {
+            "node": "Send Ops Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b6d6909d-e532-46e7-a3ce-dabfdc1d519d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "UbdcDgATDcAWzEpu",
+  "tags": []
+}

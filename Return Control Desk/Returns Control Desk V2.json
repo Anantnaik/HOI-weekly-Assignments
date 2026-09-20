@@ -1,0 +1,747 @@
+{
+  "name": "Returns Control Desk V2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "dc4af4b2-3ef7-4861-a404-a2acb87a5988",
+      "name": "Run Loss Review",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "brand_name",
+              "value": "Indigo Thread",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "owner_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "support_name",
+              "value": "Nandini",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "support_phone",
+              "value": "+91 141 4567 890",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "rto_cost_inr",
+              "value": 180,
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "return_ship_cost_inr",
+              "value": 120,
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "min_orders_for_signal",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "8",
+              "name": "bad_rate_pct",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "9",
+              "name": "send_save_messages",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "10",
+              "name": "prepaid_incentive",
+              "value": "free shipping on your next order",
+              "type": "string"
+            },
+            {
+              "id": "11",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d96aac01-78b1-467c-9aca-7df75b602c6d",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1776,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "a3aff3ce-7cfb-47f9-a2c4-0153f34ecab0",
+      "name": "Every Morning 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2000,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 250741941,
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=250741941"
+        },
+        "options": {}
+      },
+      "id": "d3a5f30a-92ac-4b70-a116-92a26594e67c",
+      "name": "Read Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1552,
+        240
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 143113812,
+          "mode": "list",
+          "cachedResultName": "Products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=143113812"
+        },
+        "options": {}
+      },
+      "id": "1b71cbe6-1f47-47a1-aeb7-d7e5c4f1543a",
+      "name": "Read Products",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1328,
+        240
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 966121705,
+          "mode": "list",
+          "cachedResultName": "Customers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=966121705"
+        },
+        "options": {}
+      },
+      "id": "9f8b79b0-e402-4d89-acc6-d22e51352af3",
+      "name": "Read Customers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1120,
+        240
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 409249911,
+          "mode": "list",
+          "cachedResultName": "Decision_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg/edit#gid=409249911"
+        },
+        "options": {}
+      },
+      "id": "21554206-53f4-41ec-9b17-9de032829020",
+      "name": "Read Decision Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -896,
+        240
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst orders = uniq($('Read Orders').all().map(i => i.json).filter(r => r && r.order_id), 'order_id');\nconst prods = uniq($('Read Products').all().map(i => i.json).filter(r => r && r.sku), 'sku');\nconst custs = uniq($('Read Customers').all().map(i => i.json).filter(r => r && r.customer_id), 'customer_id');\nconst logs = uniq($('Read Decision Log').all().map(i => i.json).filter(r => r && r.decision_id), 'decision_id');\nconst prodBy = {};\nprods.forEach(p => { prodBy[String(p.sku).trim()] = p; });\nconst custBy = {};\ncusts.forEach(c => { custBy[String(c.customer_id).trim()] = c; });\nconst savedAlready = {};\nlogs.forEach(l => { if (String(l.decision || '').trim() === 'rto_save_sent') { savedAlready[String(l.order_id || '').trim()] = true; } });\nconst rtoCost = num(cfg.rto_cost_inr) || 180;\nconst retShip = num(cfg.return_ship_cost_inr) || 120;\nconst minN = num(cfg.min_orders_for_signal) || 3;\nconst badPct = num(cfg.bad_rate_pct) || 30;\nconst TZ = num(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + TZ * 60000);\nconst today = now.getUTCFullYear() + '-' + pad(now.getUTCMonth() + 1) + '-' + pad(now.getUTCDate());\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nconst issues = [];\nif (orders.length === 0) { issues.push('No orders found, the whole review is empty'); }\nconst st = (o) => String(o.status || '').toLowerCase().trim();\nconst rtos = orders.filter(o => st(o) === 'rto');\nconst codOrders = orders.filter(o => String(o.payment_mode || '').toLowerCase().trim() === 'cod');\nconst codRtos = rtos.filter(o => String(o.payment_mode || '').toLowerCase().trim() === 'cod');\nconst pending = orders.filter(o => st(o) === 'in_transit');\nconst rtoValue = rtos.reduce((a, o) => a + num(o.order_value_inr), 0);\nconst rtoShipCost = rtos.length * rtoCost;\nconst group = (rows, keyFn) => { const m = {}; rows.forEach(r => { const k = keyFn(r); if (!k) { return; } if (!m[k]) { m[k] = { key: k, total: 0, rto: 0, value: 0 }; } m[k].total += 1; m[k].value += num(r.order_value_inr); if (st(r) === 'rto') { m[k].rto += 1; } }); return Object.keys(m).map(k => m[k]); };\nconst rate = (g) => g.total > 0 ? Math.round((g.rto / g.total) * 100) : 0;\nconst byCourier = group(orders, r => String(r.courier || '').trim()).map(g => Object.assign(g, { rate: rate(g) }));\nconst byPin = group(orders, r => String(r.pincode || '').trim()).map(g => Object.assign(g, { rate: rate(g) }));\nbyCourier.sort((a, b) => b.rate - a.rate);\nbyPin.sort((a, b) => b.rate - a.rate);\nconst badCouriers = byCourier.filter(g => g.total >= minN && g.rate >= badPct);\nconst badPins = byPin.filter(g => g.total >= minN && g.rate >= badPct);\nconst badPinKeys = {};\nbadPins.forEach(g => { badPinKeys[g.key] = true; });\nconst badCourKeys = {};\nbadCouriers.forEach(g => { badCourKeys[g.key] = true; });\nconst priorRto = {};\nrtos.forEach(o => { priorRto[String(o.customer_id).trim()] = (priorRto[String(o.customer_id).trim()] || 0) + 1; });\nconst atRisk = [];\nlet alreadySaved = 0;\npending.forEach(o => {\n  if (String(o.payment_mode || '').toLowerCase().trim() !== 'cod') { return; }\n  const reasons = [];\n  let score = 20;\n  const pin = String(o.pincode || '').trim();\n  const cour = String(o.courier || '').trim();\n  const cid = String(o.customer_id).trim();\n  if (badPinKeys[pin]) { score += 35; reasons.push('pincode ' + pin + ' refuses ' + (byPin.find(g => g.key === pin) || {}).rate + ' percent of deliveries'); }\n  if (badCourKeys[cour]) { score += 25; reasons.push(cour + ' is running a ' + (byCourier.find(g => g.key === cour) || {}).rate + ' percent RTO rate'); }\n  if (priorRto[cid]) { score += 30; reasons.push('this customer has refused ' + priorRto[cid] + ' delivery(s) before'); }\n  const c = custBy[cid] || {};\n  if (num(c.returns_last_90d) >= 3) { score += 10; reasons.push(num(c.returns_last_90d) + ' returns in the last 90 days'); }\n  score = Math.min(100, score);\n  if (score < 50) { return; }\n  if (savedAlready[String(o.order_id).trim()]) { alreadySaved += 1; return; }\n  atRisk.push({ order_id: String(o.order_id), customer_name: String(o.customer_name || ''), customer_id: cid, customer_email: String(o.customer_email || c.email || ''), product_name: String(o.product_name || ''), sku: String(o.sku || ''), value: num(o.order_value_inr), pincode: pin, city: String(o.city || ''), courier: cour, score: score, reasons: reasons.join('; ') });\n});\natRisk.sort((a, b) => b.score - a.score);\nconst atRiskValue = atRisk.reduce((a, o) => a + o.value, 0);\nconst saveCost = atRisk.length * rtoCost;\nlet riskLines = '';\natRisk.forEach((a, i) => { riskLines += (i + 1) + '. ' + a.order_id + ' | ' + a.customer_name + ' | ' + a.product_name + ' Rs ' + a.value + ' | shipping to ' + a.city + ' ' + a.pincode + ' via ' + a.courier + ' | risk ' + a.score + '\\n'; });\nconst skuMap = {};\norders.forEach(o => { const k = String(o.sku || '').trim(); if (!k) { return; } if (!skuMap[k]) { skuMap[k] = { sku: k, name: String(o.product_name || ''), orders: 0, rto: 0, issues: 0, refunded: 0, reasons: {} }; } skuMap[k].orders += 1; if (st(o) === 'rto') { skuMap[k].rto += 1; } });\nlogs.forEach(l => { if (String(l.decision || '').trim() === 'rto_save_sent') { return; } const k = String(l.sku || '').trim(); if (!k || !skuMap[k]) { return; } skuMap[k].issues += 1; skuMap[k].refunded += num(l.refund_amount_inr); const rc = String(l.reason_category || 'other').trim(); skuMap[k].reasons[rc] = (skuMap[k].reasons[rc] || 0) + 1; });\nconst skus = Object.keys(skuMap).map(k => { const s = skuMap[k]; const bad = s.rto + s.issues; const p = prodBy[k] || {}; const cost = (s.rto * rtoCost) + (s.issues * retShip) + s.refunded; let topReason = ''; let topN2 = 0; Object.keys(s.reasons).forEach(r => { if (s.reasons[r] > topN2) { topN2 = s.reasons[r]; topReason = r; } }); return Object.assign(s, { bad: bad, bad_rate: s.orders > 0 ? Math.round((bad / s.orders) * 100) : 0, cost: cost, note: String(p.notes || ''), top_reason: topReason }); });\nskus.sort((a, b) => b.cost - a.cost);\nconst badSkus = skus.filter(s => s.bad > 0);\nconst abusers = custs.filter(c => num(c.returns_last_90d) >= 3 || (num(c.total_orders) >= 4 && num(c.total_returns) / num(c.total_orders) >= 0.5)).map(c => ({ customer_id: String(c.customer_id), name: String(c.name), returns_90d: num(c.returns_last_90d), total_orders: num(c.total_orders), total_returns: num(c.total_returns), rate: num(c.total_orders) > 0 ? Math.round(num(c.total_returns) / num(c.total_orders) * 100) : 0, ltv: num(c.lifetime_value_inr), rtos: priorRto[String(c.customer_id)] || 0 }));\nabusers.sort((a, b) => b.rate - a.rate);\nconst retLogs = logs.filter(l => String(l.decision || '').trim() !== 'rto_save_sent');\nconst returnCost = retLogs.length * retShip;\nconst refundTotal = retLogs.reduce((a, l) => a + num(l.refund_amount_inr), 0);\nconst totalBleed = rtoShipCost + returnCost + refundTotal;\nlet ctx = '';\nctx += 'ORDERS: ' + orders.length + ' total, ' + codOrders.length + ' COD, ' + rtos.length + ' RTO\\n';\nctx += 'RTO RATE ON COD: ' + (codOrders.length ? Math.round(codRtos.length / codOrders.length * 100) : 0) + ' percent\\n';\nctx += 'MONEY LOST: Rs ' + totalBleed + ' (Rs ' + rtoShipCost + ' RTO freight, Rs ' + returnCost + ' return freight, Rs ' + refundTotal + ' refunds)\\n';\nctx += 'VALUE STUCK IN RTO: Rs ' + rtoValue + '\\nVALUE AT RISK RIGHT NOW: Rs ' + atRiskValue + '\\n\\nCOURIERS:\\n';\nbyCourier.forEach(g => { ctx += g.key + ': ' + g.total + ' orders, ' + g.rto + ' RTO, ' + g.rate + ' percent\\n'; });\nctx += '\\nPINCODES:\\n';\nbyPin.slice(0, 6).forEach(g => { ctx += g.key + ': ' + g.total + ' orders, ' + g.rto + ' RTO, ' + g.rate + ' percent\\n'; });\nctx += '\\nPRODUCTS WITH PROBLEMS:\\n';\nbadSkus.forEach(s => { ctx += s.name + ' (' + s.sku + '): ' + s.orders + ' sold, ' + s.rto + ' RTO, ' + s.issues + ' returns, ' + s.bad_rate + ' percent bad, Rs ' + s.cost + ' lost, top reason ' + (s.top_reason || 'n/a') + (s.note ? (', product note: ' + s.note) : '') + '\\n'; });\nctx += '\\nREPEAT RETURNERS:\\n';\nabusers.forEach(a => { ctx += a.name + ': ' + a.total_returns + ' returns of ' + a.total_orders + ' orders (' + a.rate + ' percent), ' + a.rtos + ' RTO, lifetime Rs ' + a.ltv + '\\n'; });\nctx += '\\nCOD ORDERS IN TRANSIT AT RISK:\\n' + (riskLines || 'none');\nreturn [{ json: { today: today, stamp: stamp, brand_name: cfg.brand_name, owner_email: cfg.owner_email, support_name: cfg.support_name, support_phone: cfg.support_phone, prepaid_incentive: cfg.prepaid_incentive, send_saves: (String(cfg.send_save_messages) === 'true') || (cfg.send_save_messages === true),\n  orders_total: orders.length, cod_total: codOrders.length, rto_total: rtos.length,\n  cod_rto_rate: codOrders.length ? Math.round(codRtos.length / codOrders.length * 100) : 0,\n  rto_value: rtoValue, rto_ship_cost: rtoShipCost, return_cost: returnCost, refund_total: refundTotal, total_bleed: totalBleed,\n  by_courier: byCourier, by_pin: byPin.slice(0, 6), bad_couriers: badCouriers, bad_pins: badPins,\n  skus: badSkus, abusers: abusers, at_risk: atRisk, at_risk_value: atRiskValue, at_risk_lines: riskLines || 'none', already_saved: alreadySaved, save_cost_avoided: saveCost,\n  decisions_logged: retLogs.length, context: ctx, data_issues: issues } }];"
+      },
+      "id": "c3c48191-7af1-4f10-89a9-56464eb77da9",
+      "name": "Loss Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You write pre delivery confirmation messages for \" + ($json.brand_name || \"the brand\") + \", an Indian D2C clothing label. These go to customers whose cash on delivery parcel is in transit and statistically likely to be refused at the door. Your job is to get a confirmation, not to accuse anyone. The customer must never feel suspected, blamed or profiled. Never mention risk, refusal history, RTO or any score. Never threaten to cancel.\\n\\nBRAND: \" + ($json.brand_name || \"\") + \"\\nFROM: \" + ($json.support_name || \"\") + \"\\nPHONE: \" + ($json.support_phone || \"\") + \"\\nPREPAID SWITCH INCENTIVE WE CAN OFFER: \" + ($json.prepaid_incentive || \"\") + \"\\n\\nPARCELS IN TRANSIT:\\n\" + ($json.at_risk_lines || \"none\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. One key messages holding an array, one entry per parcel above, in the same order. Each entry has keys: order_id, subject, lines, prepaid_nudge.\\norder_id must be copied exactly from the line.\\nsubject is a short friendly subject under 8 words that reads like a delivery update, not a warning.\\nlines is an array of 3 to 4 short sentences: tell them the parcel is out for delivery soon, name the item, ask them to confirm the address and that someone will be available to receive it, and remind them to keep the cash amount ready. Warm and normal, the way a good brand messages.\\nprepaid_nudge is one short sentence offering them the option to pay online instead and receive the incentive named above. Frame it as a convenience, never as distrust.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.5,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "451271c5-6310-4434-9174-d1d5e57b4b65",
+      "name": "Save The Parcel Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -448,
+        96
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst D = $('Loss Engine').first().json;\nif (!D.send_saves) { return []; }\nconst risk = Array.isArray(D.at_risk) ? D.at_risk : [];\nif (risk.length === 0) { return []; }\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst msgs = Array.isArray(parsed.messages) ? parsed.messages : [];\nconst msgBy = {};\nmsgs.forEach(m => { msgBy[String(m.order_id || '').trim()] = m; });\nconst INDIGO = '#1F2A44', SAFFRON = '#C86B2B', CREAM = '#FBF6EF', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42';\nconst pad = (n) => String(n).padStart(2, '0');\nconst out = [];\nrisk.forEach((r, i) => {\n  if (!r.customer_email) { return; }\n  const m = msgBy[r.order_id] || {};\n  const subject = m.subject || ('Your ' + r.product_name + ' is on the way');\n  const lines = Array.isArray(m.lines) && m.lines.length ? m.lines : ['Your order is out for delivery shortly.', 'Please confirm your address is correct and someone will be available to receive it.', 'Kindly keep the cash amount ready for the delivery partner.'];\n  const nudge = m.prepaid_nudge || 'You can also pay online instead if that is easier.';\n  let body = '';\n  lines.forEach(l => { body += '<div style=\"font-size:15.5px;color:' + INK + ';line-height:1.65;margin-bottom:10px;\">' + esc(l) + '</div>'; });\n  const html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n  '<tr><td style=\"background:' + INDIGO + ';padding:22px 26px;\"><div style=\"color:#7FD6A0;font-size:11px;font-weight:bold;letter-spacing:3px;\">OUT FOR DELIVERY SOON</div>' +\n  '<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:23px;font-weight:bold;margin-top:6px;\">' + esc(D.brand_name) + '</div>' +\n  '<div style=\"color:#B9C2D4;font-size:12.5px;margin-top:4px;\">Order ' + esc(r.order_id) + ' &middot; ' + esc(r.product_name) + '</div></td></tr>' +\n  '<tr><td style=\"padding:22px 26px 6px 26px;\"><div style=\"font-size:16px;font-weight:bold;color:' + INK + ';margin-bottom:12px;\">Hi ' + esc(r.customer_name) + ',</div>' + body + '</td></tr>' +\n  '<tr><td style=\"padding:6px 26px 12px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;border-left:4px solid ' + SAFFRON + ';background:' + CREAM + ';\">' +\n  '<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';\">Amount due on delivery</td><td align=\"right\" style=\"padding:12px 15px;font-size:18px;font-weight:bold;color:' + INDIGO + ';\">Rs ' + esc(r.value) + '</td></tr>' +\n  '<tr><td style=\"padding:12px 15px;font-size:12.5px;color:' + GREY + ';border-top:1px solid #E6DED2;\">Delivering to</td><td align=\"right\" style=\"padding:12px 15px;font-size:13.5px;color:' + INDIGO + ';border-top:1px solid #E6DED2;\">' + esc(r.city) + ' ' + esc(r.pincode) + '</td></tr>' +\n  '</table></td></tr>' +\n  '<tr><td style=\"padding:2px 26px 14px 26px;\"><div style=\"background:#EAF6EF;border-radius:7px;border-left:3px solid ' + GREEN + ';padding:12px 14px;font-size:13.5px;color:#14532D;\">' + esc(nudge) + '</div></td></tr>' +\n  '<tr><td style=\"padding:4px 26px 20px 26px;\"><div style=\"font-size:14px;color:' + INK + ';\">Warmly,</div><div style=\"font-size:14px;color:' + INK + ';font-weight:bold;\">' + esc(D.support_name) + '</div><div style=\"font-size:13px;color:' + GREY + ';\">' + esc(D.brand_name) + ' &middot; ' + esc(D.support_phone) + '</div></td></tr>' +\n  '</table></div>';\n  out.push({ json: { to: r.customer_email, subject: subject, html: html, order_id: r.order_id, customer_id: r.customer_id, customer_name: r.customer_name, sku: r.sku, value: r.value, score: r.score, reasons: r.reasons, run_date: D.today, log_id: 'DC' + D.stamp + '-' + r.order_id, written: !!m.subject } });\n});\nreturn out;"
+      },
+      "id": "c457ff7f-b149-4033-9f00-247daff0c01b",
+      "name": "Build Save Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "0f5778ea-1c96-4937-9ea0-a7d99f531f67",
+      "name": "Send Save Messages",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "879f2ee9-b59a-4dd6-be79-e01464c36bdf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are an operations analyst for an Indian D2C brand. You are reading the returns and RTO numbers and writing the owner a short, blunt review. Every number you use must come from the data below. Never invent a figure, a cause or a vendor name. If the sample is small, say so rather than overclaiming.\\n\\nBRAND: \" + ($json.brand_name || \"\") + \"\\nDATE: \" + ($json.today || \"\") + \"\\n\\n\" + ($json.context || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: headline, the_read, root_causes, actions, watch_out.\\nheadline is one blunt line naming the single biggest money leak and its number.\\nthe_read is 2 to 3 sentences on what the numbers actually say, in plain Indian English, written for a founder not an analyst.\\nroot_causes is an array of exactly 3 objects with keys cause and evidence. cause is a short line naming a likely root cause. evidence quotes the specific numbers from the data that point to it. Be careful to distinguish correlation from proof and say so where the sample is thin.\\nactions is an array of exactly 3 objects with keys action and why. action is one concrete thing to do this week, specific enough to start today. Recommend changes to couriers, pincodes, products, packaging or policy only. You must NEVER recommend action against a named individual customer, such as blocking, banning or blacklisting a person. Flagging a repeat returner for a human to review is fine, but the decision about any individual always stays with a human. why is one line on the money it protects.\\nwatch_out is one line naming the thing that looks like a problem in this data but probably is not, or a number too small to act on yet.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "bbf8a8bb-a067-4e80-a722-4d8d6b6bdd6a",
+      "name": "Loss Analyst (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -448,
+        416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst D = $('Loss Engine').first().json;\nconst a = parseJson(textOf($input.first().json)) || {};\nconst aiOk = !!a.headline;\nconst INDIGO = '#1F2A44', SAFFRON = '#C86B2B', CREAM = '#FBF6EF', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42', RED = '#C0392B', AMBER = '#E08A1E';\nconst issues = Array.isArray(D.data_issues) ? D.data_issues.slice(0) : [];\nif (!aiOk) { issues.push('Loss analyst AI was unavailable, showing the computed numbers only'); }\nlet banner = '';\nif (issues.length) { banner = '<tr><td style=\"padding:12px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RED + ';border-radius:6px;padding:11px 13px;font-size:12.5px;color:#7A1F14;\"><strong>Heads up.</strong> ' + esc(issues.slice(0, 3).join('; ')) + '</div></td></tr>'; }\nconst headline = a.headline || ('Rs ' + D.total_bleed + ' lost to returns and RTO');\nconst theRead = a.the_read || 'Review the numbers below.';\nconst risk = Array.isArray(D.at_risk) ? D.at_risk : [];\nlet riskHtml = '';\nrisk.forEach(r => {\n  riskHtml += '<tr><td style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:13px;color:' + INK + ';\"><strong>' + esc(r.customer_name) + '</strong><br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(r.order_id) + ' &middot; ' + esc(r.product_name) + '</span></td>' +\n  '<td align=\"center\" style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:13px;color:' + INK + ';\">Rs ' + esc(r.value) + '<br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(r.pincode) + ' &middot; ' + esc(r.courier) + '</span></td>' +\n  '<td align=\"right\" style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:16px;font-weight:bold;color:' + RED + ';\">' + esc(r.score) + '</td></tr>' +\n  '<tr><td colspan=\"3\" style=\"padding:0 12px 10px 12px;border-bottom:1px solid #E6DED2;\"><div style=\"font-size:11.5px;color:' + GREY + ';\">' + esc(r.reasons) + '</div></td></tr>';\n});\nlet skuHtml = '';\n(Array.isArray(D.skus) ? D.skus : []).slice(0, 5).forEach(s => {\n  const col = s.bad_rate >= 50 ? RED : (s.bad_rate >= 25 ? AMBER : GREY);\n  skuHtml += '<tr><td style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:13px;color:' + INK + ';\"><strong>' + esc(s.name) + '</strong><br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(s.sku) + (s.top_reason ? (' &middot; mostly ' + esc(s.top_reason)) : '') + '</span></td>' +\n  '<td align=\"center\" style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:12.5px;color:' + INK + ';\">' + esc(s.bad) + ' of ' + esc(s.orders) + '</td>' +\n  '<td align=\"center\" style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:15px;font-weight:bold;color:' + col + ';\">' + esc(s.bad_rate) + '%</td>' +\n  '<td align=\"right\" style=\"padding:10px 12px;border-bottom:1px solid #E6DED2;font-size:13px;font-weight:bold;color:' + INK + ';\">Rs ' + esc(s.cost) + '</td></tr>';\n});\nlet courHtml = '';\n(Array.isArray(D.by_courier) ? D.by_courier : []).forEach(g => {\n  const col = g.rate >= 30 ? RED : (g.rate >= 15 ? AMBER : GREEN);\n  courHtml += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E6DED2;font-size:13px;color:' + INK + ';\">' + esc(g.key) + '</td><td align=\"center\" style=\"padding:9px 12px;border-bottom:1px solid #E6DED2;font-size:12.5px;color:' + GREY + ';\">' + esc(g.rto) + ' of ' + esc(g.total) + '</td><td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E6DED2;font-size:15px;font-weight:bold;color:' + col + ';\">' + esc(g.rate) + '%</td></tr>';\n});\nlet abuseHtml = '';\n(Array.isArray(D.abusers) ? D.abusers : []).forEach(x => {\n  abuseHtml += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E6DED2;font-size:13px;color:' + INK + ';\"><strong>' + esc(x.name) + '</strong> <span style=\"color:' + GREY + ';font-size:11px;\">' + esc(x.customer_id) + '</span></td><td align=\"center\" style=\"padding:9px 12px;border-bottom:1px solid #E6DED2;font-size:12.5px;color:' + INK + ';\">' + esc(x.total_returns) + ' of ' + esc(x.total_orders) + ' returned' + (x.rtos ? (', ' + esc(x.rtos) + ' RTO') : '') + '</td><td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E6DED2;font-size:15px;font-weight:bold;color:' + RED + ';\">' + esc(x.rate) + '%</td></tr><tr><td colspan=\"3\" style=\"padding:0 12px 9px 12px;border-bottom:1px solid #E6DED2;\"><div style=\"font-size:11px;color:' + GREY + ';font-style:italic;\">Flagged for a human to review. No automatic action is taken against any customer.</div></td></tr>';\n});\nlet causeHtml = '';\n(Array.isArray(a.root_causes) ? a.root_causes : []).forEach(c => {\n  causeHtml += '<tr><td style=\"padding:0 26px 10px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;border-left:4px solid ' + SAFFRON + ';background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\"><div style=\"font-size:15px;font-weight:bold;color:' + INDIGO + ';\">' + esc(c.cause) + '</div><div style=\"font-size:12.5px;color:' + GREY + ';margin-top:5px;line-height:1.5;\">' + esc(c.evidence) + '</div></td></tr></table></td></tr>';\n});\nlet actHtml = '';\n(Array.isArray(a.actions) ? a.actions : []).forEach(x => { actHtml += '<li style=\"margin-bottom:9px;\"><strong>' + esc(x.action) + '</strong><br><span style=\"color:#B9C2D4;font-size:12.5px;\">' + esc(x.why) + '</span></li>'; });\nconst savedLine = risk.length > 0 ? (risk.length + ' confirmation message(s) already sent, Rs ' + D.at_risk_value + ' of stock protected') : (D.already_saved > 0 ? (D.already_saved + ' at risk parcel(s) already contacted on an earlier run') : 'No parcels at risk right now');\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + INDIGO + ';padding:24px 26px;\"><div style=\"color:' + SAFFRON + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">RETURNS AND RTO REVIEW</div>' +\n'<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;margin-top:7px;line-height:1.3;\">' + esc(headline) + '</div>' +\n'<div style=\"color:#B9C2D4;font-size:13px;margin-top:6px;\">' + esc(D.today) + ' &middot; ' + esc(D.orders_total) + ' orders reviewed &middot; ' + esc(D.decisions_logged) + ' return decisions logged</div></td></tr>' + banner +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + RED + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:21px;font-weight:bold;\">Rs ' + esc(D.total_bleed) + '</div><div style=\"color:#F5D5D0;font-size:10px;\">lost this cycle</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + INDIGO + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.cod_rto_rate) + '%</div><div style=\"color:' + GREY + ';font-size:10px;\">COD refused</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + INDIGO + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(D.rto_total) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">RTO parcels</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + INDIGO + ';font-family:Georgia,serif;font-size:21px;font-weight:bold;\">Rs ' + esc(D.rto_value) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">stuck coming back</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + GREEN + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:21px;font-weight:bold;\">Rs ' + esc(D.at_risk_value) + '</div><div style=\"color:#D6EBDD;font-size:10px;\">protected today</div></td>' +\n'</tr></table></td></tr>' +\n'<tr><td style=\"padding:14px 26px 4px 26px;\"><div style=\"background:#EAF6EF;border-radius:8px;border-left:4px solid ' + GREEN + ';padding:13px 15px;\"><div style=\"font-size:11px;font-weight:bold;color:#14532D;letter-spacing:1px;\">ALREADY DONE FOR YOU</div><div style=\"font-size:14px;color:#14532D;margin-top:6px;line-height:1.5;\">' + esc(savedLine) + '. Each one asks the customer to confirm the address and keep the cash ready, and offers them the option to pay online instead. No mention of risk, no accusation.</div></div></td></tr>' +\n'<tr><td style=\"padding:14px 26px 6px 26px;\"><div style=\"background:' + CREAM + ';border-radius:8px;padding:15px 17px;border-left:4px solid ' + SAFFRON + ';\"><div style=\"font-size:14.5px;color:' + INK + ';line-height:1.6;\">' + esc(theRead) + '</div></div></td></tr>' +\n(riskHtml ? ('<tr><td style=\"padding:18px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + INDIGO + ';\">Parcels we just protected</div><div style=\"font-size:12px;color:' + GREY + ';margin-top:3px;margin-bottom:8px;\">COD orders in transit matching your RTO pattern. A confirmation email has gone out to each. Call the top one if the value justifies it.</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;\">' + riskHtml + '</table></td></tr>') : '') +\n(causeHtml ? ('<tr><td style=\"padding:18px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + INDIGO + ';\">What is actually going wrong</div></td></tr>' + causeHtml) : '') +\n(skuHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + INDIGO + ';margin-bottom:8px;\">Products costing you money</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;\">' + skuHtml + '</table></td></tr>') : '') +\n(courHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + INDIGO + ';margin-bottom:8px;\">Courier RTO rates</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;\">' + courHtml + '</table></td></tr>') : '') +\n(abuseHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + INDIGO + ';margin-bottom:8px;\">Customers worth a second look</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E6DED2;border-radius:8px;\">' + abuseHtml + '</table></td></tr>') : '') +\n(actHtml ? ('<tr><td style=\"padding:18px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + INDIGO + ';border-radius:8px;\"><tr><td style=\"padding:18px 20px;\"><div style=\"color:' + SAFFRON + ';font-family:Georgia,serif;font-size:16px;font-weight:bold;margin-bottom:10px;\">Do this week</div><ul style=\"color:#FFFFFF;font-size:14px;line-height:1.5;margin:0;padding-left:20px;\">' + actHtml + '</ul>' + (a.watch_out ? ('<div style=\"color:#B9C2D4;font-size:12.5px;margin-top:12px;font-style:italic;\">Do not overreact to: ' + esc(a.watch_out) + '</div>') : '') + '</td></tr></table></td></tr>') : '') +\n'<tr><td style=\"background:' + INDIGO + ';padding:12px 26px;\"><div style=\"color:#8C97AD;font-size:11px;\">' + esc(D.brand_name) + ' &middot; Returns Control Desk &middot; every number computed from your own orders &middot; Powered by Haus of Intelligence</div></td></tr>' +\n'</table></div>';\nreturn [{ json: { brief_html: html, headline: headline, today: D.today, owner_email: D.owner_email, total_bleed: D.total_bleed, protected_count: risk.length, protected_value: D.at_risk_value } }];"
+      },
+      "id": "4398a79e-1a94-42f4-a346-6fd4365ae52c",
+      "name": "Build Loss Brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.owner_email }}",
+        "subject": "=Returns review {{ $json.today }} - Rs {{ $json.total_bleed }} lost, Rs {{ $json.protected_value }} protected today",
+        "message": "={{ $json.brief_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "20553553-d2fe-438b-b7f7-9b45c8ef9eb9",
+      "name": "Send Loss Brief",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        416
+      ],
+      "webhookId": "86fb6af5-0863-4c0e-ad06-87e9340aec0b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1YZkiuwfUpVlYHvnXozVgxplwIMpwQI5cgtYqmvFrSzg",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Decision_Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "decision_id",
+              "displayName": "decision_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "request_id",
+              "displayName": "request_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "reason_category",
+              "displayName": "reason_category",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "decision",
+              "displayName": "decision",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "refund_amount_inr",
+              "displayName": "refund_amount_inr",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "risk_score",
+              "displayName": "risk_score",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "reasons",
+              "displayName": "reasons",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "email_sent",
+              "displayName": "email_sent",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "decision_id": "={{ $json.log_id }}",
+            "run_date": "={{ $json.run_date }}",
+            "request_id": "=rto-prevention",
+            "order_id": "={{ $json.order_id }}",
+            "customer_id": "={{ $json.customer_id }}",
+            "customer_name": "={{ $json.customer_name }}",
+            "sku": "={{ $json.sku }}",
+            "reason_category": "=rto_risk",
+            "decision": "=rto_save_sent",
+            "refund_amount_inr": "=0",
+            "risk_score": "={{ $json.score }}",
+            "reasons": "={{ $json.reasons }}",
+            "email_sent": "={{ $json.written ? \"yes\" : \"fallback\" }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "72b29629-fe6d-4b5c-948a-d9b9444ae26a",
+      "name": "Log Save Attempts",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        224
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Loss Review": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Morning 9am": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Orders": {
+      "main": [
+        [
+          {
+            "node": "Read Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Products": {
+      "main": [
+        [
+          {
+            "node": "Read Customers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Customers": {
+      "main": [
+        [
+          {
+            "node": "Read Decision Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Decision Log": {
+      "main": [
+        [
+          {
+            "node": "Loss Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loss Engine": {
+      "main": [
+        [
+          {
+            "node": "Save The Parcel Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loss Analyst (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save The Parcel Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Save Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Save Messages": {
+      "main": [
+        [
+          {
+            "node": "Send Save Messages",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Save Attempts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loss Analyst (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Loss Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Loss Brief": {
+      "main": [
+        [
+          {
+            "node": "Send Loss Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "7143a363-5ddd-4197-a14b-2934c5492857",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "QjNUw5cGuBemIh24",
+  "tags": []
+}
