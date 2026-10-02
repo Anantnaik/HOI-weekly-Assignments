@@ -1,0 +1,592 @@
+{
+  "name": "Field Sales Tracker V2",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c1cf886d-bbd5-4578-9916-13cea291779b",
+      "name": "Run Territory Review",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1776,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "company_name",
+              "value": "Nimbu and Co",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "manager_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "manager_name",
+              "value": "Aarti Kulkarni",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "send_beat_plans",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "5",
+              "name": "month_days_elapsed",
+              "value": 26,
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "month_days_total",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "7",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2f4cecc-1acb-4201-8885-65003545b8e2",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1552,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "6d581254-68d4-46a1-bc73-a630dbe20629",
+      "name": "Every Morning 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1776,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1821696638,
+          "mode": "list",
+          "cachedResultName": "Policy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1821696638"
+        },
+        "options": {}
+      },
+      "id": "aaf1bed8-5820-41c3-b4c8-df7dbc46fcee",
+      "name": "Read Policy",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1328,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 555063318,
+          "mode": "list",
+          "cachedResultName": "Reps",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=555063318"
+        },
+        "options": {}
+      },
+      "id": "dfdaff56-2fa4-42ca-8fb1-b97a8d1d150a",
+      "name": "Read Reps",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -1104,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1982977004,
+          "mode": "list",
+          "cachedResultName": "Outlets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1982977004"
+        },
+        "options": {}
+      },
+      "id": "5a1d9e95-5734-45c0-be23-39e9ed13070e",
+      "name": "Read Outlets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -896,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 133603469,
+          "mode": "list",
+          "cachedResultName": "Visit_Records",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=133603469"
+        },
+        "options": {}
+      },
+      "id": "04a6bd69-68ae-40da-97e2-dc58c46a080a",
+      "name": "Read Visit Records",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -672,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1112310874,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1112310874"
+        },
+        "options": {}
+      },
+      "id": "ffe8591a-a07e-49d7-95f8-9e900ea019e1",
+      "name": "Read Pipeline",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -448,
+        144
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst pol = uniq($('Read Policy').all().map(i => i.json).filter(r => r && r.policy_key), 'policy_key');\nconst reps = uniq($('Read Reps').all().map(i => i.json).filter(r => r && r.rep_id), 'rep_id');\nconst outs = uniq($('Read Outlets').all().map(i => i.json).filter(r => r && r.outlet_id), 'outlet_id');\nconst recs = uniq($('Read Visit Records').all().map(i => i.json).filter(r => r && r.record_id), 'record_id');\nconst pipe = uniq($('Read Pipeline').all().map(i => i.json).filter(r => r && r.opp_id), 'opp_id');\nconst P = {};\npol.forEach(r => { P[String(r.policy_key).trim()] = r.policy_value; });\nconst cyc = { A: num(P.visit_cycle_days_A) || 7, B: num(P.visit_cycle_days_B) || 14, C: num(P.visit_cycle_days_C) || 30 };\nconst stuckDays = num(P.stuck_days) || 21;\nconst beatSize = num(P.beat_size) || 5;\nconst TZ = num(cfg.tz_offset_minutes) || 330;\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + TZ * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst today = fd(now);\nconst tMs = Date.parse(today + 'T00:00:00Z');\nconst daysAgo = (ds) => { const t = Date.parse(String(ds || '').trim().slice(0, 10) + 'T00:00:00Z'); if (isNaN(t)) { return 999; } return Math.round((tMs - t) / 86400000); };\nconst issues = [];\nif (outs.length === 0) { issues.push('No outlets found, the territory review is empty'); }\nconst repBy = {};\nreps.forEach(r => { repBy[String(r.rep_id).trim()] = r; });\nconst elapsed = num(cfg.month_days_elapsed) || 26;\nconst totalDays = num(cfg.month_days_total) || 30;\nconst paceFactor = totalDays > 0 ? elapsed / totalDays : 1;\nconst overdue = [];\nlet covered = 0;\nouts.forEach(o => {\n  const tier = String(o.tier || 'C').toUpperCase().trim();\n  const cycle = cyc[tier] || 30;\n  const since = daysAgo(o.last_visit_date);\n  const over = since - cycle;\n  if (over <= 0) { covered += 1; return; }\n  const potential = num(o.monthly_potential_inr);\n  const current = num(o.current_monthly_inr);\n  const gap = Math.max(0, potential - current);\n  const tierW = tier === 'A' ? 3 : (tier === 'B' ? 2 : 1);\n  const urgency = Math.round((over * tierW) + (gap / 10000));\n  overdue.push({ outlet_id: String(o.outlet_id), name: String(o.name || ''), tier: tier, area: String(o.area || ''), owner_name: String(o.owner_name || ''),\n    rep_id: String(o.rep_id || ''), days_since: since, cycle: cycle, days_over: over, potential: potential, current: current, gap: gap,\n    status: String(o.status || 'active'), urgency: urgency });\n});\noverdue.sort((a, b) => b.urgency - a.urgency);\nconst coveragePct = outs.length > 0 ? Math.round((covered / outs.length) * 100) : 0;\nconst gapAtRisk = overdue.reduce((a, o) => a + o.gap, 0);\nconst stuck = [];\npipe.forEach(p => {\n  const since = daysAgo(p.last_updated);\n  const stage = String(p.stage || '').toLowerCase().trim();\n  if (stage === 'active' || stage === 'at_risk') { return; }\n  if (since < stuckDays) { return; }\n  stuck.push({ opp_id: String(p.opp_id), outlet_name: String(p.outlet_name || ''), rep_id: String(p.rep_id || ''), stage: stage, value: num(p.value_inr), days_stuck: since });\n});\nstuck.sort((a, b) => b.value - a.value);\nconst stuckValue = stuck.reduce((a, s) => a + s.value, 0);\nconst compTally = {};\nrecs.forEach(r => { const c = String(r.competitor || 'none').trim(); if (c.toLowerCase() !== 'none' && c.length > 1) { compTally[c] = (compTally[c] || 0) + 1; } });\nconst compList = Object.keys(compTally).map(k => ({ name: k, mentions: compTally[k] }));\ncompList.sort((a, b) => b.mentions - a.mentions);\nconst repStats = [];\nreps.forEach(r => {\n  const rid = String(r.rep_id).trim();\n  const target = num(r.monthly_target_inr);\n  const mtd = num(r.mtd_sales_inr);\n  const myRecs = recs.filter(x => String(x.rep_id || '').trim() === rid);\n  const myOrders = myRecs.filter(x => num(x.order_value_inr) > 0);\n  const myOrderValue = myOrders.reduce((a, x) => a + num(x.order_value_inr), 0);\n  const myOutlets = outs.filter(x => String(x.rep_id || '').trim() === rid);\n  const myOverdue = overdue.filter(x => x.rep_id === rid);\n  const pct = target > 0 ? Math.round((mtd / target) * 100) : 0;\n  const expected = Math.round(target * paceFactor);\n  const behind = expected - mtd;\n  const cov = myOutlets.length > 0 ? Math.round(((myOutlets.length - myOverdue.length) / myOutlets.length) * 100) : 0;\n  const conv = myRecs.length > 0 ? Math.round((myOrders.length / myRecs.length) * 100) : 0;\n  repStats.push({ rep_id: rid, name: String(r.name || ''), email: String(r.email || ''), territory: String(r.territory || ''),\n    target: target, mtd: mtd, pct: pct, expected: expected, behind: behind, on_track: behind <= 0,\n    outlets: myOutlets.length, overdue: myOverdue.length, coverage: cov,\n    visits: myRecs.length, orders: myOrders.length, order_value: myOrderValue, conversion: conv,\n    beat: myOverdue.slice(0, beatSize) });\n});\nrepStats.sort((a, b) => a.pct - b.pct);\nconst totalTarget = repStats.reduce((a, r) => a + r.target, 0);\nconst totalMtd = repStats.reduce((a, r) => a + r.mtd, 0);\nconst teamPct = totalTarget > 0 ? Math.round((totalMtd / totalTarget) * 100) : 0;\nlet ctx = '';\nctx += 'DATE: ' + today + ', day ' + elapsed + ' of ' + totalDays + ' in the month\\n';\nctx += 'TEAM: Rs ' + totalMtd + ' against a target of Rs ' + totalTarget + ', that is ' + teamPct + ' percent with ' + Math.round(paceFactor * 100) + ' percent of the month gone\\n';\nctx += 'COVERAGE: ' + coveragePct + ' percent of outlets visited inside their tier cycle, ' + overdue.length + ' outlets overdue, Rs ' + gapAtRisk + ' of untapped monthly potential sitting in them\\n\\nREPS:\\n';\nrepStats.forEach(r => { ctx += r.name + ' (' + r.territory + '): Rs ' + r.mtd + ' of Rs ' + r.target + ' (' + r.pct + ' percent), pace says they should be at Rs ' + r.expected + ', ' + (r.behind > 0 ? ('behind by Rs ' + r.behind) : 'ahead of pace') + '. Coverage ' + r.coverage + ' percent, ' + r.overdue + ' of ' + r.outlets + ' outlets overdue. ' + r.visits + ' visits logged, ' + r.orders + ' orders, ' + r.conversion + ' percent conversion.\\n'; });\nctx += '\\nWORST COVERAGE GAPS:\\n';\noverdue.slice(0, 8).forEach(o => { ctx += o.name + ' (tier ' + o.tier + ', ' + o.area + '): last visited ' + o.days_since + ' days ago against a ' + o.cycle + ' day cycle, ' + o.days_over + ' days over. Doing Rs ' + o.current + ' of Rs ' + o.potential + ' potential.\\n'; });\nctx += '\\nSTUCK PIPELINE:\\n';\nif (stuck.length === 0) { ctx += 'none\\n'; }\nstuck.forEach(s => { ctx += s.outlet_name + ': stuck at ' + s.stage + ' for ' + s.days_stuck + ' days, Rs ' + s.value + ' at stake\\n'; });\nctx += '\\nCOMPETITOR MENTIONS IN RECENT VISITS:\\n';\nif (compList.length === 0) { ctx += 'none\\n'; }\ncompList.forEach(c => { ctx += c.name + ': named in ' + c.mentions + ' outlet(s)\\n'; });\nlet beatBlob = '';\nrepStats.forEach(r => {\n  if (r.beat.length === 0) { return; }\n  beatBlob += '=== REP ' + r.rep_id + ' ' + r.name + ' (' + r.territory + ') ===\\n';\n  beatBlob += 'STATUS: Rs ' + r.mtd + ' of Rs ' + r.target + ' target, ' + r.pct + ' percent, ' + (r.behind > 0 ? ('behind pace by Rs ' + r.behind) : 'ahead of pace') + '\\n';\n  r.beat.forEach((o, i) => { beatBlob += (i + 1) + '. ' + o.name + ' (tier ' + o.tier + ', ' + o.area + '), owner ' + o.owner_name + ', last visited ' + o.days_since + ' days ago, ' + o.days_over + ' days over cycle, doing Rs ' + o.current + ' of Rs ' + o.potential + ' potential\\n'; });\n  beatBlob += '\\n';\n});\nreturn [{ json: { today: today, company_name: cfg.company_name, manager_email: cfg.manager_email, manager_name: cfg.manager_name,\n  send_beats: (String(cfg.send_beat_plans) === 'true') || (cfg.send_beat_plans === true),\n  outlets_total: outs.length, covered: covered, coverage_pct: coveragePct, overdue: overdue, overdue_count: overdue.length, gap_at_risk: gapAtRisk,\n  stuck: stuck, stuck_count: stuck.length, stuck_value: stuckValue, competitors: compList,\n  reps: repStats, team_target: totalTarget, team_mtd: totalMtd, team_pct: teamPct, pace_pct: Math.round(paceFactor * 100),\n  visits_logged: recs.length, context: ctx, beat_blob: beatBlob || 'none', data_issues: issues } }];"
+      },
+      "id": "881142ea-cbcb-4f83-a374-0043e7389202",
+      "name": "Territory Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a field sales supervisor at \" + ($json.company_name || \"the company\") + \", an Indian FMCG brand in Pune. You write each rep their beat plan for tomorrow. The outlets have already been chosen by a rules engine based on how overdue they are and how much business is sitting untapped. Your job is to tell the rep why each stop matters and what to actually do there. Never invent a scheme, a price or a past conversation that is not given to you.\\n\\n\" + ($json.beat_blob || \"none\") + \"\\n\\nIf the text above says none, return an empty plans array.\\nReturn ONLY valid JSON, no markdown fences. One key plans holding an array, one entry per REP block above, in the same order. Each entry has keys: rep_id, opening_line, stops, closing_push.\\nrep_id must be copied exactly from the REP header line.\\nopening_line is one direct line to the rep about where they stand against target. If they are behind, say it plainly without being harsh. If ahead, acknowledge it briefly.\\nstops is an array with one entry per numbered outlet in that rep block, in the same order, each with keys outlet_name and why. outlet_name copied exactly. why is one short line telling the rep the specific reason to go there today and what to push for, using the days overdue and the untapped potential given.\\nclosing_push is one short motivating line tied to the actual gap number, not generic encouragement.\\nWrite in plain Indian English, direct and practical, the way a real area sales manager talks to his team on WhatsApp.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.5,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "d64f1511-ecd2-4a8f-bcf5-4048add4d6e2",
+      "name": "Beat Planner (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst T = $('Territory Engine').first().json;\nif (!T.send_beats) { return []; }\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst plans = Array.isArray(parsed.plans) ? parsed.plans : [];\nconst planBy = {};\nplans.forEach(p => { planBy[String(p.rep_id || '').trim()] = p; });\nconst SLATE = '#132A3A', AMBER = '#D98324', CREAM = '#FBF8F1', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42', RED = '#C0392B';\nconst out = [];\n(Array.isArray(T.reps) ? T.reps : []).forEach(r => {\n  if (!r.email || r.beat.length === 0) { return; }\n  const p = planBy[r.rep_id] || {};\n  const stops = Array.isArray(p.stops) ? p.stops : [];\n  const stopBy = {};\n  stops.forEach(s => { stopBy[String(s.outlet_name || '').trim()] = String(s.why || ''); });\n  const opening = p.opening_line || (r.behind > 0 ? ('You are Rs ' + r.behind + ' behind pace with ' + (100 - T.pace_pct) + ' percent of the month left.') : 'You are ahead of pace, keep the coverage tight.');\n  const closing = p.closing_push || ('These ' + r.beat.length + ' outlets hold Rs ' + r.beat.reduce((a, o) => a + o.gap, 0) + ' of untapped monthly business.');\n  let rows = '';\n  r.beat.forEach((o, i) => {\n    const why = stopBy[o.name] || (o.days_over + ' days past the ' + o.cycle + ' day cycle, doing Rs ' + o.current + ' of Rs ' + o.potential + ' potential.');\n    const tcol = o.tier === 'A' ? RED : (o.tier === 'B' ? AMBER : GREY);\n    rows += '<tr><td style=\"padding:0 26px 11px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;border-left:4px solid ' + tcol + ';background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\">' +\n    '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + SLATE + ';\">' + (i + 1) + '. ' + esc(o.name) + '</div>' +\n    '<div style=\"font-size:12px;color:' + GREY + ';margin-top:3px;\">' + esc(o.owner_name) + ' &middot; ' + esc(o.area) + ' &middot; tier ' + esc(o.tier) + '</div></td>' +\n    '<td align=\"right\"><div style=\"display:inline-block;background:' + tcol + ';color:#FFFFFF;font-size:10.5px;font-weight:bold;padding:4px 9px;border-radius:4px;\">' + esc(o.days_over) + 'd OVERDUE</div></td></tr></table>' +\n    '<div style=\"font-size:13px;color:' + INK + ';line-height:1.5;margin-top:8px;\">' + esc(why) + '</div>' +\n    '<div style=\"font-size:11.5px;color:' + GREY + ';margin-top:6px;\">Last visit ' + esc(o.days_since) + ' days ago &middot; doing Rs ' + esc(o.current) + ' of Rs ' + esc(o.potential) + ' &middot; Rs ' + esc(o.gap) + ' untapped</div>' +\n    '</td></tr></table></td></tr>';\n  });\n  const html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:620px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n  '<tr><td style=\"background:' + SLATE + ';padding:22px 26px;\"><div style=\"color:' + AMBER + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">YOUR BEAT PLAN</div>' +\n  '<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:23px;font-weight:bold;margin-top:6px;\">' + esc(r.name) + '</div>' +\n  '<div style=\"color:#9FB3C4;font-size:12.5px;margin-top:4px;\">' + esc(r.territory) + ' &middot; ' + esc(T.today) + ' &middot; ' + esc(r.beat.length) + ' stops today</div></td></tr>' +\n  '<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n  '<td align=\"center\" style=\"background:' + (r.on_track ? GREEN : RED) + ';border-radius:6px;padding:13px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:22px;font-weight:bold;\">' + esc(r.pct) + '%</div><div style=\"color:#F0F0F0;font-size:10px;\">of target</div></td><td width=\"7\"></td>' +\n  '<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:13px 6px;\"><div style=\"color:' + SLATE + ';font-family:Georgia,serif;font-size:17px;font-weight:bold;\">Rs ' + esc(r.mtd) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">this month</div></td><td width=\"7\"></td>' +\n  '<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:13px 6px;\"><div style=\"color:' + SLATE + ';font-family:Georgia,serif;font-size:22px;font-weight:bold;\">' + esc(r.coverage) + '%</div><div style=\"color:' + GREY + ';font-size:10px;\">coverage</div></td><td width=\"7\"></td>' +\n  '<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:13px 6px;\"><div style=\"color:' + SLATE + ';font-family:Georgia,serif;font-size:22px;font-weight:bold;\">' + esc(r.overdue) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">outlets overdue</div></td>' +\n  '</tr></table></td></tr>' +\n  '<tr><td style=\"padding:16px 26px 12px 26px;\"><div style=\"background:' + CREAM + ';border-radius:8px;padding:14px 16px;border-left:4px solid ' + AMBER + ';\"><div style=\"font-size:14.5px;color:' + INK + ';line-height:1.55;\">' + esc(opening) + '</div></div></td></tr>' +\n  '<tr><td style=\"padding:4px 26px 10px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + SLATE + ';\">Where to go today</div></td></tr>' + rows +\n  '<tr><td style=\"padding:8px 26px 20px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + SLATE + ';border-radius:8px;\"><tr><td style=\"padding:15px 18px;\"><div style=\"color:#FFFFFF;font-size:14px;line-height:1.5;\">' + esc(closing) + '</div></td></tr></table></td></tr>' +\n  '<tr><td style=\"background:' + SLATE + ';padding:12px 26px;\"><div style=\"color:#7E92A3;font-size:11px;\">' + esc(T.company_name) + ' &middot; Field Sales Tracker &middot; Powered by Haus of Intelligence</div></td></tr>' +\n  '</table></div>';\n  out.push({ json: { to: r.email, subject: 'Your beat plan for ' + T.today + ', ' + r.beat.length + ' stops', html: html, rep_id: r.rep_id, rep_name: r.name, stops: r.beat.length, written_ok: !!p.opening_line } });\n});\nreturn out;"
+      },
+      "id": "86e106ba-45f5-4d43-9cc3-c61cc8dad063",
+      "name": "Build Beat Plans",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "03502e1e-bd03-45c1-b77f-d56382a0ed91",
+      "name": "Send Beat Plans",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        0
+      ],
+      "webhookId": "e7a84cd6-03f1-4c05-9929-d54b288d0f1c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a national sales head reviewing one city team for an Indian FMCG brand. Write the area manager a short, blunt review. Every number you use must come from the data below. Never invent a figure or a cause. If a sample is small, say so rather than overclaiming.\\n\\n\" + ($json.context || \"\") + \"\\n\\nReturn ONLY valid JSON, no markdown fences. Keys: headline, the_read, root_causes, actions, coaching_focus, watch_out.\\nheadline is one blunt line naming the single biggest problem in this territory and its number.\\nthe_read is 2 to 3 sentences on what the numbers actually say, written for a manager not an analyst.\\nroot_causes is an array of exactly 3 objects with keys cause and evidence. cause names a likely root cause. evidence quotes the specific numbers pointing to it. Where the sample is thin, say so honestly.\\nactions is an array of exactly 3 objects with keys action and why. action is one concrete thing the manager should do this week. Recommend changes to beat routing, coverage cycles, schemes, pricing policy or training. You may name a rep when the action is coaching or support, because these are the manager own team members and helping them is the point, but never recommend disciplinary action against a named person.\\ncoaching_focus is one short line naming which rep needs the most support this week and on what specific skill, based on their numbers.\\nwatch_out is one line naming something that looks like a problem here but probably is not, or a number too small to act on yet.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.4,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "5292f1db-ab6f-4d2b-8cfb-30443fdb0270",
+      "name": "Territory Analyst (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        0,
+        320
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst T = $('Territory Engine').first().json;\nconst a = parseJson(textOf($input.first().json)) || {};\nconst aiOk = !!a.headline;\nconst SLATE = '#132A3A', AMBER = '#D98324', CREAM = '#FBF8F1', WHITE = '#FFFFFF', INK = '#1A1A1A', GREY = '#6A6A6A', GREEN = '#1B7E42', RED = '#C0392B';\nconst issues = Array.isArray(T.data_issues) ? T.data_issues.slice(0) : [];\nif (!aiOk) { issues.push('Territory analyst AI was unavailable, showing the computed numbers only'); }\nlet banner = '';\nif (issues.length) { banner = '<tr><td style=\"padding:12px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RED + ';border-radius:6px;padding:11px 13px;font-size:12.5px;color:#7A1F14;\"><strong>Heads up.</strong> ' + esc(issues.slice(0, 3).join('; ')) + '</div></td></tr>'; }\nconst headline = a.headline || (T.overdue_count + ' outlets overdue, Rs ' + T.gap_at_risk + ' of potential sitting untouched');\nconst theRead = a.the_read || 'Review the numbers below.';\nlet repHtml = '';\n(Array.isArray(T.reps) ? T.reps : []).forEach(r => {\n  const col = r.pct >= 85 ? GREEN : (r.pct >= 60 ? AMBER : RED);\n  repHtml += '<tr><td style=\"padding:0 26px 11px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;border-left:4px solid ' + col + ';background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\">' +\n  '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td><div style=\"font-family:Georgia,serif;font-size:16.5px;font-weight:bold;color:' + SLATE + ';\">' + esc(r.name) + '</div><div style=\"font-size:12px;color:' + GREY + ';margin-top:3px;\">' + esc(r.territory) + ' &middot; ' + esc(r.outlets) + ' outlets</div></td>' +\n  '<td align=\"right\"><div style=\"font-family:Georgia,serif;font-size:24px;font-weight:bold;color:' + col + ';\">' + esc(r.pct) + '%</div><div style=\"font-size:11px;color:' + GREY + ';\">Rs ' + esc(r.mtd) + ' of ' + esc(r.target) + '</div></td></tr></table>' +\n  '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin-top:9px;\"><tr>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">coverage ' + esc(r.coverage) + '%</td>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">' + esc(r.overdue) + ' overdue</td>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">' + esc(r.visits) + ' visits</td>' +\n  '<td style=\"font-size:12px;color:' + INK + ';\">' + esc(r.conversion) + '% converted</td>' +\n  '</tr></table>' +\n  '<div style=\"font-size:12px;color:' + (r.on_track ? GREEN : RED) + ';margin-top:7px;\">' + (r.behind > 0 ? ('Behind pace by Rs ' + esc(r.behind) + ', should be at Rs ' + esc(r.expected) + ' by now') : 'Ahead of pace') + '</div>' +\n  '</td></tr></table></td></tr>';\n});\nlet odHtml = '';\n(Array.isArray(T.overdue) ? T.overdue : []).slice(0, 8).forEach(o => {\n  const tcol = o.tier === 'A' ? RED : (o.tier === 'B' ? AMBER : GREY);\n  odHtml += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:13px;color:' + INK + ';\"><strong>' + esc(o.name) + '</strong><br><span style=\"color:' + GREY + ';font-size:11px;\">' + esc(o.area) + ' &middot; tier ' + esc(o.tier) + '</span></td>' +\n  '<td align=\"center\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:14px;font-weight:bold;color:' + tcol + ';\">' + esc(o.days_over) + 'd over</td>' +\n  '<td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:12.5px;color:' + INK + ';\">Rs ' + esc(o.gap) + '<br><span style=\"color:' + GREY + ';font-size:11px;\">untapped</span></td></tr>';\n});\nlet stHtml = '';\n(Array.isArray(T.stuck) ? T.stuck : []).forEach(s => {\n  stHtml += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:13px;color:' + INK + ';\"><strong>' + esc(s.outlet_name) + '</strong><br><span style=\"color:' + GREY + ';font-size:11px;\">stuck at ' + esc(s.stage) + '</span></td>' +\n  '<td align=\"center\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:14px;font-weight:bold;color:' + RED + ';\">' + esc(s.days_stuck) + ' days</td>' +\n  '<td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:13px;font-weight:bold;color:' + INK + ';\">Rs ' + esc(s.value) + '</td></tr>';\n});\nlet cpHtml = '';\n(Array.isArray(T.competitors) ? T.competitors : []).forEach(c => {\n  const hot = c.mentions >= 2;\n  cpHtml += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:13px;color:' + INK + ';\"><strong>' + esc(c.name) + '</strong></td><td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:14px;font-weight:bold;color:' + (hot ? RED : GREY) + ';\">' + esc(c.mentions) + ' outlet(s)' + (hot ? ', a pattern' : '') + '</td></tr>';\n});\nlet causeHtml = '';\n(Array.isArray(a.root_causes) ? a.root_causes : []).forEach(c => {\n  causeHtml += '<tr><td style=\"padding:0 26px 10px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;border-left:4px solid ' + AMBER + ';background:#FFFFFF;\"><tr><td style=\"padding:13px 15px;\"><div style=\"font-size:15px;font-weight:bold;color:' + SLATE + ';\">' + esc(c.cause) + '</div><div style=\"font-size:12.5px;color:' + GREY + ';margin-top:5px;line-height:1.5;\">' + esc(c.evidence) + '</div></td></tr></table></td></tr>';\n});\nlet actHtml = '';\n(Array.isArray(a.actions) ? a.actions : []).forEach(x => { actHtml += '<li style=\"margin-bottom:9px;\"><strong>' + esc(x.action) + '</strong><br><span style=\"color:#9FB3C4;font-size:12.5px;\">' + esc(x.why) + '</span></li>'; });\nconst html = '<div style=\"background:' + CREAM + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px;margin:0 auto;background:' + WHITE + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + SLATE + ';padding:24px 26px;\"><div style=\"color:' + AMBER + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">TERRITORY REVIEW</div>' +\n'<div style=\"color:' + WHITE + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;margin-top:7px;line-height:1.3;\">' + esc(headline) + '</div>' +\n'<div style=\"color:#9FB3C4;font-size:13px;margin-top:6px;\">' + esc(T.today) + ' &middot; ' + esc(T.outlets_total) + ' outlets &middot; ' + esc(T.visits_logged) + ' visits logged</div></td></tr>' + banner +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + (T.team_pct >= T.pace_pct ? GREEN : RED) + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:23px;font-weight:bold;\">' + esc(T.team_pct) + '%</div><div style=\"color:#F0F0F0;font-size:10px;\">of target, ' + esc(T.pace_pct) + '% of month gone</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + SLATE + ';font-family:Georgia,serif;font-size:23px;font-weight:bold;\">' + esc(T.coverage_pct) + '%</div><div style=\"color:' + GREY + ';font-size:10px;\">outlet coverage</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + RED + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:23px;font-weight:bold;\">' + esc(T.overdue_count) + '</div><div style=\"color:#F5D5D0;font-size:10px;\">outlets overdue</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + AMBER + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:18px;font-weight:bold;\">Rs ' + esc(T.gap_at_risk) + '</div><div style=\"color:#FDF0DC;font-size:10px;\">untapped in them</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CREAM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + SLATE + ';font-family:Georgia,serif;font-size:18px;font-weight:bold;\">Rs ' + esc(T.stuck_value) + '</div><div style=\"color:' + GREY + ';font-size:10px;\">stuck in pipeline</div></td>' +\n'</tr></table></td></tr>' +\n'<tr><td style=\"padding:16px 26px 6px 26px;\"><div style=\"background:' + CREAM + ';border-radius:8px;padding:15px 17px;border-left:4px solid ' + AMBER + ';\"><div style=\"font-size:14.5px;color:' + INK + ';line-height:1.6;\">' + esc(theRead) + '</div></div></td></tr>' +\n'<tr><td style=\"padding:18px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + SLATE + ';\">The team, weakest first</div></td></tr>' + repHtml +\n(causeHtml ? ('<tr><td style=\"padding:14px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + SLATE + ';\">What is actually going wrong</div></td></tr>' + causeHtml) : '') +\n(odHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + SLATE + ';margin-bottom:8px;\">Outlets nobody has walked into</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;\">' + odHtml + '</table></td></tr>') : '') +\n(stHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + SLATE + ';margin-bottom:8px;\">Deals that have stopped moving</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;\">' + stHtml + '</table></td></tr>') : '') +\n(cpHtml ? ('<tr><td style=\"padding:12px 26px 6px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + SLATE + ';margin-bottom:8px;\">Who else is working your outlets</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;\">' + cpHtml + '</table></td></tr>') : '') +\n(actHtml ? ('<tr><td style=\"padding:18px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + SLATE + ';border-radius:8px;\"><tr><td style=\"padding:18px 20px;\"><div style=\"color:' + AMBER + ';font-family:Georgia,serif;font-size:16px;font-weight:bold;margin-bottom:10px;\">Do this week</div><ul style=\"color:#FFFFFF;font-size:14px;line-height:1.5;margin:0;padding-left:20px;\">' + actHtml + '</ul>' +\n(a.coaching_focus ? ('<div style=\"color:#FFFFFF;font-size:13.5px;margin-top:12px;padding-top:12px;border-top:1px solid #2A4256;\"><strong style=\"color:' + AMBER + ';\">Coaching focus:</strong> ' + esc(a.coaching_focus) + '</div>') : '') +\n(a.watch_out ? ('<div style=\"color:#9FB3C4;font-size:12.5px;margin-top:10px;font-style:italic;\">Do not overreact to: ' + esc(a.watch_out) + '</div>') : '') + '</td></tr></table></td></tr>') : '') +\n'<tr><td style=\"background:' + SLATE + ';padding:12px 26px;\"><div style=\"color:#7E92A3;font-size:11px;\">' + esc(T.company_name) + ' &middot; Field Sales Tracker &middot; beat plans already sent to each rep &middot; Powered by Haus of Intelligence</div></td></tr>' +\n'</table></div>';\nreturn [{ json: { review_html: html, headline: headline, today: T.today, manager_email: T.manager_email, overdue_count: T.overdue_count, gap_at_risk: T.gap_at_risk } }];"
+      },
+      "id": "ef76780b-cdac-4b58-96ef-9fced21a5ad1",
+      "name": "Build Territory Review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.manager_email }}",
+        "subject": "=Territory review {{ $json.today }} - {{ $json.overdue_count }} outlets overdue, Rs {{ $json.gap_at_risk }} untapped",
+        "message": "={{ $json.review_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "08d629a4-1708-4e2d-933d-d36411bc2302",
+      "name": "Send Territory Review",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        320
+      ],
+      "webhookId": "72767cf1-c41d-4994-ae5e-b4c2a220f024",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Territory Review": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Morning 8am": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Policy": {
+      "main": [
+        [
+          {
+            "node": "Read Reps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Reps": {
+      "main": [
+        [
+          {
+            "node": "Read Outlets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Outlets": {
+      "main": [
+        [
+          {
+            "node": "Read Visit Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Visit Records": {
+      "main": [
+        [
+          {
+            "node": "Read Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Territory Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Territory Engine": {
+      "main": [
+        [
+          {
+            "node": "Beat Planner (Gemini)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Territory Analyst (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Beat Planner (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Beat Plans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Beat Plans": {
+      "main": [
+        [
+          {
+            "node": "Send Beat Plans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Territory Analyst (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Territory Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Territory Review": {
+      "main": [
+        [
+          {
+            "node": "Send Territory Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "893d0725-94e2-4233-a021-ce8881179cb6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "zVGYZa2ujpf30gKi",
+  "tags": []
+}

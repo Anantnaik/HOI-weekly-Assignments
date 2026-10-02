@@ -1,0 +1,1943 @@
+{
+  "name": "Field Sales Tracker V1",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "ac0acc74-3c9e-4f00-bfe9-10d9b851c1ca",
+      "name": "Process Visits",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4032,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "company_name",
+              "value": "Nimbu and Co",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "manager_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "distributor_email",
+              "value": "naikanant381@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "distributor_name",
+              "value": "Pune West Distributors",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "max_per_run",
+              "value": 12,
+              "type": "number"
+            },
+            {
+              "id": "6",
+              "name": "dedupe_enabled",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "7",
+              "name": "tz_offset_minutes",
+              "value": 330,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e644811e-29f6-494b-91a6-ce2b00f7dd5e",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3808,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "field-visit",
+        "options": {}
+      },
+      "id": "9883dc51-c297-499d-ac02-400879ff17e5",
+      "name": "Visit Log In",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -4032,
+        384
+      ],
+      "webhookId": "93f7bd23-9295-462a-a43c-690dabb563fe"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1821696638,
+          "mode": "list",
+          "cachedResultName": "Policy",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1821696638"
+        },
+        "options": {}
+      },
+      "id": "d75756c1-9fd5-4b9d-8e79-d1573f8edff3",
+      "name": "Read Policy",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3584,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 555063318,
+          "mode": "list",
+          "cachedResultName": "Reps",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=555063318"
+        },
+        "options": {}
+      },
+      "id": "d1a267b0-1626-40fe-854c-d49261118f67",
+      "name": "Read Reps",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3360,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1982977004,
+          "mode": "list",
+          "cachedResultName": "Outlets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1982977004"
+        },
+        "options": {}
+      },
+      "id": "4dcc6815-fda2-4617-bc89-b88fc7da8eda",
+      "name": "Read Outlets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -3136,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 857115984,
+          "mode": "list",
+          "cachedResultName": "Products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=857115984"
+        },
+        "options": {}
+      },
+      "id": "0f88445a-b8f2-4de8-94b3-0ca4d301aa5d",
+      "name": "Read Products",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2912,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1607729295,
+          "mode": "list",
+          "cachedResultName": "Visit_Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1607729295"
+        },
+        "options": {}
+      },
+      "id": "dfd9c5cf-3150-4b64-8e44-c1cf77d2ca9f",
+      "name": "Read Visit Logs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2688,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 133603469,
+          "mode": "list",
+          "cachedResultName": "Visit_Records",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=133603469"
+        },
+        "options": {}
+      },
+      "id": "0932a74d-4ba0-4ba0-a55a-bdc3cd42cb97",
+      "name": "Read Visit Records",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2464,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1112310874,
+          "mode": "list",
+          "cachedResultName": "Pipeline",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1112310874"
+        },
+        "options": {}
+      },
+      "id": "35a85912-6dec-4e32-872e-57895ad129c0",
+      "name": "Read Pipeline",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2240,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1650051823,
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1650051823"
+        },
+        "options": {}
+      },
+      "id": "b4cb6e32-a9f2-4978-9c06-fd9ad7c3e12a",
+      "name": "Read Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -2016,
+        480
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst pol = uniq($('Read Policy').all().map(i => i.json).filter(r => r && r.policy_key), 'policy_key');\nconst reps = uniq($('Read Reps').all().map(i => i.json).filter(r => r && r.rep_id), 'rep_id');\nconst outs = uniq($('Read Outlets').all().map(i => i.json).filter(r => r && r.outlet_id), 'outlet_id');\nconst prods = uniq($('Read Products').all().map(i => i.json).filter(r => r && r.sku), 'sku');\nconst logs = uniq($('Read Visit Logs').all().map(i => i.json).filter(r => r && r.log_id), 'log_id');\nconst recs = uniq($('Read Visit Records').all().map(i => i.json).filter(r => r && r.record_id), 'record_id');\nconst pipe = uniq($('Read Pipeline').all().map(i => i.json).filter(r => r && r.opp_id), 'opp_id');\nconst P = {};\npol.forEach(r => { P[String(r.policy_key).trim()] = r.policy_value; });\nconst repBy = {}; reps.forEach(r => { repBy[String(r.rep_id).trim()] = r; });\nconst outBy = {}; outs.forEach(r => { outBy[String(r.outlet_id).trim()] = r; });\nconst pipeBy = {}; pipe.forEach(r => { pipeBy[String(r.outlet_id).trim()] = r; });\nconst dedupe = (String(cfg.dedupe_enabled) === 'true') || (cfg.dedupe_enabled === true);\nconst done = {}; recs.forEach(r => { done[String(r.log_id || '').trim()] = true; });\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + (num(cfg.tz_offset_minutes) || 330) * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst today = fd(now);\nconst stamp = now.getUTCFullYear() + pad(now.getUTCMonth() + 1) + pad(now.getUTCDate()) + pad(now.getUTCHours()) + pad(now.getUTCMinutes());\nconst issues = [];\nlet skipped = 0;\nconst open = [];\nlogs.forEach(l => {\n  const lid = String(l.log_id).trim();\n  if (String(l.status || '').toLowerCase().trim() === 'processed') { skipped += 1; return; }\n  if (dedupe && done[lid]) { skipped += 1; return; }\n  const o = outBy[String(l.outlet_id || '').trim()];\n  const r = repBy[String(l.rep_id || '').trim()];\n  if (!o || !r) { issues.push('Missing outlet or rep for visit ' + lid); return; }\n  const pp = pipeBy[String(l.outlet_id).trim()] || null;\n  const audio = String(l.audio_b64 || '').trim();\n  open.push({ log_id: lid, channel: String(l.channel || 'text'), raw_text: String(l.raw_text || ''), audio_b64: audio, has_audio: audio.length > 100,\n    rep_id: String(r.rep_id), rep_name: String(r.name || ''), rep_email: String(r.email || ''),\n    outlet_id: String(o.outlet_id), outlet_name: String(o.name || ''), outlet_type: String(o.type || ''), owner_name: String(o.owner_name || ''),\n    area: String(o.area || ''), tier: String(o.tier || 'C').toUpperCase().trim(),\n    potential: num(o.monthly_potential_inr), current: num(o.current_monthly_inr), outlet_status: String(o.status || 'active'),\n    stage_now: pp ? String(pp.stage || '') : '', opp_id: pp ? String(pp.opp_id || '') : '', opp_value: pp ? num(pp.value_inr) : 0 });\n});\nconst batch = open.slice(0, num(cfg.max_per_run) || 12);\nlet cat = '';\nprods.forEach(p => { cat += String(p.sku) + ' = ' + String(p.name) + ' (' + String(p.category) + ')\\n'; });\nlet blob = '';\nconst audioParts = [];\nbatch.forEach(b => {\n  blob += '=== VISIT ' + b.log_id + ' ===\\nOUTLET: ' + b.outlet_name + ' (' + b.outlet_type + ', tier ' + b.tier + ', ' + b.area + '), owner ' + b.owner_name + '\\nCURRENT BUSINESS: Rs ' + b.current + ' per month against a potential of Rs ' + b.potential + '\\nCURRENT PIPELINE STAGE: ' + (b.stage_now || 'none') + '\\n';\n  if (b.has_audio) { blob += 'REP SENT A VOICE NOTE. Its audio is attached after this text, in the order the voice note visits appear. Transcribe it and parse what the rep said.\\n\\n'; audioParts.push({ inlineData: { mimeType: 'audio/ogg', data: b.audio_b64 } }); }\n  else { blob += 'REP SAID (' + b.channel + ' note): ' + b.raw_text + '\\n\\n'; }\n});\nconst prompt = 'You structure field sales visit notes for an Indian FMCG distribution company selling namkeen and chips. Reps send voice notes and texts in Hinglish, casually, often while walking between shops. Some visits below are typed, some are voice notes whose audio is attached after this text. Pull out what actually happened. Extract only what is stated. Never invent an order, a number or a commitment.\\n\\nPRODUCT CATALOGUE:\\n' + (cat || 'none') + '\\n' + (blob || 'none') + '\\nIf there are no visits above, return an empty visits array.\\nReturn ONLY valid JSON, no markdown fences. One key visits holding an array, one entry per VISIT block above, in the same order. Each entry has keys: log_id, visit_type, outcome, order_value_inr, discount_pct, sentiment, competitor, objection, commitment, skus_mentioned, next_step_suggestion, summary, transcript.\\nlog_id must be copied exactly from the VISIT header line.\\nvisit_type is exactly one of: order_taken, follow_up, sampling, first_visit, no_contact, complaint. Use no_contact when the decision maker was not available.\\noutcome is exactly one of: order_placed, verbal_commitment, sampling_done, information_shared, no_progress, churn_risk. Use churn_risk when the outlet says they will stop ordering or wants to return stock.\\norder_value_inr is the rupee value of an order actually placed on this visit, a plain number, 0 if none. Never estimate a future order. Hindi number words matter: athais hazaar is 28000, chalis is forty, pachas is fifty, pandrah hazaar is 15000.\\ndiscount_pct is any discount the rep gave, a plain number, 0 if none.\\nsentiment is positive, neutral or negative.\\ncompetitor is the competitor brand named, or the word none.\\nobjection is the main blocker in one short English line, or none.\\ncommitment is anything the owner promised, one short English line, or none.\\nskus_mentioned is an array of SKU codes from the catalogue for any product the rep named. Empty array if none.\\nnext_step_suggestion is one short English line.\\nsummary is one line a manager can read at a glance, in English.\\ntranscript is what you heard if this was a voice note, otherwise an empty string.\\nNo em-dashes anywhere.';\nconst parts = [{ text: prompt }].concat(audioParts);\nreturn [{ json: { policy: P, visits: batch, open_count: batch.length, skipped: skipped, gemini_parts: parts, audio_count: audioParts.length, products: prods, today: today, stamp: stamp, data_issues: issues, company_name: cfg.company_name, manager_email: cfg.manager_email, distributor_email: cfg.distributor_email, distributor_name: cfg.distributor_name } }];"
+      },
+      "id": "a6b36582-10bd-49db-b512-af5f9b42124c",
+      "name": "Assemble Visit Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1792,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\": {{ JSON.stringify($json.gemini_parts) }} }],\"generationConfig\":{\"temperature\":0.2,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "7a647773-de69-4bcb-a34d-1205ed3dc728",
+      "name": "Visit Parser (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1568,
+        480
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst A = $('Assemble Visit Context').first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst P = A.policy || {};\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst pv = Array.isArray(parsed.visits) ? parsed.visits : [];\nconst pending = (A.visits || []).length;\nconst aiOk = pv.length > 0;\nconst issues = Array.isArray(A.data_issues) ? A.data_issues.slice(0) : [];\nif (!aiOk && pending > 0) { issues.push('Visit parser returned nothing for ' + pending + ' visit note(s), they were logged raw without structure'); }\nconst by = {}; pv.forEach(v => { by[String(v.log_id || '').trim()] = v; });\nconst maxD = num(P.max_discount_pct) || 12;\nconst minO = num(P.min_order_value_inr) || 0;\nconst watch = String(P.competitor_watch || '').toLowerCase().split(',').map(x => x.trim()).filter(x => x);\nlet transcribed = 0;\nconst out = [];\n(Array.isArray(A.visits) ? A.visits : []).forEach(v => {\n  const p = by[v.log_id] || {};\n  const ov = num(p.order_value_inr);\n  const dc = num(p.discount_pct);\n  const comp = String(p.competitor || 'none').trim();\n  const tr = String(p.transcript || '').trim();\n  if (v.has_audio && tr.length > 5) { transcribed += 1; }\n  const flags = [];\n  let appr = false;\n  if (dc > maxD) { appr = true; flags.push('Discount of ' + dc + ' percent is above the ' + maxD + ' percent limit, needs manager approval'); }\n  if (ov > 0 && minO > 0 && ov < minO) { flags.push('Order of Rs ' + ov + ' is below the Rs ' + minO + ' minimum that justifies a visit'); }\n  if (comp.toLowerCase() !== 'none' && comp.length > 1 && watch.indexOf(comp.toLowerCase()) === -1) { flags.push('New competitor not on the watch list: ' + comp); }\n  if (String(p.outcome || '').trim() === 'churn_risk') { flags.push('Outlet is signalling they will stop ordering'); }\n  out.push(Object.assign({}, v, { visit_type: String(p.visit_type || 'follow_up'), outcome: String(p.outcome || 'no_progress'), order_value: ov, discount_pct: dc, sentiment: String(p.sentiment || 'neutral'), competitor: comp, objection: String(p.objection || 'none'), commitment: String(p.commitment || 'none'), skus_mentioned: Array.isArray(p.skus_mentioned) ? p.skus_mentioned : [], transcript: tr, next_step_suggestion: String(p.next_step_suggestion || ''), ai_summary: String(p.summary || ''), needs_approval: appr, validation_flags: flags, parsed_ok: !!p.visit_type }));\n});\nreturn [{ json: { validated: out, ai_ok: aiOk, transcribed: transcribed, data_issues: issues } }];"
+      },
+      "id": "a0cc3209-be84-49ee-9cd2-f39a03e137b2",
+      "name": "Order Validator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const A = $('Assemble Visit Context').first().json;\nconst V = $input.first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst uniq = (rows, key) => { const seen = {}; const out = []; rows.forEach(r => { const k = String(r[key] || '').trim(); if (k && !seen[k]) { seen[k] = true; out.push(r); } }); return out; };\nconst orders = uniq($('Read Orders').all().map(i => i.json).filter(r => r && r.order_id), 'order_id');\nconst prods = Array.isArray(A.products) ? A.products : [];\nconst allSkus = prods.map(p => String(p.sku).trim());\nconst pBy = {}; prods.forEach(p => { pBy[String(p.sku).trim()] = p; });\nconst hist = {};\norders.forEach(o => { const oid = String(o.outlet_id || '').trim(); if (!oid) { return; } if (!hist[oid]) { hist[oid] = {}; } String(o.sku_codes || '').split(',').map(x => x.trim()).filter(x => x).forEach(s => { hist[oid][s] = true; }); });\nconst out = [];\n(Array.isArray(V.validated) ? V.validated : []).forEach(v => {\n  const h = hist[v.outlet_id] || {};\n  const stocked = Object.keys(h);\n  const todaySkus = (v.skus_mentioned || []).map(x => String(x).trim()).filter(x => allSkus.indexOf(x) !== -1);\n  const known = {};\n  stocked.forEach(s => { known[s] = true; });\n  todaySkus.forEach(s => { known[s] = true; });\n  const never = allSkus.filter(s => !known[s]);\n  const neverNames = never.map(s => (pBy[s] || {}).name || s);\n  let tName = ''; let tM = -1;\n  never.forEach(s => { const m = num((pBy[s] || {}).margin_pct); if (m > tM) { tM = m; tName = (pBy[s] || {}).name || s; } });\n  const rec = never.length > 0 ? ('Never stocked ' + tName + ', which carries a ' + tM + ' percent margin. Pitch it next visit.') : 'Stocks the full range already.';\n  out.push(Object.assign({}, v, { sku_history: stocked, sku_today: todaySkus, sku_never: never, sku_never_names: neverNames, sku_gap_count: never.length, top_pitch_name: tName, sku_recommendation: rec, range_pct: allSkus.length > 0 ? Math.round((Object.keys(known).length / allSkus.length) * 100) : 0 }));\n});\nreturn [{ json: { enriched: out, total_skus: allSkus.length, ai_ok: V.ai_ok, transcribed: V.transcribed, data_issues: V.data_issues } }];"
+      },
+      "id": "ce3a5b89-426a-4562-a6c6-9c892f6d047d",
+      "name": "SKU Intelligence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const A = $('Assemble Visit Context').first().json;\nconst V = $input.first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst P = A.policy || {};\nconst hot = num(P.hot_score) || 75;\nconst warm = num(P.warm_score) || 50;\nconst out = [];\n(Array.isArray(V.enriched) ? V.enriched : []).forEach(v => {\n  let s = 0;\n  const why = [];\n  if (v.tier === 'A') { s += 18; why.push('tier A outlet'); } else if (v.tier === 'B') { s += 12; why.push('tier B outlet'); } else { s += 5; why.push('tier C outlet'); }\n  const hr = v.potential > 0 ? (v.potential - v.current) / v.potential : 0;\n  s += Math.round(hr * 22);\n  if (hr >= 0.6) { why.push('only doing ' + Math.round((v.current / (v.potential || 1)) * 100) + ' percent of what this outlet could do'); }\n  if (v.order_value > 0) { const sh = v.potential > 0 ? v.order_value / v.potential : 0; s += Math.min(28, Math.round(sh * 60) + 10); why.push('ordered Rs ' + v.order_value + ' on this visit'); }\n  if (v.outcome === 'verbal_commitment') { s += 16; why.push('owner made a verbal commitment'); }\n  if (v.outcome === 'sampling_done') { s += 14; why.push('sampling completed, trial likely'); }\n  if (v.outcome === 'information_shared') { s += 8; why.push('price list and samples shared'); }\n  if (v.outcome === 'churn_risk') { s -= 35; why.push('outlet is threatening to stop ordering'); }\n  if (v.outcome === 'no_progress') { s -= 5; }\n  if (v.sentiment === 'positive') { s += 10; why.push('owner was positive'); } else if (v.sentiment === 'negative') { s -= 18; why.push('owner was unhappy'); }\n  if (v.sku_gap_count >= 3) { s += 8; why.push(v.sku_gap_count + ' of ' + V.total_skus + ' products never stocked here, real room to widen the range'); }\n  if (String(v.competitor || 'none').toLowerCase() !== 'none') { s -= 8; why.push(String(v.competitor) + ' is actively working this outlet'); }\n  if (String(v.objection || 'none').toLowerCase() !== 'none') { s -= 6; }\n  if (v.outlet_status === 'prospect' && v.potential >= 150000) { s += 14; why.push('new prospect with Rs ' + v.potential + ' monthly potential'); }\n  if (v.visit_type === 'no_contact') { s = Math.round(s * 0.6); why.push('decision maker not met, score held back'); }\n  s = Math.max(0, Math.min(100, Math.round(s)));\n  out.push(Object.assign({}, v, { lead_score: s, lead_band: s >= hot ? 'HOT' : (s >= warm ? 'WARM' : 'COLD'), score_reasons_text: why.join('; ') }));\n});\nout.sort((a, b) => b.lead_score - a.lead_score);\nreturn [{ json: { scored: out, total_skus: V.total_skus, ai_ok: V.ai_ok, transcribed: V.transcribed, data_issues: V.data_issues } }];"
+      },
+      "id": "7ab690f1-57fc-4d7c-86c9-eb99ef177232",
+      "name": "Lead Scorer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -896,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const S = $input.first().json;\nconst num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };\nconst pad = (n) => String(n).padStart(2, '0');\nconst now = new Date(Date.now() + 330 * 60000);\nconst fd = (d) => d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());\nconst rank = { '': 0, none: 0, prospecting: 1, sampling: 2, negotiating: 3, ordering: 4, active: 5, at_risk: -1 };\nconst out = [];\nlet orders = 0, ov = 0, appr = 0, churn = 0, nc = 0, adv = 0;\nconst comp = {};\n(Array.isArray(S.scored) ? S.scored : []).forEach(v => {\n  const cur = String(v.stage_now || '').toLowerCase().trim();\n  let nx = cur;\n  const why = [];\n  if (v.outcome === 'churn_risk') { nx = 'at_risk'; why.push('Outlet signalled they will stop, moved to at risk'); }\n  else if (v.order_value > 0) { nx = (cur === 'ordering' || cur === 'active') ? 'active' : 'ordering'; why.push('Order placed, moved to ' + nx); }\n  else if (v.outcome === 'verbal_commitment') { nx = 'negotiating'; why.push('Verbal commitment taken, moved to negotiating'); }\n  else if (v.outcome === 'sampling_done') { nx = 'sampling'; why.push('Sampling completed, moved to sampling'); }\n  else if (v.outcome === 'information_shared' && (!cur || cur === 'none')) { nx = 'prospecting'; why.push('First contact made, opened at prospecting'); }\n  else if (v.visit_type === 'no_contact') { why.push('Decision maker not met, stage held at ' + (cur || 'none')); }\n  else { why.push('No qualifying event, stage unchanged'); }\n  const moved = nx !== cur;\n  if (moved && (rank[nx] || 0) > (rank[cur] || 0)) { adv += 1; }\n  if (v.order_value > 0) { orders += 1; ov += v.order_value; }\n  if (v.needs_approval) { appr += 1; }\n  if (v.outcome === 'churn_risk') { churn += 1; }\n  if (v.visit_type === 'no_contact') { nc += 1; }\n  const c = String(v.competitor || 'none').trim();\n  if (c.toLowerCase() !== 'none' && c.length > 1) { comp[c] = (comp[c] || 0) + 1; }\n  out.push(Object.assign({}, v, { stage_before: cur || 'none', stage_after: nx || 'none', stage_moved: moved, stage_reasons_text: why.join('; '), opp_value_new: v.order_value > 0 ? Math.max(num(v.opp_value), v.potential) : (num(v.opp_value) || v.potential), next_step_date: fd(new Date(now.getTime() + (v.tier === 'A' ? 3 : (v.tier === 'B' ? 7 : 14)) * 86400000)) }));\n});\nconst cl = Object.keys(comp).map(k => ({ name: k, mentions: comp[k] }));\ncl.sort((a, b) => b.mentions - a.mentions);\nlet lines = '';\nout.forEach((v, i) => { lines += (i + 1) + '. ' + v.log_id + ' | ' + v.rep_name + ' | ' + v.outlet_name + ' (tier ' + v.tier + ') | ' + v.visit_type + ' | outcome: ' + v.outcome + (v.order_value > 0 ? (' | order Rs ' + v.order_value) : '') + ' | score ' + v.lead_score + ' ' + v.lead_band + ' | stage ' + v.stage_before + ' to ' + v.stage_after + ' | mood: ' + v.sentiment + (String(v.objection).toLowerCase() !== 'none' ? (' | blocker: ' + v.objection) : '') + (String(v.competitor).toLowerCase() !== 'none' ? (' | competitor: ' + v.competitor) : '') + ' | never stocked: ' + (v.sku_never_names.join(', ') || 'nothing') + '\\n'; });\nreturn [{ json: { processed: out, processed_count: out.length, orders: orders, order_value: ov, approvals_needed: appr, churn_risks: churn, no_contact: nc, stages_advanced: adv, competitors: cl, visit_lines: lines || 'none', total_skus: S.total_skus, ai_ok: S.ai_ok, transcribed: S.transcribed, data_issues: S.data_issues } }];"
+      },
+      "id": "022f9ab9-2334-4f41-8f9b-ed77e1186a6a",
+      "name": "Pipeline Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"contents\":[{\"parts\":[{\"text\": {{ JSON.stringify(\"You are a field sales coach for an Indian FMCG brand selling namkeen and chips to kirana stores and supermarkets in Pune. For each visit below write the rep next action and a short WhatsApp message for the shop owner. Each line also names products that outlet has never stocked, use that in the next action where it fits. Never promise a scheme, a discount or a delivery date that is not already in the visit. Never invent a price.\\n\\nVISITS PROCESSED TODAY:\\n\" + ($json.visit_lines || \"none\") + \"\\n\\nIf the text above says none, return an empty followups array.\\nReturn ONLY valid JSON, no markdown fences. One key followups holding an array, one entry per visit above, in the same order. Each entry has keys: log_id, rep_action, owner_message, coaching_note.\\nlog_id must be copied exactly.\\nrep_action is one specific line telling the rep what to do next and when. Name the person and the action. Where the outlet has never stocked something, say to pitch that product by name.\\nowner_message is 2 to 3 short lines the rep can send the shop owner on WhatsApp, in natural Hinglish the way a Pune sales rep messages a shopkeeper, warm and respectful, using ji where natural. If it was a no contact, politely ask for a good time. If the outlet is unhappy, acknowledge the problem first and do not sell anything.\\ncoaching_note is one short line for the manager on what this rep did well or should do differently. Direct and useful, not generic praise.\\nNo em-dashes anywhere.\") }} }]}],\"generationConfig\":{\"temperature\":0.5,\"maxOutputTokens\":8192,\"responseMimeType\":\"application/json\"}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "id": "180c6273-0d92-48e6-8af0-7cbe78ce330d",
+      "name": "Follow Up Writer (Gemini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -448,
+        480
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dshGBSx6YgqugNDu",
+          "name": "Gemini API key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOf = (resp) => { const c = resp && resp.candidates && resp.candidates[0]; const parts = (c && c.content && c.content.parts) || []; return parts.filter(p => typeof p.text === 'string' && !p.thought).map(p => p.text).join(''); };\nconst parseJson = (raw) => { let t = String(raw || '').trim(); const s = t.indexOf('{'); const e = t.lastIndexOf('}'); if (s !== -1 && e !== -1) t = t.slice(s, e + 1); t = t.replace(/,(\\s*[}\\]])/g, '$1'); try { return JSON.parse(t); } catch (err) { return null; } };\nconst A = $('Assemble Visit Context').first().json;\nconst E = $('Pipeline Engine').first().json;\nconst parsed = parseJson(textOf($input.first().json)) || {};\nconst fu = Array.isArray(parsed.followups) ? parsed.followups : [];\nconst by = {}; fu.forEach(f => { by[String(f.log_id || '').trim()] = f; });\nconst pad = (n) => String(n).padStart(2, '0');\nconst out = [];\n(Array.isArray(E.processed) ? E.processed : []).forEach((v, i) => {\n  const f = by[v.log_id] || {};\n  const act = String(f.rep_action || v.next_step_suggestion || 'Follow up on the next beat cycle');\n  const flags = (v.validation_flags || []).join('; ') || 'none';\n  out.push({ json: Object.assign({}, v, { record_id: 'VR' + A.stamp + '-' + pad(i + 1), order_id: 'OD' + A.stamp + '-' + pad(i + 1), visit_date: A.today, rep_action: act, next_step: act, owner_message: String(f.owner_message || ''), coaching_note: String(f.coaching_note || ''), flags_text: flags, flags: flags, order_value_inr: v.order_value, distributor_email: A.distributor_email, distributor_name: A.distributor_name, company_name: A.company_name }) });\n});\nreturn out;"
+      },
+      "id": "02f055b7-2e07-457d-8f5e-2254aecb9a34",
+      "name": "Build Visit Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst rows = $input.all().map(i => i.json).filter(r => r && Number(r.order_value) > 0);\nif (rows.length === 0) { return []; }\nconst A = $('Assemble Visit Context').first().json;\nconst pBy = {};\n(Array.isArray(A.products) ? A.products : []).forEach(p => { pBy[String(p.sku).trim()] = p; });\nconst SL = '#132A3A', AM = '#D98324', CR = '#FBF8F1', WH = '#FFFFFF', IN = '#1A1A1A', GY = '#6A6A6A', GN = '#1B7E42';\nconst out = [];\nrows.forEach(r => {\n  const skus = Array.isArray(r.sku_today) ? r.sku_today : [];\n  let sh = '';\n  skus.forEach(s => { const p = pBy[s] || {}; sh += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:13px;color:' + IN + ';\">' + esc(p.name || s) + '</td><td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:12.5px;color:' + GY + ';\">' + esc(s) + '</td></tr>'; });\n  if (!sh) { sh = '<tr><td colspan=\"2\" style=\"padding:9px 12px;font-size:12.5px;color:' + GY + ';\">Rep did not name specific products. Confirm the mix before dispatch.</td></tr>'; }\n  const dc = Number(r.discount_pct) || 0;\n  const hold = !!r.needs_approval;\n  const ap = hold ? ('<tr><td style=\"padding:2px 26px 14px 26px;\"><div style=\"background:#FFF4E0;border-left:4px solid ' + AM + ';border-radius:6px;padding:12px 14px;font-size:13px;color:#7A4A10;\"><strong>Hold for approval.</strong> ' + esc(r.flags_text) + ' Do not dispatch until the manager signs off.</div></td></tr>') : '';\n  const gap = (r.sku_gap_count > 0) ? ('<tr><td style=\"padding:4px 26px 16px 26px;\"><div style=\"background:' + CR + ';border-radius:7px;padding:11px 13px;font-size:12.5px;color:' + IN + ';\"><strong>Range gap.</strong> This outlet has never stocked ' + esc(r.sku_never_names.join(', ')) + '. ' + esc(r.sku_recommendation) + '</div></td></tr>') : '';\n  const html = '<div style=\"background:' + CR + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;margin:0 auto;background:' + WH + ';border-radius:10px;overflow:hidden;\">' +\n  '<tr><td style=\"background:' + SL + ';padding:22px 26px;\"><div style=\"color:' + (hold ? AM : '#7FD6A0') + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">' + (hold ? 'ORDER ON HOLD' : 'ORDER CONFIRMED') + '</div><div style=\"color:' + WH + ';font-family:Georgia,serif;font-size:23px;font-weight:bold;margin-top:6px;\">' + esc(r.outlet_name) + '</div><div style=\"color:#9FB3C4;font-size:12.5px;margin-top:4px;\">' + esc(r.order_id) + ' &middot; ' + esc(r.visit_date) + ' &middot; booked by ' + esc(r.rep_name) + '</div></td></tr>' +\n  '<tr><td style=\"padding:20px 26px 10px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;border-left:4px solid ' + (hold ? AM : GN) + ';\">' +\n  '<tr><td style=\"padding:12px 14px;font-size:12.5px;color:' + GY + ';\">Order value</td><td align=\"right\" style=\"padding:12px 14px;font-size:20px;font-weight:bold;color:' + (hold ? AM : GN) + ';\">Rs ' + esc(r.order_value) + '</td></tr>' +\n  '<tr><td style=\"padding:12px 14px;font-size:12.5px;color:' + GY + ';border-top:1px solid #E8E2D6;\">Discount</td><td align=\"right\" style=\"padding:12px 14px;font-size:14px;font-weight:bold;color:' + (dc > 0 ? AM : IN) + ';border-top:1px solid #E8E2D6;\">' + esc(dc) + '%</td></tr>' +\n  '<tr><td style=\"padding:12px 14px;font-size:12.5px;color:' + GY + ';border-top:1px solid #E8E2D6;\">Deliver to</td><td align=\"right\" style=\"padding:12px 14px;font-size:13.5px;color:' + IN + ';border-top:1px solid #E8E2D6;\">' + esc(r.owner_name) + ', ' + esc(r.area) + '</td></tr></table></td></tr>' + ap +\n  '<tr><td style=\"padding:6px 26px 10px 26px;\"><div style=\"font-family:Georgia,serif;font-size:15px;font-weight:bold;color:' + SL + ';margin-bottom:7px;\">Products in this order</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;\">' + sh + '</table></td></tr>' + gap +\n  '<tr><td style=\"padding:0 26px 20px 26px;\"><div style=\"font-size:13px;color:' + GY + ';\">Raised automatically from the rep visit note. Reply to query this order.</div></td></tr>' +\n  '<tr><td style=\"background:' + SL + ';padding:12px 26px;\"><div style=\"color:#7E92A3;font-size:11px;\">' + esc(r.company_name) + ' &middot; to ' + esc(r.distributor_name) + ' &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\n  out.push({ json: { to: r.distributor_email, subject: (hold ? 'ON HOLD ' : 'Order ') + r.order_id + ' - ' + r.outlet_name + ' - Rs ' + r.order_value, html: html, order_id: r.order_id, order_date: r.visit_date, outlet_id: r.outlet_id, outlet_name: r.outlet_name, rep_id: r.rep_id, sku_codes: skus.join(', '), total_inr: r.order_value, discount_pct: dc, status: hold ? 'held_for_approval' : 'confirmed', source: 'field_visit' } });\n});\nreturn out;"
+      },
+      "id": "b5412524-1fd0-403c-b697-7791b4a0a909",
+      "name": "Build Order Confirmations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "dc26812f-59bc-4bf4-a9cc-1efc0838d209",
+      "name": "Send Order Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        672
+      ],
+      "webhookId": "e7e2f316-5b8f-41ad-8478-849bedc27288",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst A = $('Assemble Visit Context').first().json;\nconst E = $('Pipeline Engine').first().json;\nconst rows = $input.all().map(i => i.json);\nconst SL = '#132A3A', AM = '#D98324', CR = '#FBF8F1', WH = '#FFFFFF', IN = '#1A1A1A', GY = '#6A6A6A', GN = '#1B7E42', RD = '#C0392B';\nconst issues = Array.isArray(E.data_issues) ? E.data_issues.slice(0) : [];\nlet ban = '';\nif (issues.length) { ban = '<tr><td style=\"padding:12px 26px 0 26px;\"><div style=\"background:#FBE9E7;border-left:4px solid ' + RD + ';border-radius:6px;padding:11px 13px;font-size:12.5px;color:#7A1F14;\"><strong>Heads up.</strong> ' + esc(issues.slice(0, 3).join('; ')) + '</div></td></tr>'; }\nif (rows.length === 0) {\n  const q = '<div style=\"background:' + CR + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:640px;margin:0 auto;background:' + WH + ';border-radius:10px;overflow:hidden;\"><tr><td style=\"background:' + SL + ';padding:24px 26px;\"><div style=\"color:' + AM + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">FIELD DESK</div><div style=\"color:' + WH + ';font-family:Georgia,serif;font-size:25px;font-weight:bold;margin-top:7px;\">No new visits to process</div><div style=\"color:#9FB3C4;font-size:13px;margin-top:5px;\">' + esc(A.today) + ' &middot; ' + esc(A.skipped) + ' visit(s) already processed earlier</div></td></tr><tr><td style=\"padding:20px 26px;\"><div style=\"font-size:14.5px;color:' + IN + ';line-height:1.6;\">Every visit note has already been structured and logged. Nothing was counted twice.</div></td></tr><tr><td style=\"background:' + SL + ';padding:12px 26px;\"><div style=\"color:#7E92A3;font-size:11px;\">' + esc(A.company_name) + ' &middot; Field Sales Tracker &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\n  return [{ json: { digest_html: q, processed_count: 0, orders: 0, order_value: 0, manager_email: A.manager_email, today: A.today } }];\n}\nlet cards = '';\nrows.forEach(v => {\n  const bc = v.lead_band === 'HOT' ? GN : (v.lead_band === 'WARM' ? AM : GY);\n  let fl = '';\n  if (v.flags_text && v.flags_text !== 'none') { fl = '<tr><td style=\"padding:0 15px 10px 15px;\"><div style=\"background:#FFF4E0;border-left:3px solid ' + AM + ';border-radius:5px;padding:9px 12px;font-size:12.5px;color:#7A4A10;\"><strong>Needs you.</strong> ' + esc(v.flags_text) + '</div></td></tr>'; }\n  let tr = '';\n  if (v.has_audio && v.transcript) { tr = '<tr><td style=\"padding:0 15px 10px 15px;\"><div style=\"background:#EEF4F8;border-left:3px solid #4A7FA5;border-radius:5px;padding:9px 12px;\"><div style=\"font-size:10.5px;font-weight:bold;color:#2A5A7A;letter-spacing:1px;\">VOICE NOTE, TRANSCRIBED</div><div style=\"font-size:12.5px;color:#2A5A7A;margin-top:4px;font-style:italic;\">“' + esc(v.transcript) + '”</div></div></td></tr>'; }\n  let sk = '';\n  if (v.sku_gap_count > 0) { sk = '<tr><td style=\"padding:0 15px 10px 15px;\"><div style=\"font-size:12px;color:' + GY + ';\"><strong>Range:</strong> stocks ' + esc(v.range_pct) + '% of the catalogue. Never taken ' + esc(v.sku_never_names.join(', ')) + '.</div></td></tr>'; }\n  let ms = '';\n  if (v.owner_message) { ms = '<tr><td style=\"padding:0 15px 12px 15px;\"><div style=\"background:#E8F5E9;border-radius:6px;padding:10px 12px;\"><div style=\"font-size:10.5px;font-weight:bold;color:#14532D;letter-spacing:1px;\">READY TO SEND THE OWNER</div><div style=\"font-size:12.5px;color:#14532D;margin-top:5px;line-height:1.5;\">' + esc(v.owner_message) + '</div></div></td></tr>'; }\n  cards += '<tr><td style=\"padding:0 26px 13px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;border-left:4px solid ' + bc + ';background:#FFFFFF;\">' +\n  '<tr><td style=\"padding:13px 15px 4px 15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td><div style=\"font-family:Georgia,serif;font-size:16.5px;font-weight:bold;color:' + SL + ';\">' + esc(v.outlet_name) + (v.has_audio ? ' <span style=\"font-size:10px;background:#4A7FA5;color:#FFF;padding:2px 7px;border-radius:3px;vertical-align:middle;\">VOICE</span>' : '') + '</div><div style=\"font-size:12px;color:' + GY + ';margin-top:3px;\">' + esc(v.rep_name) + ' &middot; ' + esc(v.area) + ' &middot; tier ' + esc(v.tier) + ' &middot; ' + esc(v.log_id) + '</div></td>' +\n  '<td align=\"right\"><div style=\"display:inline-block;background:' + bc + ';color:#FFFFFF;font-size:10.5px;font-weight:bold;padding:4px 10px;border-radius:4px;\">' + esc(v.lead_band) + ' ' + esc(v.lead_score) + '</div>' + (v.order_value > 0 ? ('<div style=\"font-size:15px;font-weight:bold;color:' + GN + ';margin-top:5px;\">Rs ' + esc(v.order_value) + '</div>') : '') + '</td></tr></table></td></tr>' +\n  '<tr><td style=\"padding:4px 15px 4px 15px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td style=\"font-size:12px;color:' + IN + ';\">' + esc(String(v.visit_type).replace(/_/g, ' ')) + '</td><td style=\"font-size:12px;color:' + IN + ';\">' + esc(String(v.outcome).replace(/_/g, ' ')) + '</td><td style=\"font-size:12px;color:' + IN + ';\">mood: ' + esc(v.sentiment) + '</td><td style=\"font-size:12px;color:' + (v.stage_moved ? GN : GY) + ';\">' + esc(v.stage_before) + ' to ' + esc(v.stage_after) + '</td></tr></table></td></tr>' + tr +\n  (!v.has_audio ? ('<tr><td style=\"padding:4px 15px 6px 15px;\"><div style=\"font-size:12.5px;color:' + GY + ';font-style:italic;\">“' + esc(String(v.raw_text).slice(0, 150)) + '”</div></td></tr>') : '') + fl + sk +\n  (v.rep_action ? ('<tr><td style=\"padding:2px 15px 10px 15px;\"><div style=\"background:' + CR + ';border-radius:6px;padding:10px 12px;\"><div style=\"font-size:10.5px;font-weight:bold;color:' + GY + ';letter-spacing:1px;\">NEXT ACTION</div><div style=\"font-size:13px;color:' + IN + ';margin-top:4px;line-height:1.45;\">' + esc(v.rep_action) + '</div></div></td></tr>') : '') + ms +\n  (v.coaching_note ? ('<tr><td style=\"padding:0 15px 12px 15px;\"><div style=\"font-size:12px;color:' + SL + ';\"><strong>Coach ' + esc(String(v.rep_name).split(' ')[0]) + ':</strong> ' + esc(v.coaching_note) + '</div></td></tr>') : '') + '</table></td></tr>';\n});\nlet cp = '';\n(Array.isArray(E.competitors) ? E.competitors : []).forEach(c => { cp += '<tr><td style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:13px;color:' + IN + ';\"><strong>' + esc(c.name) + '</strong></td><td align=\"right\" style=\"padding:9px 12px;border-bottom:1px solid #E8E2D6;font-size:14px;font-weight:bold;color:' + (c.mentions >= 2 ? RD : GY) + ';\">' + esc(c.mentions) + ' outlet(s) today</td></tr>'; });\nconst html = '<div style=\"background:' + CR + ';padding:22px;font-family:Calibri,Arial,sans-serif;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:700px;margin:0 auto;background:' + WH + ';border-radius:10px;overflow:hidden;\">' +\n'<tr><td style=\"background:' + SL + ';padding:24px 26px;\"><div style=\"color:' + AM + ';font-size:11px;font-weight:bold;letter-spacing:3px;\">FIELD DESK</div><div style=\"color:' + WH + ';font-family:Georgia,serif;font-size:26px;font-weight:bold;margin-top:7px;\">' + esc(E.processed_count) + ' visits, Rs ' + esc(E.order_value) + ' ordered</div><div style=\"color:#9FB3C4;font-size:13px;margin-top:5px;\">' + esc(A.today) + ' &middot; ' + esc(E.transcribed) + ' voice note(s) transcribed &middot; orders raised with the distributor automatically</div></td></tr>' + ban +\n'<tr><td style=\"padding:18px 26px 4px 26px;\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\n'<td align=\"center\" style=\"background:' + GN + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(E.orders) + '</div><div style=\"color:#D6EBDD;font-size:10px;\">orders booked</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CR + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + SL + ';font-family:Georgia,serif;font-size:19px;font-weight:bold;\">Rs ' + esc(E.order_value) + '</div><div style=\"color:' + GY + ';font-size:10px;\">value today</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + CR + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:' + SL + ';font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(E.stages_advanced) + '</div><div style=\"color:' + GY + ';font-size:10px;\">stages advanced</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + AM + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(E.approvals_needed) + '</div><div style=\"color:#FDF0DC;font-size:10px;\">need approval</div></td><td width=\"7\"></td>' +\n'<td align=\"center\" style=\"background:' + RD + ';border-radius:6px;padding:14px 6px;\"><div style=\"color:#FFFFFF;font-family:Georgia,serif;font-size:24px;font-weight:bold;\">' + esc(E.churn_risks) + '</div><div style=\"color:#F5D5D0;font-size:10px;\">at risk</div></td>' +\n'</tr></table><div style=\"font-size:11.5px;color:' + GY + ';margin-top:8px;text-align:center;\">' + esc(E.no_contact) + ' visit(s) where the decision maker was not available</div></td></tr>' +\n(cp ? ('<tr><td style=\"padding:16px 26px 4px 26px;\"><div style=\"font-family:Georgia,serif;font-size:16px;font-weight:bold;color:' + SL + ';margin-bottom:8px;\">Who else is in your outlets today</div><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"border:1px solid #E8E2D6;border-radius:8px;\">' + cp + '</table></td></tr>') : '') +\n'<tr><td style=\"padding:16px 26px 8px 26px;\"><div style=\"font-family:Georgia,serif;font-size:17px;font-weight:bold;color:' + SL + ';\">Every visit, structured</div></td></tr>' + cards +\n'<tr><td style=\"background:' + SL + ';padding:12px 26px;\"><div style=\"color:#7E92A3;font-size:11px;\">' + esc(A.company_name) + ' &middot; Field Sales Tracker &middot; ' + esc(A.skipped) + ' already processed and skipped &middot; Powered by Haus of Intelligence</div></td></tr></table></div>';\nreturn [{ json: { digest_html: html, processed_count: E.processed_count, orders: E.orders, order_value: E.order_value, manager_email: A.manager_email, today: A.today } }];"
+      },
+      "id": "8023a24f-fa05-46b6-89be-6056ab03078b",
+      "name": "Build Manager Digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.manager_email }}",
+        "subject": "=Field desk {{ $json.today }} - {{ $json.processed_count }} visits, Rs {{ $json.order_value }} ordered",
+        "message": "={{ $json.digest_html }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "9c1051a8-2dd7-49ef-8dc6-e9b31b1166ab",
+      "name": "Send Manager Digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        1056
+      ],
+      "webhookId": "102338f9-ccc1-498c-8c09-753dad3e6222",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 133603469,
+          "mode": "list",
+          "cachedResultName": "Visit_Records",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=133603469"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "record_id",
+              "displayName": "record_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "visit_date",
+              "displayName": "visit_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rep_id",
+              "displayName": "rep_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rep_name",
+              "displayName": "rep_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outlet_id",
+              "displayName": "outlet_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outlet_name",
+              "displayName": "outlet_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "visit_type",
+              "displayName": "visit_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outcome",
+              "displayName": "outcome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "order_value_inr",
+              "displayName": "order_value_inr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "discount_pct",
+              "displayName": "discount_pct",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "competitor",
+              "displayName": "competitor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "objection",
+              "displayName": "objection",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_step",
+              "displayName": "next_step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_step_date",
+              "displayName": "next_step_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_score",
+              "displayName": "lead_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "flags",
+              "displayName": "flags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "raw_text",
+              "displayName": "raw_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "audio_b64",
+              "displayName": "audio_b64",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "has_audio",
+              "displayName": "has_audio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rep_email",
+              "displayName": "rep_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outlet_type",
+              "displayName": "outlet_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "owner_name",
+              "displayName": "owner_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "area",
+              "displayName": "area",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tier",
+              "displayName": "tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "potential",
+              "displayName": "potential",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "current",
+              "displayName": "current",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outlet_status",
+              "displayName": "outlet_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stage_now",
+              "displayName": "stage_now",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "opp_id",
+              "displayName": "opp_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "opp_value",
+              "displayName": "opp_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "order_value",
+              "displayName": "order_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "commitment",
+              "displayName": "commitment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "skus_mentioned",
+              "displayName": "skus_mentioned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "transcript",
+              "displayName": "transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "next_step_suggestion",
+              "displayName": "next_step_suggestion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ai_summary",
+              "displayName": "ai_summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "needs_approval",
+              "displayName": "needs_approval",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "validation_flags",
+              "displayName": "validation_flags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "parsed_ok",
+              "displayName": "parsed_ok",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_history",
+              "displayName": "sku_history",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_today",
+              "displayName": "sku_today",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_never",
+              "displayName": "sku_never",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_never_names",
+              "displayName": "sku_never_names",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_gap_count",
+              "displayName": "sku_gap_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "top_pitch_name",
+              "displayName": "top_pitch_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_recommendation",
+              "displayName": "sku_recommendation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "range_pct",
+              "displayName": "range_pct",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_band",
+              "displayName": "lead_band",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_reasons_text",
+              "displayName": "score_reasons_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stage_before",
+              "displayName": "stage_before",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stage_after",
+              "displayName": "stage_after",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stage_moved",
+              "displayName": "stage_moved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "stage_reasons_text",
+              "displayName": "stage_reasons_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "opp_value_new",
+              "displayName": "opp_value_new",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rep_action",
+              "displayName": "rep_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "owner_message",
+              "displayName": "owner_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "coaching_note",
+              "displayName": "coaching_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "flags_text",
+              "displayName": "flags_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "distributor_email",
+              "displayName": "distributor_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "distributor_name",
+              "displayName": "distributor_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "94d8b614-f878-4788-a543-30421bf5f53f",
+      "name": "Save Visit Records",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "=1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Visit_Logs"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "log_id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "log_id": "={{ $json.log_id }}",
+            "status": "=processed"
+          }
+        },
+        "options": {}
+      },
+      "id": "b5b7b829-a92a-4d2b-83a4-e94d0e74015e",
+      "name": "Mark Logs Processed",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        208
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "=1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Outlets"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "outlet_id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "outlet_id",
+              "displayName": "outlet_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": true
+            },
+            {
+              "id": "last_visit_date",
+              "displayName": "last_visit_date",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "outlet_id": "={{ $json.outlet_id }}",
+            "last_visit_date": "={{ $json.visit_date }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "d1a55dcf-9b80-41b2-b0fa-d2213f9a6a49",
+      "name": "Update Outlet Visits",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        384
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Pipeline"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "outlet_id"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true,
+          "schema": [
+            {
+              "id": "opp_id",
+              "displayName": "opp_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "outlet_id",
+              "displayName": "outlet_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": true
+            },
+            {
+              "id": "outlet_name",
+              "displayName": "outlet_name",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "rep_id",
+              "displayName": "rep_id",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "stage",
+              "displayName": "stage",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "value_inr",
+              "displayName": "value_inr",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "type": "string",
+              "required": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "defaultMatch": false
+            }
+          ],
+          "value": {
+            "opp_id": "={{ $json.opp_id || (\"OP\" + $json.outlet_id) }}",
+            "outlet_id": "={{ $json.outlet_id }}",
+            "outlet_name": "={{ $json.outlet_name }}",
+            "rep_id": "={{ $json.rep_id }}",
+            "stage": "={{ $json.stage_after }}",
+            "value_inr": "={{ $json.opp_value_new }}",
+            "last_updated": "={{ $json.visit_date }}",
+            "notes": "={{ $json.ai_summary }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "b333ab6d-b6ee-4065-b976-2f04990f7edb",
+      "name": "Update Pipeline",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        0,
+        560
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1650051823,
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HFvFbNVe6u6jnKmt5hox_Xmvb8CB2a3EzNDNOHnryvw/edit#gid=1650051823"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "order_date",
+              "displayName": "order_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outlet_id",
+              "displayName": "outlet_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outlet_name",
+              "displayName": "outlet_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rep_id",
+              "displayName": "rep_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sku_codes",
+              "displayName": "sku_codes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_inr",
+              "displayName": "total_inr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "discount_pct",
+              "displayName": "discount_pct",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "to",
+              "displayName": "to",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "html",
+              "displayName": "html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "db6faba0-0c1f-40d7-8cd6-16acc936d674",
+      "name": "Log Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        880
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A0foCjMDGlIXJewk",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {
+    "Visit Parser (Gemini)": [
+      {
+        "json": {
+          "candidates": [
+            {
+              "content": {
+                "parts": [
+                  {
+                    "text": "{\n  \"visits\": []\n}",
+                    "thoughtSignature": "EnMKcQFpFH0TmoDIzTDwQ9CjBtlHQRNXVGNhwEU7q1D87Er0AGwrIiNK/gKKG4kYnUQDZ1ip56WcSAM5uIlQT+PVQVZzznrhOmEO1GRwwzjk6v9JRyW1b1efD74TUiCTf1PotTl+wp0XQ7XSV+av+SvChKig"
+                  }
+                ],
+                "role": "model"
+              },
+              "finishReason": "STOP",
+              "index": 0
+            }
+          ],
+          "usageMetadata": {
+            "promptTokenCount": 637,
+            "candidatesTokenCount": 9,
+            "totalTokenCount": 646,
+            "promptTokensDetails": [
+              {
+                "modality": "TEXT",
+                "tokenCount": 637
+              }
+            ],
+            "serviceTier": "standard"
+          },
+          "modelVersion": "gemini-3.1-flash-lite",
+          "responseId": "2Ry-av6FMJ22g8UP5MWk8Qc"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Process Visits": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Policy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Visit Log In": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Policy": {
+      "main": [
+        [
+          {
+            "node": "Read Reps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Reps": {
+      "main": [
+        [
+          {
+            "node": "Read Outlets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Outlets": {
+      "main": [
+        [
+          {
+            "node": "Read Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Products": {
+      "main": [
+        [
+          {
+            "node": "Read Visit Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Visit Logs": {
+      "main": [
+        [
+          {
+            "node": "Read Visit Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Visit Records": {
+      "main": [
+        [
+          {
+            "node": "Read Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Read Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Orders": {
+      "main": [
+        [
+          {
+            "node": "Assemble Visit Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Visit Context": {
+      "main": [
+        [
+          {
+            "node": "Visit Parser (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Visit Parser (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Order Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order Validator": {
+      "main": [
+        [
+          {
+            "node": "SKU Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SKU Intelligence": {
+      "main": [
+        [
+          {
+            "node": "Lead Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Scorer": {
+      "main": [
+        [
+          {
+            "node": "Pipeline Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pipeline Engine": {
+      "main": [
+        [
+          {
+            "node": "Follow Up Writer (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Follow Up Writer (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Build Visit Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Visit Records": {
+      "main": [
+        [
+          {
+            "node": "Build Order Confirmations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Manager Digest",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Visit Records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Mark Logs Processed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Outlet Visits",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Order Confirmations": {
+      "main": [
+        [
+          {
+            "node": "Send Order Confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Manager Digest": {
+      "main": [
+        [
+          {
+            "node": "Send Manager Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "52c011f7-92a3-41dc-9d29-43ff4d0d562b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "ymtCxBuKmpRRMumG",
+  "tags": []
+}
