@@ -1,0 +1,1461 @@
+{
+  "name": "Saanvi Storefront Engine V2",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "tool"
+            },
+            {
+              "name": "query"
+            },
+            {
+              "name": "sku"
+            },
+            {
+              "name": "pincode"
+            },
+            {
+              "name": "quantity",
+              "type": "number"
+            },
+            {
+              "name": "customer_name"
+            },
+            {
+              "name": "customer_phone"
+            },
+            {
+              "name": "category"
+            },
+            {
+              "name": "concern"
+            },
+            {
+              "name": "max_price",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "d9ce0efc-ccbc-42b6-897e-8c7abc129b14",
+      "name": "Tool Call In",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1344,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tool }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "search_products",
+                    "id": "c5952dcc-ede9-4fab-a823-dc24b9680f47"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "search_products"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tool }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "check_availability",
+                    "id": "75d9ff50-e92e-4153-bc15-d957bc817c1c"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "check_availability"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tool }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "rightValue": "place_order",
+                    "id": "39764a14-68b4-41e0-a673-9582320f3132"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "place_order"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Unknown Tool"
+        }
+      },
+      "id": "8544f51c-eec9-4124-a818-ec72b1d8eee7",
+      "name": "Which Tool",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "IkjHxICiniLRaAnm",
+          "cachedResultName": "catalogue"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "concern",
+              "condition": "ilike",
+              "keyValue": "=%{{ $json.concern || '' }}%"
+            },
+            {
+              "keyName": "category",
+              "condition": "ilike",
+              "keyValue": "=%{{ $json.category || '' }}%"
+            },
+            {
+              "keyName": "price",
+              "condition": "lte",
+              "keyValue": "={{ $json.max_price || 99999 }}"
+            }
+          ]
+        },
+        "limit": 8,
+        "orderBy": true,
+        "orderByColumn": "price",
+        "orderByDirection": "ASC"
+      },
+      "id": "534e043c-d3af-4df5-b07b-0d816cbc94ab",
+      "name": "Search Catalogue",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        208
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.sku }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "id": "bc9ab202-c3e1-4d17-8120-86680ed45859"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "40bc0a95-5660-4f81-9547-c10d93354485",
+      "name": "Any Matches?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"sku\": \"{{ $json.sku }}\",\n  \"name\": \"{{ $json.name }}\",\n  \"price\": {{ $json.price }},\n  \"size\": \"{{ $json.size }}\",\n  \"currency\": \"INR\",\n  \"suits\": \"{{ $json.skin_type }}\",\n  \"targets\": \"{{ $json.concern }}\",\n  \"in_stock\": {{ $json.stock > 0 }},\n  \"next_step\": \"Call check_availability with this sku and the delivery pincode before promising anything to the customer.\"\n}",
+        "options": {}
+      },
+      "id": "337e877c-9e55-4e6f-b3f8-5a68a89f7a3e",
+      "name": "Shape Results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"found\": 0,\n  \"message\": \"No Saanvi Naturals product matches those criteria. Try a wider budget, or drop one filter and search again.\"\n}",
+        "options": {}
+      },
+      "id": "e27b0bf1-e974-48ce-a48a-5f036d8666a9",
+      "name": "No Matches",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -448,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.pincode }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "^[0-9]{6}$",
+              "id": "d8a47405-4d44-4092-8944-8a0611dfe518"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "195d930f-d711-4575-8c3d-b130c560589b",
+      "name": "Pincode Format OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -896,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"error\": \"unknown_tool\",\n  \"message\": \"This storefront exposes search_products, check_availability and place_order only.\"\n}",
+        "options": {}
+      },
+      "id": "4a497728-fc3c-4f35-bec5-7c31c16dbb4c",
+      "name": "Unknown Tool",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -896,
+        928
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "BybDOItR9nGyDqvL",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sku",
+              "keyValue": "={{ $('Tool Call In').first().json.sku }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "04675240-2318-43d0-93d5-20d207b6a18d",
+      "name": "Find SKU",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -672,
+        640
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.sku }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "45acf390-963b-4009-844d-deb960c74999",
+      "name": "SKU Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.stock }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "rightValue": 0,
+              "id": "0c5ed273-2ed6-4e48-b311-33c354c5a058"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ac7f735e-b7af-4bb9-a652-efeab514f05a",
+      "name": "In Stock?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.stock }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              },
+              "rightValue": "={{ $('Tool Call In').first().json.quantity || 1 }}",
+              "id": "81636991-f814-4e29-afa3-dae69bb6180c"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "41d17be1-a635-479f-b755-91a6a43610db",
+      "name": "Enough Stock?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "LiInvEWYrp6wQHX5",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "prefix",
+              "keyValue": "={{ $('Tool Call In').first().json.pincode.slice(0, 3) }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "f333b6cc-17b1-4ed2-a4b5-0058a8f00b78",
+      "name": "Check Pincode",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        352
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.prefix }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "bdbc8b9b-e63f-4c4b-b0c6-68a4d1b0c4cb",
+      "name": "We Deliver There?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        576,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Tool Call In').first().json.tool }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "place_order"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "64799bb3-0643-4215-a089-bf63a0fa0a0f",
+      "name": "Is This An Order?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('Tool Call In').first().json.customer_name }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "leftValue": "={{ ($('Tool Call In').first().json.customer_phone || '').replace(/[^0-9]/g, '') }}",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              },
+              "rightValue": "^[6-9][0-9]{9}$"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cc15d493-6e61-45b4-8a19-bc0d82a34dac",
+      "name": "Name And Phone OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1024,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "Ynjoanq3EhbZbNzK",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "product_name",
+              "displayName": "product_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "unit_price",
+              "displayName": "unit_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total",
+              "displayName": "total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pincode",
+              "displayName": "pincode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_phone",
+              "displayName": "customer_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "payment_method",
+              "displayName": "payment_method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount_due_on_delivery",
+              "displayName": "amount_due_on_delivery",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "8de85b17-fd8a-46c0-aeae-fc1c42e1230d",
+      "name": "Write Order",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"purchased\": true,\n  \"order_id\": \"{{ $json.order_id }}\",\n  \"product\": \"{{ $json.product_name }}\",\n  \"quantity\": {{ $json.quantity }},\n  \"currency\": \"INR\",\n  \"total\": {{ $json.total }},\n  \"payment_method\": \"Cash on Delivery\",\n  \"amount_due_on_delivery\": {{ $json.total }},\n  \"deliver_to\": \"{{ $('Check Pincode').first().json.city }}\",\n  \"delivery_estimate_days\": {{ $('Check Pincode').first().json.days }},\n  \"message\": \"Purchase complete. Order {{ $json.order_id }} is confirmed as Cash on Delivery. Tell the customer to keep INR {{ $json.total }} ready for the courier, read the order ID back to them, and say delivery updates will come on the number they gave.\"\n}",
+        "options": {}
+      },
+      "id": "40d2d91d-a575-4350-a640-38a0634a6236",
+      "name": "Order Confirmed",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1472,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"ordered\": false,\n  \"reason_code\": \"invalid_contact\",\n  \"message\": \"Before this order can be placed, ask the customer for their full name and a valid 10 digit Indian mobile number starting 6 to 9.\"\n}",
+        "options": {}
+      },
+      "id": "fada55bd-4cd3-4ca2-bfab-d0fd4e8f4b41",
+      "name": "Refuse: Bad Contact",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1248,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"can_order\": true,\n  \"sku\": \"{{ $('Find SKU').first().json.sku }}\",\n  \"product\": \"{{ $('Find SKU').first().json.name }}\",\n  \"size\": \"{{ $('Find SKU').first().json.size }}\",\n  \"quantity\": {{ $('Tool Call In').first().json.quantity || 1 }},\n  \"currency\": \"INR\",\n  \"unit_price\": {{ $('Find SKU').first().json.price }},\n  \"subtotal\": {{ $('Find SKU').first().json.price * ($('Tool Call In').first().json.quantity || 1) }},\n  \"shipping\": {{ $('Find SKU').first().json.price * ($('Tool Call In').first().json.quantity || 1) >= 999 ? 0 : 59 }},\n  \"total\": {{ $('Find SKU').first().json.price * ($('Tool Call In').first().json.quantity || 1) + ($('Find SKU').first().json.price * ($('Tool Call In').first().json.quantity || 1) >= 999 ? 0 : 59) }},\n  \"payment_method\": \"Cash on Delivery\",\n  \"deliver_to\": \"{{ $json.city }}\",\n  \"delivery_estimate_days\": {{ $json.days }},\n  \"next_step\": \"Tell the customer this exact total is payable in cash on delivery. Get their confirmation, then call place_order with their full name and 10 digit mobile number.\"\n}",
+        "options": {}
+      },
+      "id": "231edd45-525a-44d5-85d2-98d2094b58eb",
+      "name": "Return Quote",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1024,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"can_order\": false,\n  \"reason_code\": \"not_serviceable\",\n  \"message\": \"Saanvi Naturals does not deliver to pincode {{ $('Tool Call In').first().json.pincode }} yet. Do not take this order and do not suggest a workaround. Offer to notify the customer when that pincode opens up.\"\n}",
+        "options": {}
+      },
+      "id": "0de31117-66ea-4be6-99ba-3356f138c67a",
+      "name": "Refuse: Not Serviceable",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        800,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"can_order\": false,\n  \"reason_code\": \"insufficient_stock\",\n  \"product\": \"{{ $json.name }}\",\n  \"available\": {{ $json.stock }},\n  \"requested\": {{ $('Tool Call In').first().json.quantity || 1 }},\n  \"message\": \"Only {{ $json.stock }} units of {{ $json.name }} are in stock. Offer the customer that quantity instead.\"\n}",
+        "options": {}
+      },
+      "id": "9a5ae177-0351-490b-9b51-ad769b36dc4d",
+      "name": "Refuse: Not Enough Stock",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        352,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"can_order\": false,\n  \"reason_code\": \"out_of_stock\",\n  \"product\": \"{{ $json.name }}\",\n  \"message\": \"{{ $json.name }} is out of stock. Do not promise a delivery date. Offer to notify the customer when it is back.\"\n}",
+        "options": {}
+      },
+      "id": "60caab67-1288-44ab-9ec6-1226f7a33cb2",
+      "name": "Refuse: Out Of Stock",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        64,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"can_order\": false,\n  \"reason_code\": \"unknown_sku\",\n  \"message\": \"There is no product with SKU {{ $('Tool Call In').first().json.sku }}. Use search_products to get a valid SKU first.\"\n}",
+        "options": {}
+      },
+      "id": "e4dc0e21-1530-4cfb-baa4-f91e1e428e3a",
+      "name": "Refuse: Unknown SKU",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -224,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"can_order\": false,\n  \"reason_code\": \"invalid_format\",\n  \"message\": \"{{ $('Tool Call In').first().json.pincode }} is not a valid 6 digit Indian pincode. Ask the customer to confirm it.\"\n}",
+        "options": {}
+      },
+      "id": "c97bf6af-45da-47eb-9c33-079ec1355e80",
+      "name": "Refuse: Bad Pincode",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -672,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "a00e2c26-e6fd-4dbc-a5ab-ac6934fe6776",
+      "name": "Shortlist",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "id": "92a0a2f5-bb0f-49bc-9e72-2c6cc71bc239",
+      "name": "Gemini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        2096,
+        256
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3Lib3fAIJBeYd165",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{ \"picks\": [ { \"sku\": \"SN-SRM-002\", \"name\": \"Niacinamide 10% Serum\", \"price\": 699, \"why\": \"Oil free and targets acne without stripping the skin barrier\" } ], \"note\": \"Ask the customer for their pincode, then call check_availability before promising anything.\" }"
+      },
+      "id": "1dfbc5ae-5034-482d-9651-183df6b705df",
+      "name": "Pick Format",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the merchandiser for Saanvi Naturals, an Ayurvedic skincare brand in Jaipur. You are given a shortlist that a database filter already returned. Your job is to pick the best 2 or 3 for this specific customer and say why in one line each.\n\nWhat the customer actually said:\n{{ $('Tool Call In').first().json.query || 'No free text given, go by the filters only.' }}\n\nThe shortlist the catalogue returned:\n{{ JSON.stringify($json.data) }}\n\nRules.\nPick only from the shortlist. Never invent a SKU, a price or a product name.\nHonour negative constraints. If the customer said nothing that dries me out, do not pick a salicylic or glycolic product, and say so in the note.\nPrefer in_stock true. If you pick something with in_stock false, say it may not be available.\nKeep every why under 18 words, plain Indian English, no marketing language.\nPrices are already in INR. Do not convert or change them.\nYou do not decide availability or delivery. The note must always tell the caller to run check_availability next.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "ff95653f-cbf6-43c6-926c-6d88415cb1f7",
+      "name": "Merchandiser Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "BybDOItR9nGyDqvL",
+          "mode": "id"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "stock",
+              "condition": "gt",
+              "keyValue": "5"
+            }
+          ]
+        },
+        "limit": 10,
+        "orderBy": true,
+        "orderByColumn": "price",
+        "orderByDirection": "ASC"
+      },
+      "id": "9be4d9f9-8965-4642-9fde-711066e0c349",
+      "name": "Routine Options",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "aa3ec908-9721-46dc-bbdc-0691ba4e1a03",
+      "name": "Options",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{ \"whatsapp_message\": \"Hi Riya! Aapka order SN-20261003-37739 confirm ho gaya hai. 2 x Niacinamide 10% Serum, total Rs 1398, Cash on Delivery. Mumbai mein 4 din mein pahunch jayega. Courier ko cash ready rakhiyega.\", \"care_tip\": \"Use it at night and always follow with sunscreen next morning.\", \"routine_gap\": [ { \"sku\": \"SN-SUN-002\", \"name\": \"Matte Gel Sunscreen SPF 50\", \"price\": 649, \"why\": \"A niacinamide routine needs daily sunscreen or the results stall.\" } ] }"
+      },
+      "id": "d597db7f-7ef3-46ea-81eb-8948951aa28e",
+      "name": "Reply Format",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2368,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the order concierge for Saanvi Naturals, an Ayurvedic skincare brand in Jaipur. An order has just been confirmed. Write the customer confirmation and suggest what completes their routine.\n\nThe confirmed order, which is final and must not be changed:\n{{ JSON.stringify($('Order Confirmed').first().json) }}\n\nThe product they bought:\n{{ JSON.stringify($('Find SKU').first().json) }}\n\nIn stock catalogue rows you may suggest from:\n{{ JSON.stringify($json.data) }}\n\nRules.\nThe whatsapp_message must be warm Hinglish, under 45 words, and must state the order id, the exact total in rupees, that it is Cash on Delivery, and the delivery city and days. Copy those values exactly from the confirmed order. Never change a number.\nNever say the order can be cancelled, refunded, exchanged or modified. You do not decide policy.\nNever ask for payment details of any kind.\ncare_tip is one plain line about using the product they bought.\nroutine_gap is at most 2 products, chosen only from the in stock rows given above, and never the product they just bought. Each why is under 18 words and explains what it adds to their routine.\nIf nothing in the list genuinely complements the purchase, return an empty routine_gap rather than padding it.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "36c985d5-8297-4692-b5d7-2bb1f043a7e3",
+      "name": "Concierge Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2144,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "id": "e5e83d61-4798-46e1-b21f-8ea6c95f1651",
+      "name": "Gemini1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        240
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3Lib3fAIJBeYd165",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "IkjHxICiniLRaAnm",
+          "cachedResultName": "catalogue"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sku",
+              "keyValue": "={{ $('Tool Call In').first().json.sku }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "df9c0e79-e635-4c05-a81a-60af635d687b",
+      "name": "Find SKU1",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -784,
+        512
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "IkjHxICiniLRaAnm",
+          "cachedResultName": "catalogue"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "concern",
+              "condition": "ilike",
+              "keyValue": "=%{{ $json.concern || '' }}%"
+            },
+            {
+              "keyName": "category",
+              "condition": "ilike",
+              "keyValue": "=%{{ $json.category || '' }}%"
+            },
+            {
+              "keyName": "price",
+              "condition": "lte",
+              "keyValue": "={{ $json.max_price || 99999 }}"
+            }
+          ]
+        },
+        "limit": 8,
+        "orderBy": true,
+        "orderByColumn": "price",
+        "orderByDirection": "ASC"
+      },
+      "id": "91f620cc-3fa5-4442-a0a5-a69420813213",
+      "name": "Search Catalogue1",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1152,
+        160
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "io4ZXkaprwmdk2jv",
+          "cachedResultName": "pincodes"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "prefix",
+              "keyValue": "={{ $('Tool Call In').first().json.pincode.slice(0, 3) }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "8532d0bc-876d-4e30-b041-91c912660b9a",
+      "name": "Check Pincode1",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        192
+      ],
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {
+    "Tool Call In": [
+      {
+        "json": {
+          "tool": "place_order",
+          "query": {
+            "sku": "SN-MST-003",
+            "pincode": "122001",
+            "quantity": 1,
+            "customer_name": "Satyam",
+            "customer_phone": "7982738346"
+          },
+          "sku": "SN-MST-003",
+          "pincode": "122001",
+          "quantity": 1,
+          "customer_name": "Satyam",
+          "customer_phone": "7982738346",
+          "category": null,
+          "concern": null,
+          "max_price": null
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Tool Call In": {
+      "main": [
+        [
+          {
+            "node": "Which Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Which Tool": {
+      "main": [
+        [
+          {
+            "node": "Search Catalogue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pincode Format OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pincode Format OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unknown Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Catalogue": {
+      "main": [
+        [
+          {
+            "node": "Any Matches?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Matches?": {
+      "main": [
+        [
+          {
+            "node": "Shape Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Matches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pincode Format OK?": {
+      "main": [
+        [
+          {
+            "node": "Find SKU",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse: Bad Pincode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find SKU": {
+      "main": [
+        [
+          {
+            "node": "SKU Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SKU Found?": {
+      "main": [
+        [
+          {
+            "node": "In Stock?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse: Unknown SKU",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "In Stock?": {
+      "main": [
+        [
+          {
+            "node": "Enough Stock?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse: Out Of Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enough Stock?": {
+      "main": [
+        [
+          {
+            "node": "Check Pincode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse: Not Enough Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Pincode": {
+      "main": [
+        [
+          {
+            "node": "We Deliver There?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "We Deliver There?": {
+      "main": [
+        [
+          {
+            "node": "Is This An Order?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse: Not Serviceable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is This An Order?": {
+      "main": [
+        [
+          {
+            "node": "Name And Phone OK?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Quote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name And Phone OK?": {
+      "main": [
+        [
+          {
+            "node": "Write Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Refuse: Bad Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Order": {
+      "main": [
+        [
+          {
+            "node": "Order Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Results": {
+      "main": [
+        [
+          {
+            "node": "Shortlist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shortlist": {
+      "main": [
+        [
+          {
+            "node": "Merchandiser Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Concierge Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Format": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Merchandiser Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order Confirmed": {
+      "main": [
+        [
+          {
+            "node": "Routine Options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Routine Options": {
+      "main": [
+        [
+          {
+            "node": "Options",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Options": {
+      "main": [
+        [
+          {
+            "node": "Concierge Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply Format": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Concierge Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Merchandiser Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cc3dd11a-30f2-48c6-9ed3-c697cd280069",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46d9f3051f6636b08ad8eec002fae967a0f1cab75a23673d84d0233fbe9b94ad"
+  },
+  "nodeGroups": [],
+  "id": "N0XXwEmenSxQQ1za",
+  "tags": []
+}

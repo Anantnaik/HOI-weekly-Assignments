@@ -1,0 +1,458 @@
+{
+  "name": "Saanvi Storefront MCP V1",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "saanvi-storefront",
+        "instructions": "You are the storefront for Saanvi Naturals, an Ayurvedic skincare brand made in Jaipur, India. All prices are in INR and the brand sells Cash on Delivery, so the customer pays the courier on arrival. Never ask for card, UPI or bank details. Follow this order every time. First call search_products to turn what the customer describes into real SKUs. Then call check_availability for the exact SKU and pincode to get the real total including shipping. Only after the customer confirms that exact total, call place_order with their full name and 10 digit mobile number, which completes the purchase. These tools are allowed to refuse, and a refusal is final: relay the reason_code message to the customer in your own words, offer the alternative the message suggests, and never invent a delivery date, a price, or a workaround. Do not promise anything the tools have not confirmed."
+      },
+      "id": "897beed2-c486-4fb9-97f1-4e5c9a6bc00c",
+      "name": "Saanvi Storefront MCP",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        848
+      ],
+      "webhookId": "68171a21-c042-4da8-abc5-c0e5d66f88a8"
+    },
+    {
+      "parameters": {
+        "description": "Search the Saanvi Naturals catalogue. A merchandiser agent reads what the customer actually said, ranks the matching products and explains why each one suits them, including honouring things they said they do not want. Call this FIRST, before any other tool. Pass the customer's own words in query, not a summary. The returned picks are recommendations only: always confirm with check_availability before telling a customer something is available.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lhxcRdWesdgkKm7T",
+          "cachedResultName": "Saanvi Storefront Engine V2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tool": "search_products",
+            "concern": "={{ $fromAI('concern', 'ALWAYS send this field. The single main skin or hair concern in one lowercase word, from: acne, oiliness, dryness, dullness, pigmentation, pores, blackheads, fine-lines, texture, sensitivity, dark-circles, puffiness, sun-protection, hair-fall, dandruff, frizz, tan. Send an empty string if the customer has not named a concern.', 'string') }}",
+            "category": "={{ $fromAI('category', 'ALWAYS send this field. Product category if the customer named one, from: cleanser, serum, moisturiser, sunscreen, mask, toner, lips, eyes, hair, body, kit. Send an empty string if they did not name a category.', 'string') }}",
+            "max_price": "={{ $fromAI('max_price', 'ALWAYS send this field. Maximum price per unit in INR as a number. Send 0 if the customer gave no budget.', 'number') }}",
+            "query": "={{ $fromAI('query', 'ALWAYS send this field. The customer own words, verbatim, including anything they said they do NOT want, for example nothing that dries me out or no strong fragrance. Do not summarise and do not clean it up.', 'string') }}"
+          },
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "tool",
+              "id": "tool",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "query",
+              "id": "query",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "sku",
+              "id": "sku",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "pincode",
+              "id": "pincode",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "quantity",
+              "id": "quantity",
+              "required": false,
+              "type": "number"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "customer_name",
+              "id": "customer_name",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "customer_phone",
+              "id": "customer_phone",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "category",
+              "id": "category",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "concern",
+              "id": "concern",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "max_price",
+              "id": "max_price",
+              "required": false,
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "9b738912-c126-4609-ba31-ac9c7105c2a0",
+      "name": "search_products",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Check whether one specific SKU can actually be delivered to one specific Indian pincode, and get the real total including shipping. Call this before promising availability, a price, or a delivery date. This tool can refuse: it returns can_order false with a reason_code of unknown_sku, out_of_stock, insufficient_stock, invalid_format or not_serviceable. When it refuses, tell the customer the reason it gives. Never invent an alternative delivery promise and never work around a refusal.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lhxcRdWesdgkKm7T",
+          "cachedResultName": "Saanvi Storefront Engine V2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tool": "check_availability",
+            "sku": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sku', 'The exact SKU from search_products, for example SN-SRM-002.') }}",
+            "pincode": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('pincode', 'The 6 digit Indian delivery pincode the customer gave.') }}",
+            "quantity": "={{ $fromAI('quantity', 'ALWAYS send this field. How many units the customer wants, as a number. Send 1 if they did not say a quantity.', 'number') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "tool",
+              "displayName": "tool",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "pincode",
+              "displayName": "pincode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "customer_phone",
+              "displayName": "customer_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "concern",
+              "displayName": "concern",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "max_price",
+              "displayName": "max_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "19fd52f3-ad51-4d59-b18a-c2dccde28b21",
+      "name": "check_availability",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Complete a real Cash on Delivery purchase for one SKU. Only call this after the customer has explicitly confirmed the product, the quantity and the exact total that check_availability returned. Saanvi Naturals sells Cash on Delivery, so the customer pays the courier on arrival and no card or UPI details are ever needed. Requires their full name and a 10 digit Indian mobile number. This tool re-validates stock and serviceability from scratch, so it can still refuse. On success it returns a real order_id and the amount payable on delivery. Never call it speculatively, and never call it twice for the same confirmation.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "lhxcRdWesdgkKm7T",
+          "cachedResultName": "Saanvi Storefront Engine V2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tool": "place_order",
+            "sku": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('sku', 'The exact SKU being ordered.') }}",
+            "pincode": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('pincode', 'The 6 digit Indian delivery pincode.') }}",
+            "quantity": "={{ $fromAI('quantity', 'ALWAYS send this field. How many units to order, as a number. Send 1 if the customer did not say a quantity.', 'number') }}",
+            "customer_name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_name', 'The customer full name as they gave it.') }}",
+            "customer_phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('customer_phone', 'The customer 10 digit Indian mobile number.') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "tool",
+              "displayName": "tool",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "pincode",
+              "displayName": "pincode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "customer_phone",
+              "displayName": "customer_phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "concern",
+              "displayName": "concern",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "max_price",
+              "displayName": "max_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "4c5bb8bf-013c-4ca8-afd9-be2b799db327",
+      "name": "place_order",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        912,
+        1072
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "search_products": {
+      "ai_tool": [
+        [
+          {
+            "node": "Saanvi Storefront MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_availability": {
+      "ai_tool": [
+        [
+          {
+            "node": "Saanvi Storefront MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "place_order": {
+      "ai_tool": [
+        [
+          {
+            "node": "Saanvi Storefront MCP",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dc684132-ea68-4d9a-a96e-34bdbfc2e5de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46d9f3051f6636b08ad8eec002fae967a0f1cab75a23673d84d0233fbe9b94ad"
+  },
+  "nodeGroups": [],
+  "id": "g8XfrVDZj8cOgAEl",
+  "tags": []
+}
