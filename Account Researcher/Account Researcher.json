@@ -1,0 +1,914 @@
+{
+  "name": "Account Researcher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "research",
+        "options": {}
+      },
+      "id": "0019121e-5b4c-43dc-9933-917cd2dafade",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2240,
+        48
+      ],
+      "webhookId": "c43a01d2-5683-46ff-bfaf-7dfcb9c491d7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $json.body || $json;\nlet raw = String(b.website || b.domain || b.url || '').trim();\nif (!raw) raw = 'https://sleepyowl.co';\nif (!/^https?:\\/\\//i.test(raw)) raw = 'https://' + raw;\nconst m = raw.match(/^https?:\\/\\/([^\\/?#:]+)/i);\nif (!m) throw new Error('Could not read that website address: ' + raw);\nconst host = m[1].toLowerCase().replace(/^www\\./, '');\nconst base = 'https://' + host;\nconst cfg = {\n  run_id: 'RUN-' + Date.now(),\n  domain: host,\n  owner_email: 'naikanant381@gmail.com',\n  seller: 'Intelligence. We build custom AI automation systems for Indian businesses on n8n, such as outbound research engines and vendor comparison desks, delivered in weeks rather than months. Proof point: we ship a working production system live every Saturday with our operator cohort. Sender: Anant, Founder.',\n  signature: 'Anant\\nFounder, Intelligence\\nnaikanant381@gmail.com',\n  postal: 'Intelligence, India',\n  banned: ['hope this email finds you','quick question','circle back','reach out','touch base','synergy','revolutionary','game changer','i wanted to','i came across your','leverage','seamless','cutting edge','at your earliest convenience','let me know if','delve','elevate','unlock']\n};\nconst pages = [base, base + '/about', base + '/pricing', base + '/careers', base + '/contact'];\nreturn pages.map(u => ({ json: Object.assign({}, cfg, { target_url: u, pages_tried: pages.length }) }));"
+      },
+      "id": "2c6345f4-6200-4026-9c0a-d46c564ff0d7",
+      "name": "1 Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2016,
+        144
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "6c87c52c-b308-44f8-975e-53917416b200",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2240,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://r.jina.ai/{{ $json.target_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-return-format",
+              "value": "markdown"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 3500
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "0ba84308-4bce-420e-b908-e36c5bfc7d76",
+      "name": "2 Read their website",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1792,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('1 Setup').first().json;\nconst parts = [];\nfor (const it of $input.all()) {\n  const t = it.json.data || it.json.body || it.json.text || '';\n  const u = it.json.target_url || '';\n  if (typeof t === 'string' && t.length > 300 && !/^\\s*(404|not found)/i.test(t)) {\n    parts.push('### SOURCE: ' + u + '\\n' + t.slice(0, 12000));\n  }\n}\nif (!parts.length) throw new Error('Could not read any page on ' + cfg.domain + '. Nothing is written without evidence.');\nreturn [{ json: Object.assign({}, cfg, { pages_ok: parts.length, corpus: parts.join('\\n\\n').slice(0, 45000) }) }];"
+      },
+      "id": "b13ac05c-bd56-4102-9e58-cfd62daa113a",
+      "name": "3 Build evidence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1568,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.1, topP: 0.95, topK: 40, maxOutputTokens: 4096, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"You are a B2B account researcher. Below is the real text of five pages from one company website. Build a factual dossier.\\n\\nRULES\\n- Use ONLY the supplied text. Never use outside knowledge about this company.\\n- Every entry in notable_facts must carry a verbatim quote under 15 words copied exactly from the text.\\n- If the text does not support a signal field, return an empty string and add its name to not_found. Never write the words not found inside a field.\\n- Never write an em dash or en dash.\\n\\nWHERE TO LOOK, these get missed most often\\n- location_signals: country and city. Check the footer, the contact page, any address, a phone country code, a shipping policy naming a country, and the currency in prices. A rupee symbol or the word India anywhere IS a location signal, quote it.\\n- currency_signals: the currency prices appear in, quoted exactly.\\n- team_signals: headcount, a team page, or a careers page listing roles.\\n- hiring_signals: open roles, we are hiring, join us.\\n- online_signals: a cart, a checkout, add to bag, buy now.\\n\\nReturn ONLY valid JSON with these keys: company_name, one_liner, what_they_sell, who_they_sell_to, notable_facts (array of objects with fact and evidence), location_signals, currency_signals, team_signals, hiring_signals, funding_signals, online_signals, manual_process_signals, contact_emails (array), not_found (array).\\n\\nWEBSITE TEXT:\\n\" + $json.corpus }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "e637e470-8d9a-45dd-bb5a-1bc5ea9b81a7",
+      "name": "4 Agent 1 Researcher",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1344,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) throw new Error('The Researcher did not return JSON.');\n  t = t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1');\n  return JSON.parse(t);\n}\nconst prev = $('3 Build evidence').first().json;\nconst c = $json && $json.candidates && $json.candidates[0];\nconst txt = c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text;\nif (!txt) throw new Error('Researcher returned nothing. Usually the Gemini free tier rate limit. Wait a minute and run again.');\nconst d = parse(txt);\nconst hay = String(prev.corpus || '').toLowerCase().replace(/\\s+/g, ' ');\nconst norm = s => String(s || '').toLowerCase().replace(/\\s+/g, ' ').trim();\nconst dropped = [];\nd.notable_facts = (d.notable_facts || []).filter(x => {\n  const q = norm(x.evidence);\n  const ok = q.length >= 8 && hay.indexOf(q) !== -1;\n  if (!ok) dropped.push(x.fact || 'unnamed claim');\n  return ok;\n});\nd.contact_emails = (d.contact_emails || []).filter(e => hay.indexOf(norm(e)) !== -1);\nconst confidence = Math.min(100, (d.notable_facts.length * 18) + (prev.pages_ok * 6));\nreturn [{ json: Object.assign({}, prev, { dossier: d, dropped: dropped, confidence: confidence }) }];"
+      },
+      "id": "672fb3c5-6003-40d9-a766-f27c3f5ff105",
+      "name": "5 Dossier and evidence lock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "icp_rules"
+        },
+        "filters": {
+          "conditions": []
+        },
+        "returnAll": true
+      },
+      "id": "3906fe71-911e-46c5-addb-bbade8035ea5",
+      "name": "6 Read scoring rubric",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        144
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0, topP: 1, topK: 1, maxOutputTokens: 3072, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"You score how well a company fits a seller. You never invent criteria and you never invent numbers.\\n\\nEvery point value is already written in the RUBRIC below. Your only job is to decide match or no match for each row, copy that row POINTS value, and add them up.\\n\\nSTEP 1. Check every DISQUALIFIER row first. If one matches, stop: disqualified true, final_score 0, band D, every other row matched false with 0.\\n\\nSTEP 2. Output one scorecard entry for EVERY rule_id. Never skip a row. Quote the dossier text that justifies it in evidence, and leave evidence empty when it does not match. A match awards exactly that row POINTS value, never any other number. No supporting text means matched false. Absence of evidence is never a match.\\n\\nSTEP 3. If two rows in the SAME signal_group match, keep only the higher one and set the other to matched false with 0. Never add two rows from one group.\\n\\nSTEP 4. Put every points_awarded into awarded_values, including zeros, and add that list up into recheck_total.\\n\\nSTEP 5. final_score equals recheck_total, capped at 100. Add the list once more to confirm before you write it.\\n\\nSTEP 6. Band is a lookup: 70 to 100 is A, 50 to 69 is B, 30 to 49 is C, 0 to 29 is D. Disqualified is always D.\\n\\nSTEP 7. verdict is one plain business sentence.\\n\\nJudge only on the dossier. Never use outside knowledge. Never write an em dash or en dash.\\n\\nReturn ONLY valid JSON with keys: disqualified, disqualify_rule, scorecard (array of objects with rule_id, signal_group, criterion, matched, points_awarded, evidence), awarded_values (array of numbers), recheck_total, final_score, band (one of A B C D), verdict.\\n\\nRUBRIC:\\n\" + $(\"6 Read scoring rubric\").all().map(r => r.json.rule_id + \" | group: \" + r.json.signal_group + \" | \" + r.json.criterion + \" | POINTS: \" + r.json.points + (r.json.is_disqualifier ? \" | *** DISQUALIFIER ***\" : \"\") + \" | how to judge: \" + r.json.how_to_judge).join(\"\\n\") + \"\\n\\nSELLER:\\n\" + $(\"1 Setup\").first().json.seller + \"\\n\\nCOMPANY DOSSIER:\\n\" + JSON.stringify($(\"5 Dossier and evidence lock\").first().json.dossier) }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "3a63c93b-81ec-4845-b0ad-496b1c1d3c31",
+      "name": "7 Agent 2 Fit Scorer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -672,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) throw new Error('The Fit Scorer did not return JSON.');\n  t = t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1');\n  return JSON.parse(t);\n}\nconst prev = $('5 Dossier and evidence lock').first().json;\nconst c = $json && $json.candidates && $json.candidates[0];\nconst txt = c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text;\nif (!txt) throw new Error('Fit Scorer returned nothing. Usually the Gemini free tier rate limit.');\nconst s = parse(txt);\nconst sum = (s.awarded_values || []).reduce((a, b) => a + (Number(b) || 0), 0);\ns.arithmetic_checks_out = (sum === Number(s.recheck_total));\nreturn [{ json: Object.assign({}, prev, { scoring: s }) }];"
+      },
+      "id": "a8b36222-629a-4d1e-a1cb-cac9927dc707",
+      "name": "8 Score the fit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.scoring.band }}",
+              "rightValue": "D",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "04074fac-a686-4460-810f-f54cab5542ad",
+      "name": "9 Worth writing to",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.4, topP: 0.95, topK: 40, maxOutputTokens: 2048, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"Given a factual dossier about a company and what the seller offers, propose exactly three business pains this company plausibly has that the seller can address.\\n\\nRULES\\n- Each pain must rest on a specific fact in the dossier. Quote that fact verbatim in anchor.\\n- Do not invent facts. If only two are properly supported, return two.\\n- Each pain must be something this company would recognise about itself, never a generic industry truism.\\n- Never write an em dash or en dash.\\n\\nReturn ONLY valid JSON with key pains, an array of objects each with pain, anchor and why_it_matters.\\n\\nDOSSIER:\\n\" + JSON.stringify($json.dossier) + \"\\n\\nFIT VERDICT: \" + $json.scoring.verdict + \"\\n\\nSELLER:\\n\" + $json.seller }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "e043fb19-052d-4c6f-a3c1-14015fc885cd",
+      "name": "10 Agent 3 Pain Finder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) throw new Error('The Pain Finder did not return JSON.');\n  t = t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1');\n  return JSON.parse(t);\n}\nconst prev = $('8 Score the fit').first().json;\nconst c = $json && $json.candidates && $json.candidates[0];\nconst txt = c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text;\nif (!txt) throw new Error('Pain Finder returned nothing. Usually the Gemini free tier rate limit.');\nconst out = parse(txt);\nconst norm = s => String(s || '').toLowerCase().replace(/\\s+/g, ' ').trim();\nconst d = prev.dossier || {};\nconst bits = [prev.corpus || ''];\nfor (const f of (d.notable_facts || [])) bits.push((f.fact || '') + ' ' + (f.evidence || ''));\nbits.push(d.what_they_sell, d.who_they_sell_to, d.one_liner, d.company_name, d.location_signals, d.currency_signals, d.team_signals, d.hiring_signals, d.funding_signals, d.online_signals, d.manual_process_signals);\nconst pool = norm(bits.filter(Boolean).join(' || '));\nconst dropped = [];\nconst pains = (out.pains || []).filter(p => {\n  const a = norm(p.anchor);\n  if (a.length < 8) { dropped.push(p.pain || 'unnamed'); return false; }\n  if (pool.indexOf(a) !== -1) return true;\n  const tk = a.split(' ').filter(w => w.length > 3);\n  if (tk.length && tk.filter(w => pool.indexOf(w) !== -1).length / tk.length >= 0.7) return true;\n  dropped.push(p.pain || 'unnamed');\n  return false;\n});\nif (!pains.length) throw new Error('No pain could be anchored to evidence on their website, so nothing was written. This is the system refusing, not failing.');\nreturn [{ json: Object.assign({}, prev, { pains: pains, pains_dropped: dropped }) }];"
+      },
+      "id": "723d4469-5c87-4ed2-ad03-659683ab22dc",
+      "name": "11 Anchor the pains",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.7, topP: 0.95, topK: 40, maxOutputTokens: 3072, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"Write a three email cold outreach sequence from the seller to this company.\\n\\nHARD RULES, all checked by an automated validator straight after you\\n- Email 1 is 60 to 130 words. Emails 2 and 3 are 40 to 90 words.\\n- Subject lines are at most 7 words, sentence case, no colons.\\n- Exactly ONE call to action per email, low friction, never a demo booking in email 1.\\n- At most ONE question mark per email. At most ONE link in the whole sequence.\\n- Email 1 MUST contain one specific detail about this company that could only have come from their website. Put that detail, word for word as it appears on their site, in personalisation_detail.\\n- Never use any of these phrases: \" + $json.banned.join(\", \") + \"\\n- Never write an em dash or en dash. Never leave a placeholder in square brackets.\\n- Write like one busy person emailing another. Short sentences, no stacked adjectives.\\n- Email 2 takes a different angle. Email 3 is a polite close that makes it easy to say no.\\n\\nReturn ONLY valid JSON with key emails, an array of three objects each with email_no, subject, body and personalisation_detail.\\n\\nDOSSIER:\\n\" + JSON.stringify($json.dossier) + \"\\n\\nPAINS:\\n\" + JSON.stringify($json.pains) + \"\\n\\nSELLER:\\n\" + $json.seller }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "34b9c354-5084-43ea-b61b-5fc7253d825d",
+      "name": "12 Agent 4 Sequence Writer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const scored = $('8 Score the fit').first().json;\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst blocked = scored.scoring.disqualified || scored.scoring.band === 'D';\nlet base = scored, emails = [], failures = [];\n\nif (!blocked) {\n  base = $('11 Anchor the pains').first().json;\n  const c = $json && $json.candidates && $json.candidates[0];\n  const txt = c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text;\n  if (!txt) {\n    // The writer was throttled. Report it cleanly with the research intact\n    // rather than killing a run that already produced a usable dossier.\n    failures.push('The Sequence Writer did not return. Usually the Gemini free tier rate limit. The research below is complete, only the emails are missing. Run again in a minute.');\n  } else {\n    let t = String(txt).replace(/```json/gi, '').replace(/```/g, '').trim();\n    const a = t.indexOf('{'), b = t.lastIndexOf('}');\n    if (a === -1 || b === -1) {\n      failures.push('The Sequence Writer did not return valid JSON.');\n    } else {\n      emails = JSON.parse(t.slice(a, b + 1).replace(/,(\\s*[}\\]])/g, '$1')).emails || [];\n    }\n  }\n\n  const hay = String(base.corpus || '').toLowerCase().replace(/\\s+/g, ' ');\n  const banned = (base.banned || []).map(p => String(p).toLowerCase());\n  const limits = { 1: [60, 130], 2: [40, 90], 3: [40, 90] };\n  for (const e of emails) {\n    const body = String(e.body || '');\n    const low = (e.subject + ' ' + body).toLowerCase();\n    const wc = body.trim().split(/\\s+/).filter(Boolean).length;\n    const lim = limits[e.email_no] || [40, 120];\n    const tag = 'Email ' + e.email_no + ': ';\n    if (wc < lim[0] || wc > lim[1]) failures.push(tag + 'word count ' + wc + ', must be ' + lim[0] + ' to ' + lim[1]);\n    if (String(e.subject || '').trim().split(/\\s+/).length > 7) failures.push(tag + 'subject over 7 words');\n    if ((body.match(/\\?/g) || []).length > 1) failures.push(tag + 'more than one question mark');\n    if (/—|–/.test(body + e.subject)) failures.push(tag + 'contains a dash character');\n    if (/\\[[^\\]]+\\]/.test(body)) failures.push(tag + 'unfilled placeholder');\n    for (const p of banned) if (p && low.indexOf(p) !== -1) failures.push(tag + 'banned phrase ' + p);\n    if (e.email_no === 1) {\n      const det = String(e.personalisation_detail || '').toLowerCase().replace(/\\s+/g, ' ').trim();\n      if (det.length < 8) failures.push(tag + 'no personalisation detail');\n      else if (hay.indexOf(det) === -1) failures.push(tag + 'personalisation detail is not on their website');\n    }\n  }\n  if ((JSON.stringify(emails).match(/https?:\\/\\//g) || []).length > 1) failures.push('More than one link in the sequence');\n  if (failures.length) emails = [];\n}\n\nconst found = (base.dossier && base.dossier.contact_emails) || [];\nconst generic = found.filter(e => /^(info|hello|contact|sales|support|help)@/i.test(e));\nconst recipient = generic[0] || found[0] || '';\nconst note = recipient ? 'Found published on their website' : 'No address published, so the draft is blank. We never guess one.';\nconst finished = emails.map(e => Object.assign({}, e, { body: e.body + '\\n\\n' + base.signature + '\\n\\n--\\nNot relevant? Reply with no thanks and I will not write again.\\n' + base.postal }));\n\nconst sc = scored.scoring.scorecard || [];\nconst isX = r => String(r.signal_group || '').toLowerCase() === 'exclusion';\nconst hit = sc.filter(r => r.matched && !isX(r));\nconst miss = sc.filter(r => !r.matched && !isX(r));\nconst xr = sc.filter(isX);\nconst rows = hit.map(r => '<tr><td style=\"padding:8px;border-bottom:1px solid #eee;font-family:monospace;color:#1B7E42\"><b>' + esc(r.rule_id) + '</b></td><td style=\"padding:8px;border-bottom:1px solid #eee\">' + esc(r.criterion || r.signal_group) + '</td><td style=\"padding:8px;border-bottom:1px solid #eee;text-align:right;color:#1B7E42\"><b>+' + esc(r.points_awarded) + '</b></td><td style=\"padding:8px;border-bottom:1px solid #eee;color:#555;font-size:12px\">' + esc(r.evidence) + '</td></tr>').join('');\nconst emailHtml = finished.map(e => '<div style=\"margin:10px 0;padding:12px;background:#faf9f5;border-left:3px solid #1B7E42\"><b>Email ' + esc(e.email_no) + ': ' + esc(e.subject) + '</b><pre style=\"white-space:pre-wrap;font-family:inherit;margin:8px 0 0;font-size:13px\">' + esc(e.body) + '</pre></div>').join('');\nconst banner = blocked ? '<div style=\"background:#b00;color:#fff;padding:12px;margin:10px 0\"><b>Disqualified. No outreach was written.</b><br>' + esc(scored.scoring.disqualify_rule || ('Band ' + scored.scoring.band)) + '</div>' : (failures.length ? '<div style=\"background:#fff4e5;border-left:3px solid #E67E22;padding:12px;margin:10px 0\"><b>No drafts were created on this run.</b><br>' + esc(failures.join('; ')) + '</div>' : '');\nconst html = '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#fffdf7;font-family:Helvetica,Arial,sans-serif\"><tr><td align=\"center\"><table width=\"680\" cellpadding=\"0\" cellspacing=\"0\">' +\n'<tr><td style=\"background:#000;padding:18px 20px\"><span style=\"color:#c8f31d;font-size:18px;font-weight:bold\">HOI</span> <span style=\"color:#fff;font-size:14px\">Account Research</span></td></tr>' +\n'<tr><td style=\"padding:18px 20px\">' + banner +\n'<h2 style=\"margin:10px 0 4px\">' + esc(base.dossier.company_name) + '</h2>' +\n'<p style=\"color:#555;margin:0 0 10px\">' + esc(base.dossier.what_they_sell) + '</p>' +\n'<p style=\"font-size:22px;margin:10px 0\"><b>' + esc(scored.scoring.final_score) + ' of 100</b> <span style=\"background:#1B7E42;color:#fff;padding:3px 10px;font-size:14px\">Band ' + esc(scored.scoring.band) + '</span></p>' +\n'<p style=\"color:#333;margin:0 0 14px\">' + esc(scored.scoring.verdict) + '</p>' +\n'<h3 style=\"margin-bottom:6px\">How the score was built</h3><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:13px;border-collapse:collapse\"><tr style=\"background:#000;color:#fff\"><th align=\"left\" style=\"padding:7px\">Rule</th><th align=\"left\" style=\"padding:7px\">What it rewards</th><th align=\"right\" style=\"padding:7px\">Points</th><th align=\"left\" style=\"padding:7px\">Evidence found</th></tr>' + rows +\n'<tr style=\"background:#f2f2ee\"><td colspan=\"2\" style=\"padding:8px\"><b>Total</b></td><td style=\"padding:8px;text-align:right\"><b>' + esc(scored.scoring.final_score) + '</b></td><td></td></tr></table>' +\n'<p style=\"color:#666;font-size:13px;margin:10px 0 2px\"><b>Checked and did not score:</b> ' + (miss.length ? esc(miss.map(r => r.rule_id).join(', ')) + ' (' + miss.length + ' rules, nothing on their site supported them)' : 'every rule matched') + '</p>' +\n'<p style=\"color:#666;font-size:13px;margin:2px 0 14px\"><b>Exclusions:</b> ' + (xr.filter(r => r.matched).length ? 'TRIGGERED' : xr.length + ' checked, all clear') + '</p>' +\n'<p style=\"color:#666;font-size:13px\"><b>Arithmetic:</b> ' + esc(JSON.stringify(scored.scoring.awarded_values)) + ' sums to ' + esc(scored.scoring.recheck_total) + (scored.scoring.arithmetic_checks_out ? ', which matches the score.' : ', which does NOT match. Flagged.') + '</p>' +\n'<h3>What we could not find</h3><p style=\"color:#555\">Confidence ' + esc(base.confidence) + ' percent. ' + ((base.dossier.not_found || []).length ? 'No evidence on their site for: ' + esc((base.dossier.not_found || []).join(', ')) + '.' : 'Nothing flagged.') + '</p>' +\n(blocked ? '' : '<h3>Pains</h3><ul>' + ((base.pains || []).map(p => '<li style=\"margin:8px 0\"><b>' + esc(p.pain) + '</b><br><span style=\"color:#555;font-size:13px\">anchored to: ' + esc(p.anchor) + '</span></li>').join('') || '<li>None</li>') + '</ul>') +\n(finished.length ? '<h3>The sequence</h3>' + emailHtml + '<h3>Recipient</h3><p>' + esc(recipient || 'blank') + '<br><span style=\"color:#555\">' + esc(note) + '</span></p>' : '') +\n'<h3 style=\"color:#b00\">Run report</h3><ul style=\"color:#555;font-size:13px\"><li>Pages read: ' + esc(base.pages_ok) + ' of ' + esc(base.pages_tried) + '</li><li>Claims deleted by the evidence lock: ' + ((base.dropped || []).length ? esc((base.dropped || []).join(', ')) : 'none') + '</li><li>Pains dropped: ' + ((base.pains_dropped || []).length ? esc((base.pains_dropped || []).join(', ')) : 'none') + '</li><li>Quality failures: ' + (failures.length ? esc(failures.join('; ')) : 'none') + '</li><li>Drafts created: ' + finished.length + '</li></ul>' +\n'<p style=\"color:#888;font-size:12px;border-top:1px solid #ddd;padding-top:10px\">Automated research. Verify before sending.</p></td></tr></table></td></tr></table>';\n\nreturn [{ json: Object.assign({}, base, { scoring: scored.scoring, emails: finished, recipient: recipient, recipient_note: note, quality_failures: failures, blocked: blocked, dossier_html: html }) }];"
+      },
+      "id": "27d3cf36-0a37-49a6-b731-45931e636c98",
+      "name": "13 Check and assemble",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "accounts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "domain",
+              "keyValue": "={{ $json.domain }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "domain": "={{ $json.domain }}",
+            "company_name": "={{ $json.dossier.company_name }}",
+            "one_liner": "={{ $json.dossier.one_liner }}",
+            "icp_score": "={{ $json.scoring.final_score }}",
+            "icp_band": "={{ $json.scoring.band }}",
+            "confidence": "={{ $json.confidence }}",
+            "status": "={{ $json.blocked ? \"disqualified\" : ($json.quality_failures.length ? \"needs_human\" : \"researched\") }}",
+            "researched_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "domain",
+              "displayName": "domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "one_liner",
+              "displayName": "one_liner",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "account_brief",
+              "displayName": "account_brief",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dossier_json",
+              "displayName": "dossier_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_score",
+              "displayName": "icp_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "icp_band",
+              "displayName": "icp_band",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "scorecard_json",
+              "displayName": "scorecard_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confidence",
+              "displayName": "confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "researched_at",
+              "displayName": "researched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "22ec272e-9eda-4b2d-959c-47fc1c56a4a7",
+      "name": "14 Remember the account",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        48
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('1 Setup').item.json.owner_email }}",
+        "subject": "={{ \"Account research: \" + $('5 Dossier and evidence lock').item.json.dossier.company_name + \" , band \" + $('13 Check and assemble').item.json.scoring.band }}",
+        "message": "={{ $('13 Check and assemble').item.json.dossier_html }}",
+        "options": {}
+      },
+      "id": "43e494d1-aeaa-4741-b0ed-e0a69e93db84",
+      "name": "15 Email the dossier",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        48
+      ],
+      "executeOnce": true,
+      "webhookId": "b1253afd-d6d3-411a-afd2-23ade134d45f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "emails",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "id": "d80e259d-1afd-4e1d-97f5-20e572688bb2",
+      "name": "16 Split the emails",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        896,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.emails.subject }}",
+        "message": "={{ $json.emails.body }}",
+        "options": {
+          "sendTo": "=naikanant381@gmail.com"
+        }
+      },
+      "id": "a845e4eb-a355-4894-a06d-2e5000bc2c76",
+      "name": "17 Save as Gmail draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        240
+      ],
+      "webhookId": "bc8faf40-1170-49d6-959f-368119f42d9f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "sequence_queue"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "queue_id": "={{ $json.run_id + \"-\" + $json.emails.email_no }}",
+            "domain": "={{ $json.domain }}",
+            "email_no": "={{ $json.emails.email_no }}",
+            "subject": "={{ $json.emails.subject }}",
+            "body": "={{ $json.emails.body }}",
+            "send_on": "={{ $json.emails.email_no === 1 ? $now.toISO() : ($json.emails.email_no === 2 ? $now.plus(3, \"days\").toISO() : $now.plus(7, \"days\").toISO()) }}",
+            "status": "={{ $json.emails.email_no === 1 ? \"drafted\" : \"queued\" }}",
+            "created_at": "={{ $now.toISO() }}",
+            "recipient": "={{ $json.recipient }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "queue_id",
+              "displayName": "queue_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "domain",
+              "displayName": "domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email_no",
+              "displayName": "email_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "draft_id",
+              "displayName": "draft_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "send_on",
+              "displayName": "send_on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "recipient",
+              "displayName": "recipient",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "4f4fe06b-90ac-4e05-b97d-73f50dc8608d",
+      "name": "18 Queue the follow ups",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "1 Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 Setup": {
+      "main": [
+        [
+          {
+            "node": "2 Read their website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "1 Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 Read their website": {
+      "main": [
+        [
+          {
+            "node": "3 Build evidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 Build evidence": {
+      "main": [
+        [
+          {
+            "node": "4 Agent 1 Researcher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 Agent 1 Researcher": {
+      "main": [
+        [
+          {
+            "node": "5 Dossier and evidence lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 Dossier and evidence lock": {
+      "main": [
+        [
+          {
+            "node": "6 Read scoring rubric",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 Read scoring rubric": {
+      "main": [
+        [
+          {
+            "node": "7 Agent 2 Fit Scorer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7 Agent 2 Fit Scorer": {
+      "main": [
+        [
+          {
+            "node": "8 Score the fit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8 Score the fit": {
+      "main": [
+        [
+          {
+            "node": "9 Worth writing to",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9 Worth writing to": {
+      "main": [
+        [
+          {
+            "node": "10 Agent 3 Pain Finder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "13 Check and assemble",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Agent 3 Pain Finder": {
+      "main": [
+        [
+          {
+            "node": "11 Anchor the pains",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11 Anchor the pains": {
+      "main": [
+        [
+          {
+            "node": "12 Agent 4 Sequence Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12 Agent 4 Sequence Writer": {
+      "main": [
+        [
+          {
+            "node": "13 Check and assemble",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "13 Check and assemble": {
+      "main": [
+        [
+          {
+            "node": "14 Remember the account",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "16 Split the emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "14 Remember the account": {
+      "main": [
+        [
+          {
+            "node": "15 Email the dossier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16 Split the emails": {
+      "main": [
+        [
+          {
+            "node": "17 Save as Gmail draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "17 Save as Gmail draft": {
+      "main": [
+        [
+          {
+            "node": "18 Queue the follow ups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d0027243-b168-4626-9fc1-615c79e841d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "0uR04beLJC6Ox7FU",
+  "tags": []
+}

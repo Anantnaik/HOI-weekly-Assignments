@@ -1,0 +1,619 @@
+{
+  "name": "Account Researcher V2 Follow Up Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "78b5d80d-d4c9-4396-8522-9afe7975e75b",
+      "name": "M1b Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1344,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "sequence_queue"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "queued"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "f4af7f40-5058-41e9-94ba-7be9967c5fab",
+      "name": "M2 sequence_queue queued",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1120,
+        272
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "c8d77dad-8aa4-453a-9be1-0917f2c3dd8d",
+      "name": "M1 Schedule 09:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1344,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $('M2 sequence_queue queued').all().filter(r => r.json.queue_id && new Date(r.json.send_on) <= new Date()).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "id": "2bddcc4c-b078-440d-9ded-71015f680d19"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c7f58825-4cc6-47c3-8243-c51884ddc660",
+      "name": "M3a IF Nothing due",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  generationConfig: { temperature: 0.3, topP: 0.95, topK: 40, maxOutputTokens: 1024, responseMimeType: 'application/json' },\n  contents: [{ role: 'user', parts: [{ text: `Write the owner's daily summary for an outbound research system. Three to five sentences, plain English, for someone reading on a phone.\n\nYou are given exact counts. Use those numbers and only those numbers. Never state a figure that is not supplied to you.\n\nIf anything failed, lead with that. Good news never goes before bad news.\nIf nothing was due today, say so plainly and state what is still active. Never send an empty or apologetic summary.\nNever write an em dash or en dash.\n\nReturn ONLY valid JSON, no fences:\n{ \"subject\": \"\", \"summary\": \"\", \"has_failures\": true or false }\n\nTODAY'S NUMBERS:\n- Follow ups drafted: ${ $('M7 Gmail Draft follow up').isExecuted ? $('M7 Gmail Draft follow up').all().filter(i => !i.json.error).length : 0 }\n- Sequences stopped because the prospect replied: ${ $('M6a stop sequence replied').isExecuted ? $('M6a stop sequence replied').all().length : 0 }, domains: ${ $('M6a stop sequence replied').isExecuted ? ($('M6a stop sequence replied').all().map(i => i.json.domain).join(', ') || 'none') : 'none' }\n- Failures: ${ $('M7 Gmail Draft follow up').isExecuted ? ($('M7 Gmail Draft follow up').all().filter(i => i.json.error).map(i => i.json.domain || 'a follow up').join(', ') || 'none') : 'none' }\n- Sequences still active: ${ $('M2 sequence_queue queued').all().filter(r => r.json.queue_id).length }` }] }]\n}) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "0d6c5b85-6cb3-47d1-89bd-bfc966466cf2",
+      "name": "M9 Gemini Digest Writer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -224,
+        96
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "hausofintelligence@gmail.com",
+        "subject": "={{ \"Daily outbound digest\" }}",
+        "message": "={{ (() => { const t = $json.candidates && $json.candidates[0].content.parts[0].text || '{}'; let o = {}; try { o = JSON.parse(t.replace(/```json/gi,'').replace(/```/g,'').trim()); } catch(e) { o = { summary: 'Digest could not be parsed. Check the run log.', has_failures: true }; } return (o.has_failures ? '<div style=\"background:#b00;color:#fff;padding:10px;font-family:Helvetica\">Failures today. Read below.</div>' : '') + '<div style=\"font-family:Helvetica;padding:12px\">' + (o.summary || '') + '</div>'; })() }}",
+        "options": {}
+      },
+      "id": "0c8a3108-44fa-45c3-813f-e107934feade",
+      "name": "M10 Gmail Send digest",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "93c27130-92e0-4b1a-adb9-a9a4b23c2bf6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ new Date($json.send_on) <= new Date() }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "9f02e9a7-3679-4ab9-ac35-798b8cfbbd5f"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "25bca9a8-deff-4295-bebf-614893050d3a",
+      "name": "M3 Due today",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -672,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {
+          "q": "={{ \"from:\" + $json.domain + \" newer_than:30d\" }}"
+        }
+      },
+      "id": "b1a9ae6d-5cfe-47b5-a00d-9d1e8032e510",
+      "name": "M5 Gmail check for reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        384
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "alwaysOutputData": true,
+      "webhookId": "992cf03a-f6bf-4126-b314-3959798692ab",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "id": "679154b6-4ed1-4b8d-af3d-fe7427026ece"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "46b25194-226c-4ffc-89ea-099738246294",
+      "name": "M6 IF Did they reply",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "sequence_queue"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "domain",
+              "keyValue": "={{ $('M4 Loop Over Due').first().json.domain }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "queued"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "stopped_replied"
+          }
+        },
+        "options": {}
+      },
+      "id": "89e43473-2f74-418a-9af7-90f20447ff2a",
+      "name": "M6a stop sequence replied",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "accounts"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "domain",
+              "keyValue": "={{ $('M4 Loop Over Due').first().json.domain }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "replied"
+          }
+        },
+        "options": {}
+      },
+      "id": "9f8bce8f-8340-4139-919b-bbdf1f11fb5d",
+      "name": "M6b mark account replied",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "dbdb8e2a-9bdb-486f-9ce6-3e5a16e50ee8",
+      "name": "M4 Loop Over Due",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -448,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('M4 Loop Over Due').first().json.subject }}",
+        "message": "={{ $('M4 Loop Over Due').first().json.body }}",
+        "options": {
+          "sendTo": "={{ $('M4 Loop Over Due').first().json.recipient }}"
+        }
+      },
+      "id": "8342a2f4-47ad-4710-8a94-9e3a79e2c587",
+      "name": "M7 Gmail Draft follow up",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        480
+      ],
+      "webhookId": "c485f709-ce98-4953-9062-6a6f0e661445",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "sequence_queue"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "queue_id",
+              "keyValue": "={{ $('M4 Loop Over Due').first().json.queue_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "drafted",
+            "draft_id": "={{ $json.id || \"\" }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "65b17cca-ccc9-4cda-935b-041c2104c3fe",
+      "name": "M8 sequence_queue drafted",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "run_log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_id": "={{ \"DIGEST-\" + $now.toMillis() }}",
+            "run_at": "={{ $now.toISO() }}",
+            "domain": "all",
+            "stage": "digest",
+            "status": "ok",
+            "detail": "={{ \"Follow ups due: \" + ($('M3 Due today').isExecuted ? $('M3 Due today').all().length : 0) + \", digest sent\" }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "49f78875-410f-4b38-ad51-d88504db87d8",
+      "name": "M11 run_log digest",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        192
+      ]
+    }
+  ],
+  "pinData": {
+    "M1b Manual Trigger": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "M1b Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "M2 sequence_queue queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M2 sequence_queue queued": {
+      "main": [
+        [
+          {
+            "node": "M3a IF Nothing due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M1 Schedule 09:00": {
+      "main": [
+        [
+          {
+            "node": "M2 sequence_queue queued",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M3a IF Nothing due": {
+      "main": [
+        [
+          {
+            "node": "M9 Gemini Digest Writer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "M3 Due today",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M9 Gemini Digest Writer": {
+      "main": [
+        [
+          {
+            "node": "M10 Gmail Send digest",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "M11 run_log digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M3 Due today": {
+      "main": [
+        [
+          {
+            "node": "M4 Loop Over Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M5 Gmail check for reply": {
+      "main": [
+        [
+          {
+            "node": "M6 IF Did they reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M6 IF Did they reply": {
+      "main": [
+        [
+          {
+            "node": "M6a stop sequence replied",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "M7 Gmail Draft follow up",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M6a stop sequence replied": {
+      "main": [
+        [
+          {
+            "node": "M6b mark account replied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M6b mark account replied": {
+      "main": [
+        [
+          {
+            "node": "M4 Loop Over Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M4 Loop Over Due": {
+      "main": [
+        [
+          {
+            "node": "M9 Gemini Digest Writer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "M5 Gmail check for reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M7 Gmail Draft follow up": {
+      "main": [
+        [
+          {
+            "node": "M8 sequence_queue drafted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "M8 sequence_queue drafted": {
+      "main": [
+        [
+          {
+            "node": "M4 Loop Over Due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "71ee77ed-58a3-44c3-96a6-2f240ad0f1db",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "zUYbZNAjDQ3nPwYM",
+  "tags": []
+}
