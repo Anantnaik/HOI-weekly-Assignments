@@ -1,0 +1,1134 @@
+{
+  "name": "Content Engine Desk",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "f7ce3b85-8b6e-444a-8038-b06095759c70",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -3184,
+        80
+      ],
+      "webhookId": "507eb0e4-1abb-4b2d-b993-a5c5faa32101",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "jsCode": "const BRAND = 'Haus of Intelligence, HOI, runs a 14 week AI Architect Simulation cohort. Every Saturday we build one production grade n8n automation live with our operator community and hand over the JSON and the prompts. Audience: Indian founders, operators, and people learning to build and sell AI automation. We are practitioners, not motivational speakers.';\nconst trig = $('Telegram Trigger');\nlet m = {};\nlet b = {};\ntry { const t = trig.first().json; if (t && t.message) m = t.message; } catch (e) { m = {}; }\nif (!m.text) {\n  try { const w = $('Webhook, for the demo').first().json; b = (w && w.body) || {}; } catch (e) { b = {}; }\n}\nlet state = {};\ntry { const s = $json; if (s && s.chat_id) state = s; } catch (e) { state = {}; }\nconst chat_id = String((m.chat && m.chat.id) || b.chat_id || state.chat_id || '');\nconst savedEmail = String(state.email || b.email || '');\nconst pending = String(state.pending_idea || '');\nlet text = String(m.text || b.idea || b.text || '').trim();\nif (!text && !m.message_id) text = 'Why hiring a VA to do a repetitive task is usually the expensive option';\nconst base = {\n  run_id: 'POST-' + Date.now(),\n  chat_id: chat_id,\n  msg_key: String(m.message_id || b.message_id || ('manual-' + Date.now())),\n  sender: String((m.from && m.from.first_name) || 'there'),\n  brand: 'Haus of Intelligence',\n  brand_context: BRAND\n};\nfunction reply(lines, extra) {\n  return [{ json: Object.assign({}, base, extra || {}, { is_idea: false, messages: [{ seq: 1, kind: 'reply', text: lines.join('\\n') }], message_count: 1 }) }];\n}\nconst isEmail = /^[^\\s@]+@[^\\s@]+\\.[a-z]{2,}$/i.test(text);\nconst isCommand = text.charAt(0) === '/';\n\nif (isCommand || (text.length < 12 && !isEmail)) {\n  return reply(['CONTENT ENGINE DESK',\n    '',\n    'Send me one line of an idea. About forty seconds later you get six things back, one message each so you can copy them cleanly.',\n    '',\n    '1. A LinkedIn post that argues the case',\n    '2. Three hook options',\n    '3. An Instagram caption that shows one scene',\n    '4. A WhatsApp broadcast that gives one action',\n    '5. An image drawn for the post',\n    '6. The whole pack as a designed email',\n    '',\n    savedEmail ? ('Your pack goes to ' + savedEmail + '. Send the word email to change it.') : 'The first time, I will ask where to email the pack.',\n    '',\n    'Try this: Why most teams measure the wrong thing when they judge an automation'],\n    { email: savedEmail, pending_idea: pending });\n}\n\nif (text.toLowerCase() === 'email' || text.toLowerCase() === 'change email') {\n  return reply(['Send me the new email address on its own and I will use it from now on.'], { email: '', pending_idea: pending });\n}\n\nif (isEmail) {\n  if (!pending) {\n    return reply(['Saved. I will send every pack to ' + text + '.',\n      '',\n      'Now send me one line of an idea.'], { email: text, pending_idea: '' });\n  }\n  return [{ json: Object.assign({}, base, {\n    idea: pending.slice(0, 400),\n    email: text,\n    pending_idea: '',\n    is_idea: true\n  }) }];\n}\n\nif (text.length > 400) text = text.slice(0, 400);\n\nif (!savedEmail) {\n  return reply(['Got it: ' + text,\n    '',\n    'Where should I email the finished pack?',\n    'Reply with just the email address and I will build it straight away. I will remember it for next time.'],\n    { email: '', pending_idea: text });\n}\n\nreturn [{ json: Object.assign({}, base, { idea: text, email: savedEmail, pending_idea: '', is_idea: true }) }];"
+      },
+      "id": "ae6da66b-a24e-403a-ba25-f6ec25567116",
+      "name": "1 Read the idea",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2512,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "voice_rules"
+        },
+        "filters": {
+          "conditions": []
+        },
+        "returnAll": true
+      },
+      "id": "c2f4e360-07ee-47b2-95db-e7c50d0c24a6",
+      "name": "2 Load your voice rules",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -2032,
+        48
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "content_log"
+        },
+        "filters": {
+          "conditions": []
+        },
+        "limit": 10,
+        "orderBy": true,
+        "orderByColumn": "created_at"
+      },
+      "id": "7b9f8b0b-3952-4f3d-a812-f83fa13cb824",
+      "name": "3 Load what you posted before",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1808,
+        48
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('1 Read the idea').first().json;\nconst rules = $('2 Load your voice rules').all().map(r => r.json).filter(r => r && r.rule_id);\nif (!rules.length) throw new Error('The voice_rules table is empty. Without your rules this would write like every other AI tool, so it stops here.');\nconst style = rules.filter(r => r.rule_type === 'style');\nconst banned = rules.filter(r => r.rule_type === 'banned').map(r => String(r.rule).toLowerCase().trim()).filter(Boolean);\nconst forbid = rules.filter(r => r.rule_type === 'forbid').map(r => String(r.rule).trim());\nconst limits = {};\nfor (const r of rules.filter(x => x.rule_type === 'limit')) limits[String(r.platform)] = Number(r.max_chars) || 0;\nconst recent = $('3 Load what you posted before').all().map(r => r.json).filter(r => r && r.angle);\nif (recent.some(r => String(r.msg_key) === String(cfg.msg_key))) {\n  throw new Error('This exact message was already turned into content. Nothing is written twice.');\n}\nconst styleText = style.map(r => r.rule_id + '. ' + (String(r.platform) === 'all' ? '' : '[' + r.platform + ' only] ') + r.rule).join('\\n');\nconst avoid = recent.slice(0, 10).map(r => '- ' + r.angle).join('\\n') || '- nothing yet, this is the first post';\nreturn [{ json: Object.assign({}, cfg, {\n  style_text: styleText,\n  banned: banned,\n  forbid: forbid,\n  banned_text: banned.join(', '),\n  forbid_text: forbid.join(', '),\n  limit_linkedin: limits.linkedin || 2600,\n  limit_instagram: limits.instagram || 1800,\n  limit_whatsapp: limits.whatsapp || 700,\n  limit_hook: limits.hook || 140,\n  recent_angles: avoid,\n  rules_count: rules.length\n}) }];"
+      },
+      "id": "d670a94a-b592-40aa-aee1-981ce614b851",
+      "name": "4 Build the brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1584,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $('4 Build the brief').first().json;\nfunction textOf(nodeName) {\n  try {\n    const j = $(nodeName).first().json;\n    if (!j) return '';\n    const c = j.candidates && j.candidates[0];\n    const rest = c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text;\n    return String(rest || j.text || j.output || j.response || '');\n  } catch (e) { return ''; }\n}\nfunction parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) return null;\n  try { return JSON.parse(t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1')); } catch (err) { return null; }\n}\nconst angle = parse(textOf('5 Agent 1 Angle Finder')) || {};\nconst postOut = parse(textOf('6 Agent 2 LinkedIn Writer'));\nconst hooksOut = parse(textOf('7 Agent 3 Hook Doctor')) || {};\nconst repOut = parse(textOf('8 Agent 4 Repurposer'));\nconst degraded = [];\nif (!angle.angle) degraded.push('The Angle Finder did not return, so the post was written straight from your idea');\nif (!hooksOut.hooks) degraded.push('The Hook Doctor did not return, so there are no alternative hooks this time');\nif (!postOut || !postOut.post) throw new Error('The LinkedIn Writer did not return anything usable. That is almost always the Gemini free tier rate limit. Nothing was sent. Try again in a minute.');\nif (!repOut || (!repOut.instagram && !repOut.whatsapp)) throw new Error('The Repurposer did not return anything usable. That is almost always the Gemini free tier rate limit. Nothing was sent. Try again in a minute.');\nconst pieces = { linkedin: String(postOut.post || ''), instagram: String(repOut.instagram || ''), whatsapp: String(repOut.whatsapp || '') };\nconst hooks = (hooksOut.hooks || []).slice(0, 3).map(h => ({ hook: String(h.hook || ''), mechanism: String(h.mechanism || ''), why: String(h.why || '') }));\nconst banned = brief.banned || [];\nconst forbid = brief.forbid || [];\nconst lim = { linkedin: brief.limit_linkedin, instagram: brief.limit_instagram, whatsapp: brief.limit_whatsapp, hook: brief.limit_hook };\nconst SAFE_CAPS = ['HOI','GST','PPT','JSON','API','SEO','GEO','CRM','SOP','KPI','SAAS','HTML','PDF','MVP','ROI','MSME','INR','UPI','KYC','ERP','HTTP','OTP','LLM','TRUE','ONLY','THIS','THAT','WHAT'];\nfunction check(kind, text, cap) {\n  const out = [];\n  const t = String(text || '');\n  const low = t.toLowerCase();\n  const min = kind === 'hook' ? 12 : 60;\n  if (t.trim().length < min) { out.push(kind + ': empty or too short'); return out; }\n  if (cap && t.length > cap) out.push(kind + ': ' + t.length + ' characters, your limit is ' + cap);\n  for (const b of banned) if (b && low.indexOf(b) !== -1) out.push(kind + ': banned phrase ' + b);\n  if (forbid.indexOf('dash') !== -1 && /[—–]/.test(t)) out.push(kind + ': contains a dash character');\n  if (forbid.indexOf('hashtag') !== -1 && /#[A-Za-z]/.test(t)) out.push(kind + ': contains a hashtag');\n  if (forbid.indexOf('emoji') !== -1 && (/[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]/.test(t) || /[☀-➿⬀-⯿️]/.test(t))) out.push(kind + ': contains an emoji');\n  if (forbid.indexOf('placeholder') !== -1 && (/\\[[^\\]]{2,}\\]/.test(t) || t.indexOf('{{') !== -1)) out.push(kind + ': unfilled placeholder left in');\n  if (forbid.indexOf('question_opener') !== -1) { const tr = t.trim(); const i = tr.search(/[.!?]/); if (i !== -1 && tr.charAt(i) === '?') out.push(kind + ': opens with a question'); }\n  if (forbid.indexOf('all_caps_shout') !== -1) { const shout = (t.match(/\\b[A-Z]{4,}\\b/g) || []).filter(w => SAFE_CAPS.indexOf(w) === -1); if (shout.length) out.push(kind + ': shouting in capitals, ' + shout.slice(0, 3).join(', ')); }\n  return out;\n}\nfunction shingles(s) { const t = String(s || '').toLowerCase().match(/[a-z]+/g) || []; const o = {}; for (let i = 0; i + 4 <= t.length; i++) o[t.slice(i, i + 4).join(' ')] = 1; return o; }\nfunction overlap(a, b) { const A = shingles(a), B = shingles(b); const ka = Object.keys(A), kb = Object.keys(B); if (!ka.length || !kb.length) return 0; let hit = 0; for (const k of ka) if (B[k]) hit++; return hit / Math.min(ka.length, kb.length); }\nconst STOP = {};\n'the and for you your that this with from have has are was were will would can could not but they them their our ours when what which who why how all any each more most other some such than then there these those about into over under again once here very just also only own same too make makes made does doing done'.split(' ').forEach(w => { STOP[w] = 1; });\nfunction stem(w) { const sufs = ['ings', 'ing', 'ers', 'er', 'ed', 'es', 's']; for (const s of sufs) { if (w.length - s.length >= 4 && w.slice(-s.length) === s) return w.slice(0, -s.length); } return w; }\nfunction meaningSet(s) { const o = {}; (String(s || '').toLowerCase().match(/[a-z]{4,}/g) || []).forEach(w => { if (!STOP[w]) o[stem(w)] = 1; }); return o; }\nfunction meaningOverlap(a, b) { const A = meaningSet(a), B = meaningSet(b); const ka = Object.keys(A), kb = Object.keys(B); if (!ka.length || !kb.length) return 0; let h = 0; for (const k of ka) if (B[k]) h++; return h / Math.min(ka.length, kb.length); }\nfunction head(s) { return String(s || '').toLowerCase().replace(/\\s+/g, ' ').trim().slice(0, 70); }\nfunction norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\\s+/g, ' ').trim(); }\nfunction nums(s) { return (String(s || '').match(/\\b\\d+(?:[.,]\\d+)*\\b/g) || []); }\nconst allowed = nums(String(brief.idea || '') + ' ' + String(brief.brand_context || ''));\nfunction crossChecks(p, hk) {\n  const out = { linkedin: [], instagram: [], whatsapp: [], hooks: [] };\n  const ig = overlap(p.linkedin, p.instagram);\n  const wa = overlap(p.linkedin, p.whatsapp);\n  if (ig > 0.45) out.instagram.push('instagram: ' + Math.round(ig * 100) + ' percent of its phrasing is copied from the LinkedIn post');\n  if (wa > 0.6) out.whatsapp.push('whatsapp: ' + Math.round(wa * 100) + ' percent of its phrasing is copied from the LinkedIn post');\n  const igM = meaningOverlap(p.linkedin, p.instagram);\n  const waM = meaningOverlap(p.linkedin, p.whatsapp);\n  if (igM > 0.35) out.instagram.push('instagram: it is making the same argument as the post in different words, ' + Math.round(igM * 100) + ' percent of its meaning words come from the post. Its job is ONE CONCRETE SCENE, never an argument. Throw out the reasoning and describe one ordinary physical moment instead');\n  if (waM > 0.35) out.whatsapp.push('whatsapp: it is restating the post, ' + Math.round(waM * 100) + ' percent of its meaning words come from the post. Its job is ONE ACTION to take this week, never an argument. Throw out the reasoning and give one concrete step');\n  if (p.instagram && head(p.instagram) === head(p.linkedin)) out.instagram.push('instagram: opens with the same sentence as the LinkedIn post');\n  ['linkedin', 'instagram', 'whatsapp'].forEach(k => { const bad = nums(p[k]).filter(n => allowed.indexOf(n) === -1); if (bad.length) out[k].push(k + ': invented numbers that are not in your idea, ' + bad.slice(0, 4).join(', ')); });\n  if (p.whatsapp && p.whatsapp.indexOf('\\n') === -1) out.whatsapp.push('whatsapp: one solid block, it needs line breaks between ideas');\n  const postN = norm(p.linkedin);\n  (hk || []).forEach((h, i) => {\n    const tag = 'hook ' + (i + 1) + ': ';\n    const hn = norm(h.hook);\n    const bad = nums(h.hook).filter(n => allowed.indexOf(n) === -1);\n    if (bad.length) out.hooks.push(tag + 'invented number ' + bad.slice(0, 2).join(', '));\n    if (hn.length > 24 && postN.indexOf(hn.slice(0, 48)) !== -1) out.hooks.push(tag + 'this sentence is already in the post, a hook must be an alternative and not a copy');\n    else if (overlap(h.hook, String(p.linkedin || '').slice(0, 300)) > 0.3) out.hooks.push(tag + 'too close to the opening the post already has');\n    for (let j = 0; j < i; j++) { if (overlap(h.hook, hk[j].hook) > 0.45 || meaningOverlap(h.hook, hk[j].hook) > 0.55) { out.hooks.push(tag + 'makes the same point as hook ' + (j + 1)); break; } }\n  });\n  return out;\n}\nlet violations = [];\nviolations = violations.concat(check('linkedin', pieces.linkedin, lim.linkedin));\nviolations = violations.concat(check('instagram', pieces.instagram, lim.instagram));\nviolations = violations.concat(check('whatsapp', pieces.whatsapp, lim.whatsapp));\nhooks.forEach((h, i) => { violations = violations.concat(check('hook', h.hook, lim.hook).map(v => v.replace('hook:', 'hook ' + (i + 1) + ':'))); });\nconst cx = crossChecks(pieces, hooks);\nviolations = violations.concat(cx.linkedin, cx.instagram, cx.whatsapp, cx.hooks);\nreturn [{ json: Object.assign({}, brief, { angle: angle, pieces: pieces, hooks: hooks, pass1_violations: violations, pass1_count: violations.length, pass1_text: violations.length ? violations.join('\\n') : 'none, it came back clean', degraded: degraded }) }];"
+      },
+      "id": "e0951314-3268-4528-95d9-761ac7d84071",
+      "name": "9 Check against your rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('9 Check against your rules').first().json;\nfunction parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) return null;\n  try { return JSON.parse(t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1')); } catch (err) { return null; }\n}\nconst cand = $json && $json.candidates && $json.candidates[0];\nconst rawGuard = (cand && cand.content && cand.content.parts && cand.content.parts[0] && cand.content.parts[0].text) || ($json && ($json.text || $json.output || $json.response)) || '';\nconst guard = parse(rawGuard);\nconst notes = [];\nlet pieces, hooks, changes;\nif (!guard || !guard.linkedin) {\n  pieces = base.pieces; hooks = base.hooks; changes = [];\n  notes.push('The Voice Guard did not return, so the first pass versions were kept and checked again on their own. Usually the Gemini free tier rate limit.');\n} else {\n  pieces = { linkedin: String(guard.linkedin || ''), instagram: String(guard.instagram || base.pieces.instagram), whatsapp: String(guard.whatsapp || base.pieces.whatsapp) };\n  hooks = (Array.isArray(guard.hooks) && guard.hooks.length) ? guard.hooks.slice(0, 3).map(h => ({ hook: String(h.hook || ''), mechanism: String(h.mechanism || ''), why: String(h.why || '') })) : base.hooks;\n  changes = Array.isArray(guard.changes) ? guard.changes : [];\n}\nconst banned = base.banned || [];\nconst forbid = base.forbid || [];\nconst lim = { linkedin: base.limit_linkedin, instagram: base.limit_instagram, whatsapp: base.limit_whatsapp, hook: base.limit_hook };\nconst SAFE_CAPS = ['HOI','GST','PPT','JSON','API','SEO','GEO','CRM','SOP','KPI','SAAS','HTML','PDF','MVP','ROI','MSME','INR','UPI','KYC','ERP','HTTP','OTP','LLM','TRUE','ONLY','THIS','THAT','WHAT'];\nfunction check(kind, text, cap) {\n  const out = [];\n  const t = String(text || '');\n  const low = t.toLowerCase();\n  const min = kind === 'hook' ? 12 : 60;\n  if (t.trim().length < min) { out.push(kind + ': empty or too short'); return out; }\n  if (cap && t.length > cap) out.push(kind + ': ' + t.length + ' characters, your limit is ' + cap);\n  for (const b of banned) if (b && low.indexOf(b) !== -1) out.push(kind + ': banned phrase ' + b);\n  if (forbid.indexOf('dash') !== -1 && /[—–]/.test(t)) out.push(kind + ': contains a dash character');\n  if (forbid.indexOf('hashtag') !== -1 && /#[A-Za-z]/.test(t)) out.push(kind + ': contains a hashtag');\n  if (forbid.indexOf('emoji') !== -1 && (/[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]/.test(t) || /[☀-➿⬀-⯿️]/.test(t))) out.push(kind + ': contains an emoji');\n  if (forbid.indexOf('placeholder') !== -1 && (/\\[[^\\]]{2,}\\]/.test(t) || t.indexOf('{{') !== -1)) out.push(kind + ': unfilled placeholder left in');\n  if (forbid.indexOf('question_opener') !== -1) { const tr = t.trim(); const i = tr.search(/[.!?]/); if (i !== -1 && tr.charAt(i) === '?') out.push(kind + ': opens with a question'); }\n  if (forbid.indexOf('all_caps_shout') !== -1) { const shout = (t.match(/\\b[A-Z]{4,}\\b/g) || []).filter(w => SAFE_CAPS.indexOf(w) === -1); if (shout.length) out.push(kind + ': shouting in capitals, ' + shout.slice(0, 3).join(', ')); }\n  return out;\n}\nfunction shingles(s) { const t = String(s || '').toLowerCase().match(/[a-z]+/g) || []; const o = {}; for (let i = 0; i + 4 <= t.length; i++) o[t.slice(i, i + 4).join(' ')] = 1; return o; }\nfunction overlap(a, b) { const A = shingles(a), B = shingles(b); const ka = Object.keys(A), kb = Object.keys(B); if (!ka.length || !kb.length) return 0; let hit = 0; for (const k of ka) if (B[k]) hit++; return hit / Math.min(ka.length, kb.length); }\nconst STOP = {};\n'the and for you your that this with from have has are was were will would can could not but they them their our ours when what which who why how all any each more most other some such than then there these those about into over under again once here very just also only own same too make makes made does doing done'.split(' ').forEach(w => { STOP[w] = 1; });\nfunction stem(w) { const sufs = ['ings', 'ing', 'ers', 'er', 'ed', 'es', 's']; for (const s of sufs) { if (w.length - s.length >= 4 && w.slice(-s.length) === s) return w.slice(0, -s.length); } return w; }\nfunction meaningSet(s) { const o = {}; (String(s || '').toLowerCase().match(/[a-z]{4,}/g) || []).forEach(w => { if (!STOP[w]) o[stem(w)] = 1; }); return o; }\nfunction meaningOverlap(a, b) { const A = meaningSet(a), B = meaningSet(b); const ka = Object.keys(A), kb = Object.keys(B); if (!ka.length || !kb.length) return 0; let h = 0; for (const k of ka) if (B[k]) h++; return h / Math.min(ka.length, kb.length); }\nfunction head(s) { return String(s || '').toLowerCase().replace(/\\s+/g, ' ').trim().slice(0, 70); }\nfunction norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\\s+/g, ' ').trim(); }\nfunction nums(s) { return (String(s || '').match(/\\b\\d+(?:[.,]\\d+)*\\b/g) || []); }\nconst allowed = nums(String(base.idea || '') + ' ' + String(base.brand_context || ''));\nconst pass2 = { linkedin: [], instagram: [], whatsapp: [] };\npass2.linkedin = check('linkedin', pieces.linkedin, lim.linkedin);\npass2.instagram = check('instagram', pieces.instagram, lim.instagram);\npass2.whatsapp = check('whatsapp', pieces.whatsapp, lim.whatsapp);\nconst igOv = overlap(pieces.linkedin, pieces.instagram);\nconst waOv = overlap(pieces.linkedin, pieces.whatsapp);\nconst igM = meaningOverlap(pieces.linkedin, pieces.instagram);\nconst waM = meaningOverlap(pieces.linkedin, pieces.whatsapp);\nif (igOv > 0.45) pass2.instagram.push('instagram: still ' + Math.round(igOv * 100) + ' percent copied from the post after two attempts');\nif (waOv > 0.6) pass2.whatsapp.push('whatsapp: still ' + Math.round(waOv * 100) + ' percent copied from the post after two attempts');\nif (pieces.instagram && head(pieces.instagram) === head(pieces.linkedin)) pass2.instagram.push('instagram: still opens with the same sentence as the post');\n['linkedin', 'instagram', 'whatsapp'].forEach(k => { const bad = nums(pieces[k]).filter(n => allowed.indexOf(n) === -1); if (bad.length) pass2[k].push(k + ': invented numbers not in your idea, ' + bad.slice(0, 4).join(', ')); });\nif (pieces.whatsapp && pieces.whatsapp.indexOf('\\n') === -1) pass2.whatsapp.push('whatsapp: still one solid block with no line breaks');\nconst sameArgument = [];\nif (igM > 0.35) sameArgument.push('the caption is still making the post argument, ' + Math.round(igM * 100) + ' percent shared meaning');\nif (waM > 0.35) sameArgument.push('the broadcast is still restating the post, ' + Math.round(waM * 100) + ' percent shared meaning');\nconst postN = norm(pieces.linkedin);\nconst keptHooks = [];\nconst droppedHooks = [];\nhooks.forEach((h, i) => {\n  const tag = 'hook ' + (i + 1) + ': ';\n  const v = check('hook', h.hook, lim.hook).map(x => x.replace('hook:', tag.trim()));\n  const bad = nums(h.hook).filter(n => allowed.indexOf(n) === -1);\n  if (bad.length) v.push(tag + 'invented number ' + bad.slice(0, 2).join(', '));\n  const hn = norm(h.hook);\n  if (hn.length > 24 && postN.indexOf(hn.slice(0, 48)) !== -1) v.push(tag + 'still a sentence copied from the post');\n  else if (overlap(h.hook, String(pieces.linkedin || '').slice(0, 300)) > 0.3) v.push(tag + 'still too close to the opening the post already has');\n  for (let j = 0; j < keptHooks.length; j++) { if (overlap(h.hook, keptHooks[j].hook) > 0.45 || meaningOverlap(h.hook, keptHooks[j].hook) > 0.55) { v.push(tag + 'makes the same point as another hook'); break; } }\n  if (v.length) droppedHooks.push(v[0]); else keptHooks.push(h);\n});\nconst thrown = [];\nconst kept = {};\n['linkedin', 'instagram', 'whatsapp'].forEach(k => { if (pass2[k].length) thrown.push(pass2[k][0]); else kept[k] = pieces[k]; });\nconst fixedCount = Math.max(0, (base.pass1_count || 0) - thrown.length - droppedHooks.length - sameArgument.length);\nconst a = base.angle || {};\nlet score = 100;\nconst deductions = [];\nif (thrown.length) { score -= thrown.length * 15; deductions.push(thrown.length + ' piece thrown away, minus ' + (thrown.length * 15)); }\nif (droppedHooks.length) { score -= droppedHooks.length * 6; deductions.push(droppedHooks.length + ' hook dropped, minus ' + (droppedHooks.length * 6)); }\nif (sameArgument.length) { score -= sameArgument.length * 12; deductions.push(sameArgument.length + ' piece still repeating the post, minus ' + (sameArgument.length * 12)); }\nconst firstPassPenalty = Math.min(18, (base.pass1_count || 0) * 3);\nif (firstPassPenalty) { score -= firstPassPenalty; deductions.push((base.pass1_count || 0) + ' rules broken on the first pass, minus ' + firstPassPenalty); }\nconst ovPenalty = Math.round(Math.max(0, igOv - 0.15) * 40) + Math.round(Math.max(0, waOv - 0.25) * 25);\nif (ovPenalty) { score -= ovPenalty; deductions.push('pieces share too much phrasing, minus ' + ovPenalty); }\nif (!a.angle) { score -= 10; deductions.push('no angle was found, minus 10'); }\nscore = Math.max(0, Math.min(100, score));\nconst status = (kept.linkedin && kept.instagram && kept.whatsapp && keptHooks.length === 3 && !sameArgument.length) ? 'shipped' : ((kept.linkedin || kept.instagram || kept.whatsapp) ? 'partial' : 'nothing_passed');\nconst order = [];\nlet n = 2;\nif (kept.linkedin) { order.push(n + '. LinkedIn post, the argument, ' + kept.linkedin.length + ' characters'); n++; }\nif (keptHooks.length) { order.push(n + '. ' + keptHooks.length + ' hook options'); n++; }\nif (kept.instagram) { order.push(n + '. Instagram caption, one scene, ' + kept.instagram.length + ' characters'); n++; }\nif (kept.whatsapp) { order.push(n + '. WhatsApp broadcast, one action, ' + kept.whatsapp.length + ' characters'); n++; }\norder.push(n + '. The image, drawn for this post');\nconst report = ['CONTENT ENGINE DESK',\n  '',\n  'Your idea: ' + base.idea,\n  '',\n  'Angle chosen: ' + (a.angle || 'written straight from your idea'),\n  'Why this angle: ' + (a.angle_why || 'not given'),\n  '',\n  'CONTENT SCORE: ' + score + ' of 100',\n  deductions.length ? 'Deductions: ' + deductions.join('; ') : 'No deductions. Everything passed on the first pass.',\n  '',\n  'THREE DIFFERENT JOBS, not three rewordings',\n  'The post argues the case. The caption shows one scene. The broadcast gives one action.',\n  'Shared phrasing: caption ' + Math.round(igOv * 100) + ' percent, broadcast ' + Math.round(waOv * 100) + ' percent.',\n  'Shared meaning: caption ' + Math.round(igM * 100) + ' percent, broadcast ' + Math.round(waM * 100) + ' percent. Anything over 35 is flagged as repeating the post.',\n  sameArgument.length ? 'STILL REPEATING: ' + sameArgument.join('; ') : 'None of the pieces is repeating another.',\n  '',\n  'Six agents ran: Angle Finder, LinkedIn Writer, Hook Doctor, Repurposer, Voice Guard, Art Director.',\n  'Checked against ' + base.rules_count + ' rules in your voice_rules table.',\n  'The first pass broke ' + (base.pass1_count || 0) + ' rules. The Voice Guard fixed ' + fixedCount + '.',\n  (thrown.length || droppedHooks.length) ? 'Thrown away after failing twice: ' + thrown.concat(droppedHooks).join(' | ') : 'Nothing was thrown away.',\n  changes.length ? 'What the Voice Guard changed: ' + changes.slice(0, 3).join('; ') : '',\n  (base.degraded || []).length ? 'Degraded: ' + base.degraded.join('; ') : '',\n  notes.length ? 'Note: ' + notes.join(' ') : '',\n  '',\n  order.length ? 'Coming next, one message each so you can copy them one by one:' : 'Nothing passed the rules twice, so nothing was sent. Send the idea again.',\n  order.join('\\n')\n].filter(x => x !== '').join('\\n').slice(0, 3800);\nconst messages = [{ seq: 1, kind: 'report', text: report }];\nlet seq = 2;\nif (kept.linkedin) messages.push({ seq: seq++, kind: 'linkedin', text: kept.linkedin });\nif (keptHooks.length) messages.push({ seq: seq++, kind: 'hooks', text: ('HOOK OPTIONS, swap the first line of the post\\n\\n' + keptHooks.map((h, i) => (i + 1) + '. ' + h.hook + '\\n   (' + (h.mechanism || 'option') + ') ' + (h.why || '')).join('\\n\\n')).slice(0, 3800) });\nif (kept.instagram) messages.push({ seq: seq++, kind: 'instagram', text: kept.instagram });\nif (kept.whatsapp) messages.push({ seq: seq++, kind: 'whatsapp', text: kept.whatsapp });\nreturn [{ json: {\n  run_id: base.run_id, chat_id: base.chat_id, msg_key: base.msg_key, idea: base.idea,\n  angle_text: a.angle || '', rules_count: base.rules_count,\n  linkedin: kept.linkedin || '', instagram: kept.instagram || '', whatsapp: kept.whatsapp || '',\n  hooks_text: keptHooks.map(h => h.hook).join(' || '),\n  status: status, content_score: score, pass1_count: base.pass1_count || 0, fixed_count: fixedCount,\n  overlap_instagram: Math.round(igOv * 100), overlap_whatsapp: Math.round(waOv * 100),\n  meaning_instagram: Math.round(igM * 100), meaning_whatsapp: Math.round(waM * 100),\n  thrown: thrown.concat(droppedHooks), same_argument: sameArgument, guard_changes: changes,\n  notes_text: ('score ' + score + ' | ' + notes.concat(base.degraded || []).concat(thrown).concat(droppedHooks).concat(sameArgument).join(' | ')).slice(0, 900),\n  messages: messages, message_count: messages.length\n} }];"
+      },
+      "id": "51bd32dc-fe29-472f-a54b-9725c0baec29",
+      "name": "11 Final check and pack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -16,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "content_log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "post_id": "={{ $json.run_id }}",
+            "created_at": "={{ $now.toISO() }}",
+            "chat_id": "={{ $json.chat_id }}",
+            "msg_key": "={{ $json.msg_key }}",
+            "idea": "={{ $json.idea }}",
+            "angle": "={{ $json.angle_text }}",
+            "hooks": "={{ $json.hooks_text }}",
+            "linkedin": "={{ $json.linkedin }}",
+            "instagram": "={{ $json.instagram }}",
+            "whatsapp": "={{ $json.whatsapp }}",
+            "status": "={{ $json.status }}",
+            "notes": "={{ $json.notes_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "post_id",
+              "displayName": "post_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "msg_key",
+              "displayName": "msg_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "idea",
+              "displayName": "idea",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "angle",
+              "displayName": "angle",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "hooks",
+              "displayName": "hooks",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin",
+              "displayName": "linkedin",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "instagram",
+              "displayName": "instagram",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "whatsapp",
+              "displayName": "whatsapp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4a3795a3-d58c-4148-a41f-0ce358966600",
+      "name": "14 Log it so it never repeats",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "messages",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "id": "9d2b78c5-c501-4bf0-b2b1-71e968cdbe4f",
+      "name": "12 Split the messages",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        208,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.messages.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "f629bec2-9c9c-4c60-a1e4-1906ef8d1166",
+      "name": "13 Send it back on Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "webhookId": "8b0e8bc4-77dd-4101-8719-51ba03321e4a",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oiae9gEdzKAXX9kV",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "id": "24f9ee56-688a-4475-a9f8-ee38c100615a",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3184,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content",
+        "options": {}
+      },
+      "id": "d1856efc-c801-4bea-91d5-9ccca4a53b43",
+      "name": "Webhook, for the demo",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -3184,
+        464
+      ],
+      "webhookId": "d6fecf92-3f4f-4f46-a6a4-86f1cd26ca82"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.85, topP: 0.95, topK: 40, maxOutputTokens: 1024, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"You find the sharpest angle on a rough idea. Most content is boring because the angle is boring, not because the idea is.\\n\\nRULES\\n- The angle must be ONE complete, grammatical sentence stating one claim. Read it back to yourself. If it does not make literal sense in plain English, throw it away and write another one.\\n- Never use the shape A over B unless A and B are genuine opposites. Complexity over fragility is nonsense. Complexity over reliability is a claim.\\n- It must be arguable. If nobody could disagree with it, it is not an angle.\\n- Do NOT repeat or rephrase any angle listed under ALREADY USED. Find a different way in.\\n- Never invent a statistic, a date, a client name, a product name or a story. one_proof_needed names what proof would be needed, it never supplies it.\\n- Never write an em dash or en dash.\\n\\nReturn ONLY valid JSON with keys: angle, angle_why, who_it_is_for, the_claim, one_proof_needed, what_to_avoid.\\n\\nBRAND:\\n\" + $json.brand_context + \"\\n\\nTHE IDEA:\\n\" + $json.idea + \"\\n\\nALREADY USED, do not repeat these:\\n\" + $json.recent_angles }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "fdbc2040-1d7c-4fff-bcaf-95c16317232c",
+      "name": "5 Agent 1 Angle Finder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1360,
+        48
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.75, topP: 0.95, topK: 40, maxOutputTokens: 2048, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"Write one LinkedIn post in the voice described below. A validator checks it mechanically straight after you, so follow every rule exactly.\\n\\nVOICE RULES, follow all of them:\\n\" + $('4 Build the brief').first().json.style_text + \"\\n\\nHOW TO USE THE ANGLE\\nThe angle is your thesis. It is NOT your opening line. Never open the post by restating the angle, and never open with a reworded version of it. Open with something concrete, a situation, an observation or a consequence, and let the angle become obvious by the third or fourth line.\\n\\nHARD RULES\\n- Maximum \" + $('4 Build the brief').first().json.limit_linkedin + \" characters including line breaks.\\n- NEVER invent a number, a date, a client name, a product name or a specific story. The validator rejects any digit that does not appear in THE IDEA below. If you have no real example, make the point without one.\\n- Every claim must be one you could defend without data you were not given.\\n- Never use any of these words or phrases: \" + $('4 Build the brief').first().json.banned_text + \"\\n- No emojis. No hashtags. No em dash or en dash. No square bracket placeholders. No shouting in capitals.\\n- Do not open with a question.\\n\\nReturn ONLY valid JSON with keys: post, opening_two_lines, word_count.\\n\\nBRAND:\\n\" + $('4 Build the brief').first().json.brand_context + \"\\n\\nTHE IDEA:\\n\" + $('4 Build the brief').first().json.idea + \"\\n\\nTHE ANGLE TO ARGUE, do not quote it:\\n\" + (($json.candidates && $json.candidates[0] && $json.candidates[0].content.parts[0].text) || \"No angle was returned. Write straight from the idea.\") }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "b9657c67-ad1d-4067-840a-99deca9d1bd3",
+      "name": "6 Agent 2 LinkedIn Writer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1136,
+        48
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.95, topP: 0.95, topK: 40, maxOutputTokens: 1024, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"The post below ALREADY HAS an opening line. Your job is to offer three BETTER alternatives to it, and say in one line why each would work.\\n\\nABSOLUTE RULE, the validator rejects these automatically\\n- Never return a sentence that already appears anywhere in the post. A hook that copies the post is worthless, the owner already has it.\\n- The three hooks must be different from each other, not three rewordings of one idea.\\n\\nUSE THESE THREE MECHANISMS, one each\\n1. A specific concrete detail or comparison.\\n2. A flat contradiction of what the reader expects.\\n3. A small real moment, something that happened.\\n\\nHARD RULES\\n- Each hook is at most \" + $('4 Build the brief').first().json.limit_hook + \" characters.\\n- Never a question. Never any of these: \" + $('4 Build the brief').first().json.banned_text + \"\\n- NEVER invent a number, a date or a name. The validator rejects any digit that is not in the idea.\\n- No emojis, no hashtags, no em dash or en dash.\\n\\nReturn ONLY valid JSON with key hooks, an array of exactly three objects each with hook, mechanism and why.\\n\\nVOICE RULES:\\n\" + $('4 Build the brief').first().json.style_text + \"\\n\\nTHE IDEA:\\n\" + $('4 Build the brief').first().json.idea + \"\\n\\nTHE POST, whose opening you must beat and must not copy:\\n\" + (($json.candidates && $json.candidates[0] && $json.candidates[0].content.parts[0].text) || $('4 Build the brief').first().json.idea) }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "87ebacd4-a3bb-4d09-a795-59c324a49445",
+      "name": "7 Agent 3 Hook Doctor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -912,
+        48
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.9, topP: 0.95, topK: 40, maxOutputTokens: 2048, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"A long form post already exists that ARGUES the angle below. You have deliberately not been shown it.\\n\\nYour two pieces must do COMPLETELY DIFFERENT JOBS from that post and from each other. If all three pieces argue the same case, the owner has been handed the same thing three times and the work is worthless. This is the single most important instruction here.\\n\\nINSTAGRAM CAPTION, the job is ONE CONCRETE SCENE\\n- Do NOT argue the case. Do NOT explain the angle. Do NOT list reasons.\\n- Pick one specific, ordinary, physical moment where this problem shows up, and describe it. A desk, a screen, a Monday morning, a message that arrives, a thing someone does with their hands.\\n- Stay inside that one moment for most of the caption. Let the reader draw the conclusion themselves.\\n- End with one short line that names what the moment was really about.\\n- Maximum \" + $('4 Build the brief').first().json.limit_instagram + \" characters. First line must work alone.\\n\\nWHATSAPP BROADCAST, the job is ONE ACTION\\n- Do NOT argue the case either. These people already agree with you.\\n- Give them exactly one thing to DO this week. Name the step. Say what they will see once they have done it.\\n- Practical and instructional, like a note from someone who has done it.\\n- Maximum \" + $('4 Build the brief').first().json.limit_whatsapp + \" characters. No greeting, no sign off. Use line breaks, at least two short paragraphs.\\n\\nSO, TO BE EXPLICIT\\nThe post argues. The caption shows one scene. The broadcast gives one instruction. Three different jobs. If your caption contains the words because, therefore, costs, or a list of reasons, you have written an argument and you must start again.\\n\\nHARD RULES FOR BOTH\\n- NEVER invent a number, a date, a client name or a product name. The validator rejects any digit that is not in THE IDEA below.\\n- Never any of these: \" + $('4 Build the brief').first().json.banned_text + \"\\n- No emojis, no hashtags, no em dash or en dash, no square bracket placeholders. Do not open with a question.\\n\\nReturn ONLY valid JSON with keys: instagram, whatsapp, instagram_scene, whatsapp_action.\\ninstagram_scene is three words naming the scene you chose. whatsapp_action is three words naming the action you gave.\\n\\nVOICE RULES:\\n\" + $('4 Build the brief').first().json.style_text + \"\\n\\nTHE IDEA:\\n\" + $('4 Build the brief').first().json.idea + \"\\n\\nTHE ANGLE:\\n\" + (($('5 Agent 1 Angle Finder').first().json.candidates && $('5 Agent 1 Angle Finder').first().json.candidates[0].content.parts[0].text) || $('4 Build the brief').first().json.idea) }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "6e1cc3e0-77f8-4a1f-b04b-b3bb8f1efd7b",
+      "name": "8 Agent 4 Repurposer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -688,
+        48
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.5, topP: 0.9, topK: 20, maxOutputTokens: 3072, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"You are the last pass before anything reaches the owner. A validator has already checked these pieces. Below are the exact violations it found.\\n\\nTHE THREE PIECES HAVE THREE DIFFERENT JOBS. Hold this in mind above everything else.\\n- The LinkedIn post ARGUES the case.\\n- The Instagram caption shows ONE CONCRETE SCENE and never argues.\\n- The WhatsApp broadcast gives ONE ACTION to take this week and never argues.\\nIf two of them are making the same case in different words, the owner has been handed the same thing twice. That is the worst failure here.\\n\\nYOUR JOB\\n1. Fix every violation listed.\\n2. If a violation says two pieces say the same thing, REWRITE the offending piece to do its own job. For the caption that means throwing out the reasoning and describing one ordinary physical moment instead. For the broadcast that means throwing out the reasoning and giving one concrete step to take this week. Rewording is what caused the violation, so rewording will not clear it.\\n3. If a violation names an invented number, DELETE it and rephrase. Never swap in another invented number.\\n4. If a violation says one solid block, add line breaks.\\n5. Return all three pieces and all three hooks, fixed or unchanged. Never return an empty field.\\n6. In changes, say in plain words what you altered.\\n\\nHARD RULES, the validator runs again and anything still failing is thrown away\\n- linkedin at most \" + $json.limit_linkedin + \" characters, instagram at most \" + $json.limit_instagram + \", whatsapp at most \" + $json.limit_whatsapp + \", each hook at most \" + $json.limit_hook + \".\\n- No digit may appear anywhere unless it appears in THE IDEA.\\n- No hook may repeat a sentence from the post or another hook.\\n- Never any of these: \" + $json.banned_text + \"\\n- Forbidden entirely: \" + $json.forbid_text + \".\\n\\nReturn ONLY valid JSON with keys: linkedin, instagram, whatsapp, hooks (array of three objects with hook, mechanism, why), changes (array of strings).\\n\\nTHE IDEA:\\n\" + $json.idea + \"\\n\\nVOICE RULES:\\n\" + $json.style_text + \"\\n\\nVIOLATIONS THE VALIDATOR FOUND:\\n\" + $json.pass1_text + \"\\n\\nTHE CURRENT PIECES:\\n\" + JSON.stringify({ linkedin: $json.pieces.linkedin, instagram: $json.pieces.instagram, whatsapp: $json.pieces.whatsapp, hooks: $json.hooks }) }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "e2068796-1bc9-462b-bf43-68fb8bca9c8d",
+      "name": "10 Agent 5 Voice Guard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -240,
+        48
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "isidea",
+              "leftValue": "={{ $('1 Read the idea').first().json.is_idea }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "02989d49-dd0f-49db-986c-e10cc52ccd5c",
+      "name": "1b Is this a real idea",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2272,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.8, topP: 0.95, topK: 40, maxOutputTokens: 1024, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"You are an art director. Write the brief for ONE image that will sit above the social post below.\\n\\nWHAT MAKES THIS IMAGE WORK\\n- It must carry the IDEA visually, not decorate it. A reader who sees only the image should feel the tension in the post.\\n- Concrete over abstract. A real object, a real scene, a real contrast. Never a glowing brain, never a robot, never a handshake, never floating icons.\\n- One subject. One clear focal point. Clean empty space in the upper third so text can sit there.\\n- Style: editorial photography or clean flat vector. Muted palette with one strong accent colour. No stock photo gloss.\\n\\nRULES\\n- image_prompt is one rich paragraph describing subject, composition, lighting, palette and mood. Describe only what is visible.\\n- Put NO text, words, letters or numbers in the image. State that explicitly at the end of image_prompt.\\n- overlay_text is at most six words the owner could place on it themselves. Never a hashtag.\\n- alt_text is one plain sentence describing the image for a screen reader.\\n- Never write an em dash or en dash.\\n\\nReturn ONLY valid JSON with keys: image_prompt, overlay_text, alt_text, why_this_image.\\n\\nTHE IDEA:\\n\" + $json.idea + \"\\n\\nTHE ANGLE:\\n\" + $json.angle_text + \"\\n\\nTHE POST:\\n\" + $json.linkedin }] }] }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "ec61d3d6-8dba-402d-92ab-1e7a31666ed6",
+      "name": "15 Agent 6 Art Director",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        416
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 4000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { responseModalities: [\"TEXT\", \"IMAGE\"] }, contents: [{ role: \"user\", parts: [{ text: $json.image_prompt }] }] }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "3550d2b5-c923-4917-af6e-64081966a67a",
+      "name": "16 Draw the image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        656,
+        416
+      ],
+      "retryOnFail": false,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('15b Read the image brief').first().json;\nconst c = $json && $json.candidates && $json.candidates[0];\nconst parts = (c && c.content && c.content.parts) || [];\nlet img = null;\nfor (const p of parts) {\n  const d = p.inlineData || p.inline_data;\n  if (d && d.data) { img = d; break; }\n}\nconst caption = [\n  base.overlay_text ? 'Suggested overlay: ' + base.overlay_text : '',\n  base.why_this_image ? 'Why this image: ' + base.why_this_image : '',\n  base.alt_text ? 'Alt text: ' + base.alt_text : ''\n].filter(Boolean).join('\\n').slice(0, 1000);\nif (!img) {\n  return [{ json: Object.assign({}, base, { image_ok: false, image_caption: caption, image_note: 'The image model returned no picture. The written content is unaffected.' }) }];\n}\nconst buf = Buffer.from(img.data, 'base64');\nconst bin = await this.helpers.prepareBinaryData(buf, 'post-image.png', img.mimeType || img.mime_type || 'image/png');\nreturn [{ json: Object.assign({}, base, { image_ok: true, image_caption: caption, image_bytes: buf.length }), binary: { image: bin } }];"
+      },
+      "id": "de1fd2d5-b7b3-4cc4-b6cd-cd914671b738",
+      "name": "17 Turn it into a file",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $json.chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "image",
+        "additionalFields": {
+          "caption": "={{ $json.image_caption }}",
+          "fileName": "post-image.png"
+        }
+      },
+      "id": "e4ed4fb5-106e-4d28-ad55-d8b762a5d43a",
+      "name": "18 Send the image",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1104,
+        288
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "webhookId": "caa7ccf7-fc8b-42d9-8485-38f214f4cb6b",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('11 Final check and pack').first().json;\nfunction parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) return null;\n  try { return JSON.parse(t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1')); } catch (err) { return null; }\n}\nconst c = $json && $json.candidates && $json.candidates[0];\nconst brief = parse(c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text) || {};\nconst fallback = 'A clean editorial photograph expressing this idea. One clear subject, muted palette with a single accent colour, generous empty space in the upper third, shallow depth of field, natural light. No text, no letters and no numbers anywhere in the image. The idea: ' + base.idea;\nreturn [{ json: Object.assign({}, base, {\n  image_prompt: String(brief.image_prompt || fallback),\n  overlay_text: String(brief.overlay_text || ''),\n  alt_text: String(brief.alt_text || ''),\n  why_this_image: String(brief.why_this_image || ''),\n  art_director_ok: brief.image_prompt ? true : false\n}) }];"
+      },
+      "id": "510f1e94-8226-413d-860b-5bb425107550",
+      "name": "15b Read the image brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "chat_state"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $json.message ? String($json.message.chat.id) : String(($json.body && $json.body.chat_id) || 'none') }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "dc289281-2a98-40f1-8a2a-48cb873e1e8c",
+      "name": "0 Load chat state",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -2752,
+        272
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "chat_state"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "chat_id",
+              "keyValue": "={{ $json.chat_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "chat_id"
+          ],
+          "schema": [
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "chat_id",
+              "id": "chat_id",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "email",
+              "id": "email",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "pending_idea",
+              "id": "pending_idea",
+              "required": false,
+              "type": "string"
+            },
+            {
+              "canBeUsedToMatch": true,
+              "defaultMatch": false,
+              "display": true,
+              "displayName": "updated_at",
+              "id": "updated_at",
+              "required": false,
+              "type": "dateTime"
+            }
+          ],
+          "value": {
+            "chat_id": "={{ $json.chat_id }}",
+            "email": "={{ $json.email }}",
+            "pending_idea": "={{ $json.pending_idea }}",
+            "updated_at": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "6c3fdbf3-3bcb-4f19-a1f2-88efdc78480d",
+      "name": "1c Remember this chat",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -2272,
+        352
+      ],
+      "executeOnce": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $json;\nconst pack = $('11 Final check and pack').first().json;\nconst brief = $('1 Read the idea').first().json;\nconst to = String(brief.email || '').trim();\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst para = s => esc(s).split(/\\n{2,}/).map(p => '<p style=\"margin:0 0 14px;line-height:1.65\">' + p.replace(/\\n/g, '<br>') + '</p>').join('');\nconst CREAM = '#F4F5F0', INK = '#111111', LIME = '#C8F135', FOREST = '#1B7E42', MUTED = '#6B6B6B';\nfunction card(label, meta, body, accent) {\n  return '<tr><td style=\"padding:0 28px 22px\">' +\n    '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px solid #E4E5DF;border-radius:14px\">' +\n    '<tr><td style=\"padding:18px 22px 10px;border-bottom:1px solid #F0F1EC\">' +\n    '<span style=\"display:inline-block;background:' + accent + ';color:#111;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:5px 11px;border-radius:999px\">' + esc(label) + '</span>' +\n    '<span style=\"color:' + MUTED + ';font-size:12px;margin-left:10px\">' + esc(meta) + '</span>' +\n    '</td></tr>' +\n    '<tr><td style=\"padding:18px 22px 6px;font-size:15px;color:#1a1a1a\">' + body + '</td></tr>' +\n    '</table></td></tr>';\n}\nconst hooks = String(pack.hooks_text || '').split(' || ').filter(Boolean);\nconst hooksHtml = hooks.length ? hooks.map((h, i) => '<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin:0 0 10px\"><tr>' +\n  '<td width=\"30\" valign=\"top\" style=\"font-size:20px;font-weight:700;color:' + FOREST + ';line-height:1.3\">' + (i + 1) + '</td>' +\n  '<td style=\"font-size:15px;line-height:1.55\">' + esc(h) + '</td></tr></table>').join('') : '<p style=\"color:' + MUTED + '\">No hooks survived the checks on this run.</p>';\nconst stat = (n, l) => '<td align=\"center\" style=\"padding:0 6px\"><div style=\"font-size:26px;font-weight:700;color:' + INK + ';line-height:1.1\">' + esc(n) + '</div><div style=\"font-size:10px;color:' + MUTED + ';letter-spacing:.06em;text-transform:uppercase;margin-top:5px\">' + esc(l) + '</div></td>';\nconst imgBlock = d.image_ok ? '<tr><td style=\"padding:0 28px 22px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px solid #E4E5DF;border-radius:14px\"><tr><td style=\"padding:18px 22px\">' +\n  '<span style=\"display:inline-block;background:' + LIME + ';color:#111;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:5px 11px;border-radius:999px\">The image</span>' +\n  '<p style=\"margin:14px 0 6px;font-size:15px\"><b>Suggested overlay:</b> ' + esc(d.overlay_text || 'none') + '</p>' +\n  '<p style=\"margin:0 0 6px;font-size:14px;color:#333;line-height:1.6\">' + esc(d.why_this_image || '') + '</p>' +\n  '<p style=\"margin:10px 0 0;font-size:12px;color:' + MUTED + '\">Attached to this email as post-image.png. Alt text: ' + esc(d.alt_text || '') + '</p>' +\n  '</td></tr></table></td></tr>' : '';\nconst html = '<!doctype html><html><body style=\"margin:0;padding:0;background:' + CREAM + '\">' +\n'<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + CREAM + ';font-family:Helvetica,Arial,sans-serif\"><tr><td align=\"center\" style=\"padding:28px 12px\">' +\n'<table width=\"640\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:640px;background:' + CREAM + ';border-radius:18px;overflow:hidden;border:1px solid #E4E5DF\">' +\n'<tr><td style=\"background:' + INK + ';padding:26px 28px\">' +\n'<div style=\"color:' + LIME + ';font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase\">Haus of Intelligence</div>' +\n'<div style=\"color:#ffffff;font-size:25px;font-weight:700;margin-top:8px;line-height:1.25\">Content Engine Desk</div>' +\n'<div style=\"color:#9A9A9A;font-size:13px;margin-top:10px;line-height:1.5\">' + esc(pack.idea || '') + '</div>' +\n'</td></tr>' +\n'<tr><td style=\"padding:24px 28px 8px\">' +\n'<div style=\"font-size:11px;color:' + MUTED + ';letter-spacing:.09em;text-transform:uppercase\">The angle</div>' +\n'<div style=\"font-size:19px;font-weight:600;color:' + INK + ';margin-top:8px;line-height:1.45\">' + esc(pack.angle_text || '') + '</div>' +\n'</td></tr>' +\n'<tr><td style=\"padding:18px 28px 24px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px solid #E4E5DF;border-radius:14px\"><tr><td style=\"padding:20px 10px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>' +\nstat(pack.content_score + '/100', 'Content score') + stat(pack.rules_count, 'Rules checked') + stat(pack.meaning_instagram + '%', 'Caption overlap') + stat(pack.meaning_whatsapp + '%', 'Broadcast overlap') +\n'</tr></table></td></tr></table></td></tr>' +\ncard('LinkedIn post', 'argues the case, ' + String(pack.linkedin || '').length + ' characters', para(pack.linkedin), LIME) +\ncard('Hook options', 'swap the first line', hooksHtml, '#E8E9E3') +\ncard('Instagram caption', 'shows one scene, ' + String(pack.instagram || '').length + ' characters', para(pack.instagram), '#E8E9E3') +\ncard('WhatsApp broadcast', 'gives one action, ' + String(pack.whatsapp || '').length + ' characters', para(pack.whatsapp), '#E8E9E3') +\nimgBlock +\n'<tr><td style=\"padding:4px 28px 26px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px dashed #D5D6D0;border-radius:14px\"><tr><td style=\"padding:18px 22px;font-size:13px;color:#444;line-height:1.7\">' +\n'<b style=\"color:' + INK + '\">How this was checked</b><br>' +\n'Six agents ran: Angle Finder, LinkedIn Writer, Hook Doctor, Repurposer, Voice Guard, Art Director.<br>' +\n'The first pass broke ' + esc(pack.pass1_count) + ' of your ' + esc(pack.rules_count) + ' rules. The Voice Guard fixed ' + esc(pack.fixed_count) + '.<br>' +\n'The three pieces do three different jobs. Shared meaning with the post: caption ' + esc(pack.meaning_instagram) + ' percent, broadcast ' + esc(pack.meaning_whatsapp) + ' percent. Anything over 35 is rejected.<br>' +\n((pack.thrown || []).length ? 'Thrown away after failing twice: ' + esc((pack.thrown || []).join(' | ')) : 'Nothing was thrown away.') +\n'</td></tr></table></td></tr>' +\n'<tr><td style=\"background:' + INK + ';padding:20px 28px;text-align:center\">' +\n'<div style=\"color:' + LIME + ';font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase\">Build. Automate. Scale.</div>' +\n'<div style=\"color:#8A8A8A;font-size:11px;margin-top:7px\">Generated by your Content Engine Desk. Nothing here was posted anywhere.</div>' +\n'</td></tr></table></td></tr></table></body></html>';\nconst out = { json: Object.assign({}, d, { email_to: to, email_html: html, email_subject: 'Your content pack: ' + String(pack.angle_text || pack.idea || '').slice(0, 70), email_ready: to.length > 3 }) };\nif (d.image_ok && $input.first().binary && $input.first().binary.image) out.binary = { image: $input.first().binary.image };\nreturn [out];"
+      },
+      "id": "21a09fef-0a5d-4cc6-87e8-8e361ab6909e",
+      "name": "19 Design the email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        544
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email_to }}",
+        "subject": "={{ $json.email_subject }}",
+        "message": "={{ $json.email_html }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "image"
+              }
+            ]
+          },
+          "senderName": "Content Engine Desk"
+        }
+      },
+      "id": "f3d5d1ed-2c0c-4c3e-80b0-8950ca40f09e",
+      "name": "20 Email the pack",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        544
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "webhookId": "ac2ba9fb-f648-49c4-a831-1b0904931387",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"update_id\": 16497770,\n  \"message\": {\n    \"message_id\": 21,\n    \"from\": {\n      \"id\": 8812450787,\n      \"is_bot\": false,\n      \"first_name\": \"Haus Of\",\n      \"last_name\": \"Intelligence\",\n      \"language_code\": \"en\"\n    },\n    \"chat\": {\n      \"id\": 8812450787,\n      \"first_name\": \"Haus Of\",\n      \"last_name\": \"Intelligence\",\n      \"type\": \"private\"\n    },\n    \"date\": 1792856003,\n    \"text\": \"Idea is how AI Infrastructures are better than single workflows\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2976,
+        272
+      ],
+      "id": "d27a6023-a827-4edf-8c7d-556e079f3f00",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 16497770,
+          "message": {
+            "message_id": 21,
+            "from": {
+              "id": 8812450787,
+              "is_bot": false,
+              "first_name": "Haus Of",
+              "last_name": "Intelligence",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 8812450787,
+              "first_name": "Haus Of",
+              "last_name": "Intelligence",
+              "type": "private"
+            },
+            "date": 1792856003,
+            "text": "Idea is how AI Infrastructures are better than single workflows"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "2 Load your voice rules": {
+      "main": [
+        [
+          {
+            "node": "3 Load what you posted before",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 Load what you posted before": {
+      "main": [
+        [
+          {
+            "node": "4 Build the brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "11 Final check and pack": {
+      "main": [
+        [
+          {
+            "node": "14 Log it so it never repeats",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "12 Split the messages",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "15 Agent 6 Art Director",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12 Split the messages": {
+      "main": [
+        [
+          {
+            "node": "13 Send it back on Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 Build the brief": {
+      "main": [
+        [
+          {
+            "node": "5 Agent 1 Angle Finder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 Agent 1 Angle Finder": {
+      "main": [
+        [
+          {
+            "node": "6 Agent 2 LinkedIn Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 Agent 2 LinkedIn Writer": {
+      "main": [
+        [
+          {
+            "node": "7 Agent 3 Hook Doctor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7 Agent 3 Hook Doctor": {
+      "main": [
+        [
+          {
+            "node": "8 Agent 4 Repurposer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8 Agent 4 Repurposer": {
+      "main": [
+        [
+          {
+            "node": "9 Check against your rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9 Check against your rules": {
+      "main": [
+        [
+          {
+            "node": "10 Agent 5 Voice Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Agent 5 Voice Guard": {
+      "main": [
+        [
+          {
+            "node": "11 Final check and pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1b Is this a real idea": {
+      "main": [
+        [
+          {
+            "node": "2 Load your voice rules",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "12 Split the messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16 Draw the image": {
+      "main": [
+        [
+          {
+            "node": "17 Turn it into a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "17 Turn it into a file": {
+      "main": [
+        [
+          {
+            "node": "18 Send the image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "19 Design the email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15 Agent 6 Art Director": {
+      "main": [
+        [
+          {
+            "node": "15b Read the image brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15b Read the image brief": {
+      "main": [
+        [
+          {
+            "node": "16 Draw the image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook, for the demo": {
+      "main": [
+        [
+          {
+            "node": "0 Load chat state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "0 Load chat state": {
+      "main": [
+        [
+          {
+            "node": "1 Read the idea",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 Read the idea": {
+      "main": [
+        [
+          {
+            "node": "1b Is this a real idea",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "1c Remember this chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "19 Design the email": {
+      "main": [
+        [
+          {
+            "node": "20 Email the pack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "0 Load chat state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8c6fa5a2-33ba-4184-90f8-b5eea12f4db6",
+  "meta": {
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "vP2lrDk7ILGlWY0w",
+  "tags": []
+}

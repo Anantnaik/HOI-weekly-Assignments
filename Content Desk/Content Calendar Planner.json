@@ -1,0 +1,527 @@
+{
+  "name": "Content Calendar Planner",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "e4abc7ae-660a-4c40-857c-8e593665eb1b",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $json.body || $json || {};\nconst BRAND = 'Haus of Intelligence, HOI, runs a 14 week AI Architect Simulation cohort. Every Saturday we build one production grade n8n automation live with our operator community and hand over the JSON and the prompts. Audience: Indian founders, operators, and people learning to build and sell AI automation. We are practitioners, not motivational speakers.';\nlet theme = String(b.theme || b.text || '').trim();\nif (!theme) theme = 'How Indian operators make AI automation actually pay for itself';\nif (theme.length > 300) theme = theme.slice(0, 300);\nconst DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];\nconst MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];\nconst start = b.start_iso ? new Date(String(b.start_iso)) : new Date(Date.now() + 86400000);\nif (isNaN(start.getTime())) throw new Error('That start date could not be read. Send it as YYYY-MM-DD or leave it out.');\nconst days = [];\nfor (let i = 0; i < 7; i++) {\n  const d = new Date(start.getTime() + i * 86400000);\n  days.push({ day_no: i + 1, day_name: DAYS[(d.getDay() + 6) % 7], post_date: d.toISOString().slice(0, 10), pretty: d.getDate() + ' ' + MONTHS[d.getMonth()] });\n}\nreturn [{ json: {\n  run_id: 'WEEK-' + Date.now(),\n  //chat_id: String(b.chat_id || ''),\n  chat_id:'5017296642',\n  //email: String(b.email || ''),\n  email: 'naikanant381@gmail.com',\n  theme: theme,\n  week_label: 'Week of ' + days[0].pretty,\n  start_iso: days[0].post_date,\n  days: days,\n  days_text: days.map(x => x.day_no + '. ' + x.day_name + ' ' + x.pretty).join('\\n'),\n  platform_menu: 'LinkedIn, Instagram, WhatsApp, X, YouTube Shorts',\n  format_menu: 'Text post, Carousel, Single image, Story, Broadcast, Short script, Poll',\n  brand_context: BRAND\n} }];"
+      },
+      "id": "245ba310-9be8-4605-8228-a3ded35e75f0",
+      "name": "1 Read the planning brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "voice_rules"
+        },
+        "filters": {
+          "conditions": []
+        },
+        "returnAll": true
+      },
+      "id": "532e7e68-3e04-4151-9ec4-e7a35ced00e2",
+      "name": "2 Load your voice rules",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1104,
+        128
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "content_log"
+        },
+        "filters": {
+          "conditions": []
+        },
+        "limit": 20,
+        "orderBy": true,
+        "orderByColumn": "created_at"
+      },
+      "id": "d4000922-06c5-4335-8dc7-12b902de01d1",
+      "name": "3 Load what you already posted",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -880,
+        128
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('1 Read the planning brief').first().json;\nconst rules = $('2 Load your voice rules').all().map(r => r.json).filter(r => r && r.rule_id);\nif (!rules.length) throw new Error('The voice_rules table is empty. The plan would have no voice, so it stops here.');\nconst style = rules.filter(r => r.rule_type === 'style').map(r => r.rule_id + '. ' + r.rule).join('\\n');\nconst banned = rules.filter(r => r.rule_type === 'banned').map(r => String(r.rule).toLowerCase().trim()).filter(Boolean);\nconst past = $('3 Load what you already posted').all().map(r => r.json).filter(r => r && (r.angle || r.idea));\nconst used = past.slice(0, 20).map(r => '- ' + String(r.angle || r.idea)).join('\\n') || '- nothing yet, this is the first week';\nreturn [{ json: Object.assign({}, cfg, {\n  style_text: style,\n  banned: banned,\n  banned_text: banned.join(', '),\n  already_used: used,\n  used_count: past.length,\n  rules_count: rules.length\n}) }];"
+      },
+      "id": "7889fc45-cf45-413e-9e77-8d4b1eaf31cf",
+      "name": "4 Build the strategy brief",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -672,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.85, topP: 0.95, topK: 40, maxOutputTokens: 4096, responseMimeType: \"application/json\" }, contents: [{ role: \"user\", parts: [{ text: \"You are the head of content. Plan one full week for this brand. You are not writing the posts, you are deciding what gets made, where it goes, and why that order.\\n\\nTHE WEEK HAS AN ARC. Day one earns attention, the middle days build the case, the last days convert. Say what the arc is.\\n\\nSTRUCTURE RULES, a validator checks every one of these\\n- Cover all seven days. Every day_no from 1 to 7 must appear at least once.\\n- Between 9 and 12 slots in total. Some days carry ONE platform, some days carry TWO or THREE. Vary it deliberately, never the same shape every day.\\n- Every platform in the menu must appear at least once. No single platform may take more than 40 percent of the slots.\\n- When a day carries more than one platform, those slots must do DIFFERENT jobs, never the same post cross posted. Say in why_here how they differ.\\n- topic is a specific arguable claim in one sentence, never a category. Weak: automation tips. Strong: most founders automate the wrong process first because it is the one they hate.\\n- No two topics may make the same argument. Twelve slots means twelve genuinely different claims.\\n- Do NOT repeat or rephrase anything under ALREADY POSTED.\\n- angle_hint is one line telling the writer the entry point to take.\\n- pillar is one word from your own set of three to five pillars that you also return.\\n- NEVER invent a statistic, a date, a client name or a result.\\n- Never write an em dash or en dash.\\n\\nFORMAT MENU, use the exact strings: \" + $json.format_menu + \"\\nPLATFORM MENU, use the exact strings: \" + $json.platform_menu + \"\\nMatch format to platform sensibly. A carousel belongs on Instagram or LinkedIn. A broadcast belongs on WhatsApp. A short script belongs on YouTube Shorts.\\n\\nReturn ONLY valid JSON with keys: week_theme, arc, pillars (array of strings), slots (array of objects with day_no, platform, format, topic, angle_hint, pillar, why_here).\\n\\nTHE THEME FOR THIS WEEK:\\n\" + $json.theme + \"\\n\\nTHE DAYS:\\n\" + $json.days_text + \"\\n\\nBRAND:\\n\" + $json.brand_context + \"\\n\\nVOICE RULES the writers will follow:\\n\" + $json.style_text + \"\\n\\nNever use these words: \" + $json.banned_text + \"\\n\\nALREADY POSTED, do not repeat any of these:\\n\" + $json.already_used }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "7ceb192a-15b0-4678-9dfb-1b8542384ed5",
+      "name": "5 Agent 7 The Strategist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -448,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "GHB94gzniP0Zh1xC",
+          "name": "Query Auth account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const brief = $('4 Build the strategy brief').first().json;\nfunction parse(raw) {\n  let t = String(raw || '').replace(/```json/gi, '').replace(/```/g, '').trim();\n  const s = t.indexOf('{'), e = t.lastIndexOf('}');\n  if (s === -1 || e === -1) return null;\n  try { return JSON.parse(t.slice(s, e + 1).replace(/,(\\s*[}\\]])/g, '$1')); } catch (err) { return null; }\n}\nconst c = $json && $json.candidates && $json.candidates[0];\nconst plan = parse(c && c.content && c.content.parts && c.content.parts[0] && c.content.parts[0].text);\nif (!plan || !Array.isArray(plan.slots) || !plan.slots.length) throw new Error('The Strategist did not return a usable plan. That is almost always the Gemini free tier rate limit. Nothing was written to your calendar. Try again in a minute.');\nconst PLATFORMS = String(brief.platform_menu || '').split(',').map(s => s.trim()).filter(Boolean);\nconst FORMATS = String(brief.format_menu || '').split(',').map(s => s.trim()).filter(Boolean);\nconst days = brief.days || [];\nconst banned = brief.banned || [];\nconst STOP = {};\n'the and for you your that this with from have has are was were will would can could not but they them their our ours when what which who why how all any each more most other some such than then there these those about into over under again once here very just also only own same too make makes made does doing done'.split(' ').forEach(w => { STOP[w] = 1; });\nfunction stem(w) { const sufs = ['ings', 'ing', 'ers', 'er', 'ed', 'es', 's']; for (const s of sufs) { if (w.length - s.length >= 4 && w.slice(-s.length) === s) return w.slice(0, -s.length); } return w; }\nfunction mset(s) { const o = {}; (String(s || '').toLowerCase().match(/[a-z]{4,}/g) || []).forEach(w => { if (!STOP[w]) o[stem(w)] = 1; }); return o; }\nfunction mover(a, b) { const A = mset(a), B = mset(b); const ka = Object.keys(A), kb = Object.keys(B); if (!ka.length || !kb.length) return 0; let h = 0; for (const k of ka) if (B[k]) h++; return h / Math.min(ka.length, kb.length); }\nfunction nums(s) { return (String(s || '').match(/\\b\\d+(?:[.,]\\d+)*\\b/g) || []); }\nconst allowed = nums(String(brief.theme || '') + ' ' + String(brief.brand_context || ''));\nconst issues = [];\nconst kept = [];\nconst usedTopics = [];\nconst pastText = String(brief.already_used || '');\n(plan.slots || []).forEach((s, i) => {\n  const tag = 'slot ' + (i + 1) + ': ';\n  const dayNo = Number(s.day_no);\n  const topic = String(s.topic || '').trim();\n  const platform = String(s.platform || '').trim();\n  const format = String(s.format || '').trim();\n  if (!(dayNo >= 1 && dayNo <= 7)) { issues.push(tag + 'day ' + s.day_no + ' is outside the week, dropped'); return; }\n  if (PLATFORMS.indexOf(platform) === -1) { issues.push(tag + 'platform ' + platform + ' is not on your menu, dropped'); return; }\n  if (FORMATS.indexOf(format) === -1) { issues.push(tag + 'format ' + format + ' is not on your menu, dropped'); return; }\n  if (topic.length < 25) { issues.push(tag + 'the topic is a category, not a claim, dropped'); return; }\n  const bad = nums(topic + ' ' + String(s.angle_hint || '')).filter(n => allowed.indexOf(n) === -1);\n  if (bad.length) { issues.push(tag + 'invented number ' + bad.slice(0, 2).join(', ') + ', dropped'); return; }\n  const low = (topic + ' ' + String(s.angle_hint || '')).toLowerCase();\n  const hitBan = banned.filter(b => b && low.indexOf(b) !== -1);\n  if (hitBan.length) { issues.push(tag + 'banned phrase ' + hitBan[0] + ', dropped'); return; }\n  let dupe = -1;\n  for (let j = 0; j < usedTopics.length; j++) { if (mover(topic, usedTopics[j]) > 0.5) { dupe = j; break; } }\n  if (dupe !== -1) { issues.push(tag + 'makes the same argument as slot ' + (dupe + 1) + ', dropped'); return; }\n  if (mover(topic, pastText) > 0.6) { issues.push(tag + 'repeats something you already posted, dropped'); return; }\n  usedTopics.push(topic);\n  const d = days[dayNo - 1] || { day_name: 'Day ' + dayNo, post_date: brief.start_iso, pretty: '' };\n  kept.push({\n    slot_id: brief.run_id + '-' + (kept.length + 1),\n    day_no: dayNo,\n    day_name: d.day_name,\n    post_date: d.post_date,\n    pretty: d.pretty,\n    platform: platform,\n    format: format,\n    topic: topic,\n    angle_hint: String(s.angle_hint || '').trim(),\n    pillar: String(s.pillar || 'General').trim(),\n    why_here: String(s.why_here || '').trim()\n  });\n});\nif (!kept.length) throw new Error('Every slot the Strategist proposed failed the checks, so nothing was written to your calendar. Run it again.');\nkept.sort((a, b) => a.day_no - b.day_no);\nconst byDay = {};\nkept.forEach(s => { byDay[s.day_no] = byDay[s.day_no] || []; byDay[s.day_no].push(s); });\nconst missingDays = [];\nfor (let i = 1; i <= 7; i++) if (!byDay[i]) missingDays.push((days[i - 1] || {}).day_name || ('day ' + i));\nif (missingDays.length) issues.push('No slot planned for: ' + missingDays.join(', '));\nconst counts = {};\nkept.forEach(s => { counts[s.platform] = (counts[s.platform] || 0) + 1; });\nconst mix = Object.keys(counts).map(p => p + ' ' + counts[p]).join(', ');\nPLATFORMS.forEach(p => { if (!counts[p]) issues.push(p + ' got no slot this week'); });\nObject.keys(counts).forEach(p => { if (counts[p] / kept.length > 0.4) issues.push(p + ' takes ' + Math.round(counts[p] / kept.length * 100) + ' percent of the week, that is too much of one platform'); });\nconst doubleDays = Object.keys(byDay).filter(k => byDay[k].length > 1).length;\nconst singleDays = Object.keys(byDay).filter(k => byDay[k].length === 1).length;\nif (!doubleDays) issues.push('Every day carries exactly one platform, so nothing is combined');\nif (!singleDays) issues.push('Every day carries several platforms, so nothing is alternated');\nlet score = 100;\nscore -= Math.min(40, issues.length * 7);\nscore = Math.max(0, score);\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst lines = ['CONTENT CALENDAR', '', brief.week_label, 'Theme: ' + String(plan.week_theme || brief.theme), '', 'The arc: ' + String(plan.arc || 'not given'), 'Pillars: ' + (Array.isArray(plan.pillars) ? plan.pillars.join(', ') : 'not given'), '', 'PLAN SCORE: ' + score + ' of 100', kept.length + ' slots across ' + Object.keys(byDay).length + ' days. Mix: ' + mix, singleDays + ' single platform days, ' + doubleDays + ' combined days.', ''];\nfor (let i = 1; i <= 7; i++) {\n  const d = days[i - 1] || {};\n  const slots = byDay[i] || [];\n  lines.push((d.day_name || ('Day ' + i)) + ' ' + (d.pretty || ''));\n  if (!slots.length) { lines.push('   nothing planned'); } else {\n    slots.forEach(s => { lines.push('   ' + s.platform + ' / ' + s.format + ' [' + s.pillar + ']'); lines.push('   ' + s.topic); });\n  }\n  lines.push('');\n}\nif (issues.length) { lines.push('WHAT THE CHECK FLAGGED'); issues.slice(0, 8).forEach(x => lines.push('- ' + x)); lines.push(''); }\nlines.push('Send the word build followed by a slot number to produce that one, for example: build 3');\nconst calendar_text = lines.join('\\n').slice(0, 3900);\nconst CREAM = '#F4F5F0', INK = '#111111', LIME = '#C8F135', FOREST = '#1B7E42', MUTED = '#6B6B6B';\nconst chip = (t, bg) => '<span style=\"display:inline-block;background:' + bg + ';color:#111;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-right:6px\">' + esc(t) + '</span>';\nlet rows = '';\nfor (let i = 1; i <= 7; i++) {\n  const d = days[i - 1] || {};\n  const slots = byDay[i] || [];\n  rows += '<tr><td style=\"padding:0 28px 14px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px solid #E4E5DF;border-radius:14px\">' +\n    '<tr><td style=\"padding:14px 20px 10px;border-bottom:1px solid #F0F1EC\"><b style=\"font-size:15px;color:' + INK + '\">' + esc(d.day_name || ('Day ' + i)) + '</b> <span style=\"color:' + MUTED + ';font-size:13px\">' + esc(d.pretty || '') + '</span>' + (slots.length > 1 ? '<span style=\"float:right;color:' + FOREST + ';font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase\">' + slots.length + ' platforms</span>' : '') + '</td></tr>';\n  if (!slots.length) { rows += '<tr><td style=\"padding:14px 20px;color:' + MUTED + ';font-size:14px\">Nothing planned. A rest day.</td></tr>'; }\n  slots.forEach(s => {\n    rows += '<tr><td style=\"padding:14px 20px;border-bottom:1px solid #F7F8F4\">' + chip(s.platform, LIME) + chip(s.format, '#E8E9E3') + chip(s.pillar, '#E8E9E3') +\n      '<div style=\"margin-top:10px;font-size:15px;line-height:1.55;color:#1a1a1a\">' + esc(s.topic) + '</div>' +\n      (s.angle_hint ? '<div style=\"margin-top:6px;font-size:13px;color:' + MUTED + ';line-height:1.55\">Entry point: ' + esc(s.angle_hint) + '</div>' : '') +\n      (s.why_here ? '<div style=\"margin-top:4px;font-size:12px;color:' + MUTED + ';line-height:1.55\">Why here: ' + esc(s.why_here) + '</div>' : '') +\n      '<div style=\"margin-top:8px;font-size:11px;color:#9A9A9A\">' + esc(s.slot_id) + '</div></td></tr>';\n  });\n  rows += '</table></td></tr>';\n}\nconst stat = (n, l) => '<td align=\"center\" style=\"padding:0 6px\"><div style=\"font-size:26px;font-weight:700;color:' + INK + ';line-height:1.1\">' + esc(n) + '</div><div style=\"font-size:10px;color:' + MUTED + ';letter-spacing:.06em;text-transform:uppercase;margin-top:5px\">' + esc(l) + '</div></td>';\nconst calendar_html = '<!doctype html><html><body style=\"margin:0;padding:0;background:' + CREAM + '\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:' + CREAM + ';font-family:Helvetica,Arial,sans-serif\"><tr><td align=\"center\" style=\"padding:28px 12px\"><table width=\"660\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:660px;border:1px solid #E4E5DF;border-radius:18px;overflow:hidden\">' +\n'<tr><td style=\"background:' + INK + ';padding:26px 28px\"><div style=\"color:' + LIME + ';font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase\">Haus of Intelligence</div><div style=\"color:#ffffff;font-size:25px;font-weight:700;margin-top:8px\">Content Calendar</div><div style=\"color:#9A9A9A;font-size:13px;margin-top:8px\">' + esc(brief.week_label) + '</div></td></tr>' +\n'<tr><td style=\"padding:22px 28px 6px\"><div style=\"font-size:11px;color:' + MUTED + ';letter-spacing:.09em;text-transform:uppercase\">The arc of the week</div><div style=\"font-size:17px;color:' + INK + ';margin-top:8px;line-height:1.5\">' + esc(plan.arc || plan.week_theme || brief.theme) + '</div></td></tr>' +\n'<tr><td style=\"padding:16px 28px 20px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px solid #E4E5DF;border-radius:14px\"><tr><td style=\"padding:18px 10px\"><table width=\"100%\"><tr>' + stat(score + '/100', 'Plan score') + stat(kept.length, 'Slots') + stat(Object.keys(counts).length, 'Platforms') + stat(doubleDays, 'Combined days') + '</tr></table></td></tr></table></td></tr>' +\nrows +\n(issues.length ? '<tr><td style=\"padding:4px 28px 22px\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border:1px dashed #D5D6D0;border-radius:14px\"><tr><td style=\"padding:16px 20px;font-size:13px;color:#444;line-height:1.7\"><b style=\"color:' + INK + '\">What the check flagged</b><br>' + issues.slice(0, 8).map(x => esc(x)).join('<br>') + '</td></tr></table></td></tr>' : '') +\n'<tr><td style=\"background:' + INK + ';padding:20px 28px;text-align:center\"><div style=\"color:' + LIME + ';font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase\">Build. Automate. Scale.</div><div style=\"color:#8A8A8A;font-size:11px;margin-top:7px\">Planned by your Content Engine Desk. Nothing has been produced or posted yet.</div></td></tr>' +\n'</table></td></tr></table></body></html>';\nreturn [{ json: {\n  run_id: brief.run_id, chat_id: brief.chat_id, email: brief.email,\n  week_label: brief.week_label, week_theme: String(plan.week_theme || brief.theme), arc: String(plan.arc || ''),\n  pillars: Array.isArray(plan.pillars) ? plan.pillars : [],\n  slots: kept, slot_count: kept.length, plan_score: score, platform_mix: mix,\n  single_days: singleDays, combined_days: doubleDays,\n  issues: issues, calendar_text: calendar_text, calendar_html: calendar_html\n} }];"
+      },
+      "id": "95312f7b-1867-41d5-b68f-82e0e9726535",
+      "name": "6 Check the plan",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "slots",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "id": "9b8f0c99-b726-47f4-9406-cbd141e5c4f9",
+      "name": "7 Split the slots",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "content_calendar"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "slot_id": "={{ $json.slots.slot_id }}",
+            "week_label": "={{ $json.week_label }}",
+            "chat_id": "={{ $json.chat_id }}",
+            "email": "={{ $json.email }}",
+            "day_no": "={{ $json.slots.day_no }}",
+            "day_name": "={{ $json.slots.day_name }}",
+            "post_date": "={{ $json.slots.post_date }}",
+            "platform": "={{ $json.slots.platform }}",
+            "format": "={{ $json.slots.format }}",
+            "topic": "={{ $json.slots.topic }}",
+            "angle_hint": "={{ $json.slots.angle_hint }}",
+            "pillar": "={{ $json.slots.pillar }}",
+            "status": "planned",
+            "created_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "slot_id",
+              "displayName": "slot_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "week_label",
+              "displayName": "week_label",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "day_no",
+              "displayName": "day_no",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false
+            },
+            {
+              "id": "day_name",
+              "displayName": "day_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "post_date",
+              "displayName": "post_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "format",
+              "displayName": "format",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "angle_hint",
+              "displayName": "angle_hint",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "pillar",
+              "displayName": "pillar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "dbaf1558-1e25-478b-93cd-895f639659f4",
+      "name": "8 Write the calendar",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.calendar_text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "42a1146e-de34-485f-a5c7-57aaacc9105d",
+      "name": "9 Send the calendar on Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        240
+      ],
+      "webhookId": "a73201f1-43b1-4ed7-921f-6e542cd7db36",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oiae9gEdzKAXX9kV",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"6 Check the plan\").first().json.email }}",
+        "subject": "={{ \"Your content calendar: \" + $(\"6 Check the plan\").first().json.week_label }}",
+        "message": "={{ $(\"6 Check the plan\").first().json.calendar_html }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Content Engine Desk"
+        }
+      },
+      "id": "bf48ade2-80ee-44ab-9526-96c03467ea78",
+      "name": "10 Email the calendar",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        240
+      ],
+      "webhookId": "16941b5d-0eb0-4553-9e22-97055686f80f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I0w0813I55FfB0Ti",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "plan",
+        "options": {}
+      },
+      "id": "d9a4fb0a-534c-4f9e-9087-e15cb0f16ecc",
+      "name": "Called by the desk",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1552,
+        224
+      ],
+      "webhookId": "95b2ee6b-b6d7-4f22-9470-28a05dd04b88"
+    }
+  ],
+  "pinData": {
+    "Run manually": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "1 Read the planning brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1 Read the planning brief": {
+      "main": [
+        [
+          {
+            "node": "2 Load your voice rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 Load your voice rules": {
+      "main": [
+        [
+          {
+            "node": "3 Load what you already posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 Load what you already posted": {
+      "main": [
+        [
+          {
+            "node": "4 Build the strategy brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4 Build the strategy brief": {
+      "main": [
+        [
+          {
+            "node": "5 Agent 7 The Strategist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5 Agent 7 The Strategist": {
+      "main": [
+        [
+          {
+            "node": "6 Check the plan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6 Check the plan": {
+      "main": [
+        [
+          {
+            "node": "7 Split the slots",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "9 Send the calendar on Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7 Split the slots": {
+      "main": [
+        [
+          {
+            "node": "8 Write the calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "9 Send the calendar on Telegram": {
+      "main": [
+        [
+          {
+            "node": "10 Email the calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Called by the desk": {
+      "main": [
+        [
+          {
+            "node": "1 Read the planning brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "490fb93b-d0aa-4336-9673-c91bdfedeb09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "CzetCzfWCkWjp3Yw",
+  "tags": []
+}
