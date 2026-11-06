@@ -1,0 +1,1054 @@
+{
+  "name": "Quiet Churn Desk",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "ba119830-dd84-45c9-b59e-1a3351ba570d",
+      "name": "01 Monday Morning Bell",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -272,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1wDh6wRlQ_6stA_IxTtxd68_Ar9hgGR03BZZGwkuTqZE/values:batchGet?ranges=Rules&ranges=Tone&ranges=Decisions&ranges=Orders&ranges=Watchlist&ranges=%27Run%20Log%27&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "beca5f93-b435-4fe9-80cb-7d2461a1e2c8",
+      "name": "06 Load Desk Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        432,
+        368
+      ],
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {},
+      "id": "9ce64e45-01fa-4d33-90f4-7473f471f733",
+      "name": "02 Owner Drop Box",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -528,
+        608
+      ],
+      "webhookId": "bbb636e1-6d6b-48db-a7c1-832983b1bdcf",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "output": "={{ $json.callback_query ? 0 : (($json.message && $json.message.document) ? 1 : (/^\\/(scan|run)/i.test(String(($json.message || {}).text || '')) ? 2 : 3)) }}"
+      },
+      "id": "ead25896-477f-4f41-a8c5-11faab19caee",
+      "name": "03 What Came In?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 26 Read The Tap\n// Works out which button was tapped on which card, pulls the customer name,\n// phone and draft from the card itself, and builds the one-tap WhatsApp link.\nconst q = $json.callback_query || {};\nconst msg = q.message || {};\nconst text = String(msg.text || '');\nconst data = String(q.data || '');\nconst action = { a: 'Approved', s: 'Skipped', z: 'Seasonal' }[data.split('|')[0]] || 'Unknown';\nconst title = text.split('\\n')[0] || '';\nconst parts = title.split(' · ');\nconst customer = (parts.length >= 3 ? parts.slice(1, -1).join(' · ') : data.split('|').slice(1).join('|')).trim();\nconst phoneM = text.match(/Phone:\\s*(\\d{10})/);\nconst phone = phoneM ? phoneM[1] : '';\nconst di = text.indexOf('Draft:\\n');\nconst draft = di >= 0 ? text.slice(di + 7).trim() : '';\nconst esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst wa = 'https://wa.me/' + (phone ? '91' + phone : '') + '?text=' + encodeURIComponent(draft);\nconst today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).toISOString().slice(0, 10);\n\nlet reply;\nif (action === 'Approved') {\n  reply = `<b>Approved · ${esc(customer)}</b>\\n\\n${esc(draft)}\\n\\n<a href=\"${esc(wa)}\">Tap here to open WhatsApp with this message ready</a>` +\n    (phone ? '' : '\\n<i>No mobile number on file, so WhatsApp will ask you to pick the chat.</i>');\n} else if (action === 'Skipped') {\n  reply = `<b>Skipped · ${esc(customer)}</b>\\nNoted. The desk will not bring this customer up again for a while.`;\n} else if (action === 'Seasonal') {\n  reply = `<b>Marked seasonal · ${esc(customer)}</b>\\nNoted. Treated as a normal seasonal quiet spell, no alert for a while.`;\n} else {\n  reply = 'That button has expired.';\n}\nreturn [{ json: {\n  chat_id: String((msg.chat && msg.chat.id) || ''), message_id: String(msg.message_id || ''),\n  customer, action, phone, draft, wa_link: wa, reply_html: reply,\n  decision_row: { values: [[customer, action, today]] }\n} }];\n"
+      },
+      "id": "b957d534-c6e6-4c77-9df9-cd2ddabf3bb9",
+      "name": "26 Read The Tap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1wDh6wRlQ_6stA_IxTtxd68_Ar9hgGR03BZZGwkuTqZE/values/Decisions!A:C:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.decision_row) }}",
+        "options": {}
+      },
+      "id": "2d44d3da-58f7-412b-9c2d-45c680848065",
+      "name": "27 Record The Decision",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "editMessageText",
+        "chatId": "={{ $('26 Read The Tap').first().json.chat_id }}",
+        "messageId": "={{ $('26 Read The Tap').first().json.message_id }}",
+        "text": "={{ $('26 Read The Tap').first().json.reply_html }}",
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "094a8351-afa5-4da2-a34b-b664355e1fa0",
+      "name": "28 Here Is Your Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        0
+      ],
+      "webhookId": "111908b5-9545-4982-a11b-19271f628629",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oiae9gEdzKAXX9kV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.document.file_id }}",
+        "additionalFields": {}
+      },
+      "id": "6d4a646d-283b-4dcc-80d5-8dd4a7e88726",
+      "name": "04 Fetch The File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        240
+      ],
+      "webhookId": "8ac8366c-8e54-436e-95cf-39438bd72425",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oiae9gEdzKAXX9kV",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "id": "a474cde0-8974-48de-9891-576e4e3d0855",
+      "name": "05 Open The Spreadsheet",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "<b>Quiet Churn Desk</b>\nSend me your sales register as an Excel file (Tally, Vyapar, Zoho or any export with customer, date and amount) and I will tell you which regular customers have quietly stopped ordering, what it is costing, and draft a message to win each one back.\n\nType /scan to re-check the sales already saved in your Google Sheet.\nEvery Monday at 9 am I run on my own.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "69b27b44-1fc1-4c67-9da4-a0829b6f900d",
+      "name": "29 How To Use",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        464
+      ],
+      "webhookId": "99f37c07-54b3-4a33-aa29-f47b545f2859",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oiae9gEdzKAXX9kV",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 07 Sample The Columns\n// Reads the Google Sheet tabs, picks the order rows (fresh file or Orders tab)\n// and hands Agent 1 only the headers plus 20 sample rows.\nconst desk = $('06 Load Desk Data').first().json;\nconst ranges = desk.valueRanges || [];\nconst tab = (name) => {\n  const r = ranges.find(v => String(v.range || '').replace(/'/g, '').split('!')[0] === name);\n  return (r && r.values) || [];\n};\nconst kv = (rows) => {\n  const o = {};\n  for (const r of rows.slice(1)) if (r[0] !== undefined && String(r[0]).trim()) o[String(r[0]).trim()] = r[1] === undefined ? '' : r[1];\n  return o;\n};\n\nconst DEFAULTS = {\n  watch_ratio: 1.3, slipping_ratio: 1.8, gone_ratio: 3, min_orders: 4, min_days_late: 3,\n  cards: 5, ai_top: 10, snooze_days: 30, seasonal_lookback: 120, allow_discount: 'no',\n  language: 'hinglish', email_to: '', owner_chat_id: '', as_of_date: '', business_name: 'Your business',\n  dashboard_url: ''\n};\nconst rulesRaw = kv(tab('Rules'));\nconst rules = { ...DEFAULTS };\nfor (const [k, v] of Object.entries(rulesRaw)) {\n  if (v === '' || v === null) continue;\n  rules[k] = typeof DEFAULTS[k] === 'number' && !isNaN(Number(v)) ? Number(v) : String(v).trim();\n}\nconst tone = kv(tab('Tone'));\n\n// where did the orders come from?\nlet rows = [];\nlet source = 'sheet';\nlet chatId = '';\ntry {\n  const t = $('02 Owner Drop Box').first().json;\n  chatId = String((t.message && t.message.chat && t.message.chat.id) || '');\n} catch (e) { /* Monday run, no Telegram message */ }\nlet fileRows = null;\ntry { fileRows = $('05 Open The Spreadsheet').all().map(i => i.json); } catch (e) { fileRows = null; }\nif (fileRows && fileRows.length) {\n  rows = fileRows;\n  source = 'file';\n} else {\n  const o = tab('Orders');\n  const h = (o[0] || []).map(String);\n  rows = o.slice(1).filter(r => r.some(x => x !== '' && x !== null && x !== undefined))\n    .map(r => Object.fromEntries(h.map((k, i) => [k, r[i] === undefined ? '' : r[i]])));\n}\nif (!chatId) chatId = String(rules.owner_chat_id || '');\n\nconst headers = [];\nfor (const r of rows.slice(0, 50)) for (const k of Object.keys(r)) if (!headers.includes(k)) headers.push(k);\nconst sample = rows.slice(0, 20).map(r => headers.map(h => String(r[h] === undefined ? '' : r[h])).join(' | '));\nconst sample_text = 'HEADERS: ' + headers.join(' | ') + '\\nROWS:\\n' + sample.join('\\n');\n\nreturn [{ json: {\n  source, chat_id: chatId, rules, tone, headers, sample_text, row_count: rows.length, rows,\n  decisions: tab('Decisions'), run_log: tab('Run Log'), prev_watch_rows: tab('Watchlist').length,\n  prev_order_rows: tab('Orders').length, rules_keys: tab('Rules').map(r => String(r[0] || ''))\n} }];\n"
+      },
+      "id": "aa02ad41-a955-4322-88c1-dbbb416c9222",
+      "name": "07 Sample The Columns",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.1, maxOutputTokens: 1024, responseMimeType: 'application/json' }, contents: [{ role: 'user', parts: [{ text: \"You read the first rows of a sales export from an Indian small business (Tally, Vyapar, Zoho, Busy, Marg, Shopify or plain Excel) and work out which column holds what.\\nUse the header text EXACTLY as it appears. Never invent a column name. Use null for anything that is not there.\\n- customer_column: the buyer (party, customer, client, account name)\\n- date_column: the bill or order date\\n- amount_column: the bill value for that row. Prefer the gross or net total over tax, rate or quantity columns\\n- invoice_column: bill, voucher or order number\\n- phone_column: mobile or phone number\\n- items_column: item or product description\\n- type_column: a column that marks sales versus returns, credit notes or cancellations\\n- date_order: DMY, MDY or YMD. Indian exports are almost always DMY\\nReturn ONLY JSON with keys customer_column, date_column, amount_column, invoice_column, phone_column, items_column, type_column, date_order, notes.\\n\\n\" + $json.sample_text }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "5b36d242-0e78-4d23-9ae5-cb5fcb4a5ea6",
+      "name": "08 Agent 1 · The Column Reader",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        880,
+        368
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// 09 Check And Clean\n// Tests Agent 1's column map against every row. Accepts only if 95% of dates and\n// amounts read cleanly. Then cleans: one date format, plain numbers, no returns,\n// no duplicate bills. Finally finds look-alike customer names for Agent 2.\nconst S = $('07 Sample The Columns').first().json;\nconst parseAgent = (res) => {\n  try {\n    let t = res.candidates[0].content.parts.map(p => p.text || '').join('');\n    t = t.replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    return JSON.parse(t);\n  } catch (e) { return {}; }\n};\nconst map = parseAgent($input.first().json);\n\nconst findCol = (name) => {\n  if (!name) return null;\n  const n = String(name).trim().toLowerCase();\n  return S.headers.find(h => h.trim().toLowerCase() === n) || null;\n};\n// fallback guesses so a weak answer from the agent is not fatal\nconst guess = (re) => S.headers.find(h => re.test(h)) || null;\nconst col = {\n  customer: findCol(map.customer_column) || guess(/party|customer|client|name|buyer/i),\n  date: findCol(map.date_column) || guess(/date|dt\\b/i),\n  amount: findCol(map.amount_column) || guess(/amount|amt|total|value|net|gross/i),\n  invoice: findCol(map.invoice_column) || guess(/vch no|invoice|bill no|voucher no|order id|order no/i),\n  phone: findCol(map.phone_column) || guess(/mobile|phone|contact|whatsapp/i),\n  items: findCol(map.items_column) || guess(/item|product|particular|sku/i),\n  type: findCol(map.type_column) || guess(/vch type|voucher type|type|status/i),\n};\nconst order = ['DMY', 'MDY', 'YMD'].includes(map.date_order) ? map.date_order : 'DMY';\n\nconst MON = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12 };\nconst iso = (y, m, d) => {\n  if (y < 100) y += 2000;\n  if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31 && y > 1990 && y < 2100)) return null;\n  const dt = new Date(Date.UTC(y, m - 1, d));\n  if (dt.getUTCMonth() !== m - 1) return null;\n  return dt.toISOString().slice(0, 10);\n};\nfunction parseDate(v) {\n  if (v === null || v === undefined || v === '') return null;\n  if (typeof v === 'number' || /^\\d{5}(\\.\\d+)?$/.test(String(v))) {\n    const n = Number(v);\n    if (n > 20000 && n < 80000) return new Date(Date.UTC(1899, 11, 30) + Math.round(n) * 86400000).toISOString().slice(0, 10);\n    return null;\n  }\n  const s = String(v).trim();\n  let m = s.match(/^(\\d{4})[-\\/.](\\d{1,2})[-\\/.](\\d{1,2})/);\n  if (m) return iso(+m[1], +m[2], +m[3]);\n  m = s.match(/^(\\d{1,2})[-\\/. ]([A-Za-z]{3,4})[A-Za-z]*[-\\/. ,]+(\\d{2,4})/);\n  if (m && MON[m[2].toLowerCase()]) return iso(+m[3], MON[m[2].toLowerCase()], +m[1]);\n  m = s.match(/^([A-Za-z]{3,4})[A-Za-z]*[-\\/. ](\\d{1,2})[-\\/. ,]+(\\d{2,4})/);\n  if (m && MON[m[1].toLowerCase()]) return iso(+m[3], MON[m[1].toLowerCase()], +m[2]);\n  m = s.match(/^(\\d{1,2})[-\\/.](\\d{1,2})[-\\/.](\\d{2,4})/);\n  if (m) return order === 'MDY' ? iso(+m[3], +m[1], +m[2]) : iso(+m[3], +m[2], +m[1]);\n  return null;\n}\nfunction parseAmount(v) {\n  if (typeof v === 'number') return v;\n  if (v === null || v === undefined) return null;\n  let s = String(v).replace(/rs\\.?|inr|₹|,|\\s/gi, '');\n  let neg = false;\n  if (/^\\(.*\\)$/.test(s)) { neg = true; s = s.slice(1, -1); }\n  if (/cr$/i.test(s)) { neg = true; s = s.replace(/cr$/i, ''); }\n  s = s.replace(/dr$/i, '');\n  if (s === '' || isNaN(Number(s))) return null;\n  return neg ? -Number(s) : Number(s);\n}\n\nconst rows = S.rows;\nlet nonEmpty = 0, goodDate = 0, goodAmt = 0;\nfor (const r of rows) {\n  if (!col.customer || !String(r[col.customer] || '').trim()) continue;\n  nonEmpty++;\n  if (col.date && parseDate(r[col.date])) goodDate++;\n  if (col.amount && parseAmount(r[col.amount]) !== null) goodAmt++;\n}\nconst dateRate = nonEmpty ? goodDate / nonEmpty : 0;\nconst amtRate = nonEmpty ? goodAmt / nonEmpty : 0;\nconst ok = !!(col.customer && col.date && col.amount && nonEmpty >= 10 && dateRate >= 0.95 && amtRate >= 0.95);\n\nif (!ok) {\n  return [{ json: {\n    ok: false, chat_id: S.chat_id, headers: S.headers, row_count: S.row_count, col,\n    date_rate: Math.round(dateRate * 100), amount_rate: Math.round(amtRate * 100)\n  } }];\n}\n\n// clean\nconst RETURN_RE = /credit|return|cancel|refund|reversal|\\bcn\\b|sales ret/i;\nconst seen = new Set();\nconst orders = [];\nlet removedReturns = 0, removedDupes = 0, badRows = 0;\nfor (const r of rows) {\n  const name = String(r[col.customer] || '').replace(/\\s+/g, ' ').trim();\n  if (!name) continue;\n  const date = parseDate(r[col.date]);\n  const amount = parseAmount(r[col.amount]);\n  if (!date || amount === null) { badRows++; continue; }\n  const inv = col.invoice ? String(r[col.invoice] || '').trim() : '';\n  const typ = col.type ? String(r[col.type] || '') : '';\n  if (amount <= 0 || RETURN_RE.test(typ) || /^(cn|crn|ret|sr)[\\/\\-]/i.test(inv)) { removedReturns++; continue; }\n  const key = inv ? name.toLowerCase() + '|' + inv : name.toLowerCase() + '|' + date + '|' + amount;\n  if (seen.has(key)) { removedDupes++; continue; }\n  seen.add(key);\n  const phone = col.phone ? String(r[col.phone] || '').replace(/\\D/g, '').slice(-10) : '';\n  orders.push({ customer: name, date, amount: Math.round(amount * 100) / 100, invoice: inv, phone,\n    items: col.items ? String(r[col.items] || '').slice(0, 120) : '' });\n}\n\n// look-alike names\nconst STOP = new Set(['pvt', 'ltd', 'private', 'limited', 'co', 'and', 'the', 'ms', 'm s', 'llp', 'company', 'inc']);\nconst norm = (s) => s.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9 ]/g, ' ').split(/\\s+/).filter(w => w && !STOP.has(w)).join(' ');\nconst grams = (s) => { const g = new Map(); const t = s.replace(/ /g, ''); for (let i = 0; i < t.length - 1; i++) { const k = t.slice(i, i + 2); g.set(k, (g.get(k) || 0) + 1); } return g; };\nconst dice = (a, b) => { const A = grams(a), B = grams(b); let inter = 0, tot = 0; for (const [k, v] of A) { inter += Math.min(v, B.get(k) || 0); tot += v; } for (const v of B.values()) tot += v; return tot ? 2 * inter / tot : 0; };\n\nconst byName = {};\nfor (const o of orders) {\n  const b = byName[o.customer] || (byName[o.customer] = { name: o.customer, n: 0, phones: new Set() });\n  b.n++; if (o.phone) b.phones.add(o.phone);\n}\nconst names = Object.values(byName);\nconst autoMerges = [];\nconst keyOwner = {};\nfor (const b of names.sort((a, c) => c.n - a.n)) {\n  const k = norm(b.name);\n  if (keyOwner[k] && keyOwner[k] !== b.name) autoMerges.push({ from: b.name, into: keyOwner[k], why: 'same name, different spelling of capitals or punctuation' });\n  else keyOwner[k] = b.name;\n}\nconst merged = new Set(autoMerges.map(m => m.from));\nconst live = names.filter(b => !merged.has(b.name));\n// shop-type words carry no identity: \"Arora Departmental Store\" and \"Sharma Departmental Store\" are not alike\nconst GENERIC = new Set(['store', 'stores', 'kirana', 'general', 'provision', 'provisions', 'departmental', 'department', 'super', 'mart', 'fresh', 'traders', 'trader', 'trdrs', 'enterprises', 'enterprise', 'medical', 'medicals', 'agencies', 'agency', 'bakers', 'hardware', 'hardwares', 'brothers', 'bros', 'shop', 'centre', 'center', 'sons']);\nconst core = (s) => norm(s).split(' ').filter(w => !GENERIC.has(w)).join(' ');\nconst pairs = [];\nfor (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {\n  const a = live[i], b = live[j];\n  const samePhone = [...a.phones].some(p => b.phones.has(p));\n  const phoneConflict = !samePhone && a.phones.size > 0 && b.phones.size > 0;\n  const sim = dice(norm(a.name), norm(b.name));\n  const ca = core(a.name), cb = core(b.name);\n  const coreSim = ca && cb ? dice(ca, cb) : 0;\n  if (samePhone ? sim >= 0.4 : (sim >= 0.72 && coreSim >= 0.8)) {\n    pairs.push({ a: a.name, b: b.name, sim: Math.round(sim * 100) / 100, core_sim: Math.round(coreSim * 100) / 100, same_phone: samePhone, phone_conflict: phoneConflict });\n  }\n}\npairs.sort((x, y) => (y.same_phone - x.same_phone) || (y.sim - x.sim));\nconst top = pairs.slice(0, 40).map((p, i) => ({ id: 'p' + (i + 1), ...p }));\nconst pairs_text = top.length\n  ? top.map(p => `${p.id}: \"${p.a}\" vs \"${p.b}\"${p.same_phone ? ' (same phone number)' : (p.phone_conflict ? ' (different phone numbers)' : '')}`).join('\\n')\n  : 'NONE';\n\nreturn [{ json: {\n  ok: true, chat_id: S.chat_id, source: S.source, col, date_order: order,\n  orders, auto_merges: autoMerges, pairs: top, pairs_text,\n  stats: { raw_rows: S.row_count, kept: orders.length, removed_returns: removedReturns, removed_duplicates: removedDupes, unreadable_rows: badRows, customers_before_merge: names.length }\n} }];\n"
+      },
+      "id": "609058b3-c955-4b1c-99fe-ea53ca91cb94",
+      "name": "09 Check And Clean",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "ba2301ef-2591-47d8-9227-9c396ae5cf5c"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aa52a1cd-4eb6-40ff-b2cd-47c26d4fb2e3",
+      "name": "10 Columns Understood?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.1, maxOutputTokens: 2048, responseMimeType: 'application/json' }, contents: [{ role: 'user', parts: [{ text: \"Below are pairs of customer names from ONE business's sales register that look alike.\\nFor each pair decide: is it the SAME business written two ways (spelling, capitals, short forms like Bros or Trdrs, an added Store or Pvt Ltd), or two DIFFERENT businesses that happen to share words (two different Sharma shops, or the same shop name in two different areas)?\\nA shared phone number means almost certainly the same. Different phone numbers mean almost certainly different. A different area name usually means a different branch or shop.\\nWhen unsure, answer false. A wrong merge hides a lost customer.\\nReturn ONLY JSON {\\\"decisions\\\":[{\\\"id\\\":\\\"p1\\\",\\\"same\\\":true,\\\"reason\\\":\\\"under 12 words\\\"}]} with one entry per pair id. If the list says NONE return {\\\"decisions\\\":[]}.\\n\\nPAIRS:\\n\" + $json.pairs_text }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "ceeace36-530c-4613-b9b7-99aa686ad2c1",
+      "name": "12 Agent 2 · The Name Matcher",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1552,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// 13 Merge Names And Measure Rhythm\n// Merges a pair only when Agent 2 says \"same\" AND the names are very similar,\n// or the phone number matches. Unsure pairs stay apart. Then measures each\n// customer's own rhythm: usual gap (median), steadiness, bills, yearly value.\nconst C = $('09 Check And Clean').first().json;\nconst S = $('07 Sample The Columns').first().json;\nconst rules = S.rules;\nconst parseAgent = (res) => {\n  try {\n    let t = res.candidates[0].content.parts.map(p => p.text || '').join('');\n    t = t.replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    return JSON.parse(t);\n  } catch (e) { return {}; }\n};\nconst verdicts = {};\nfor (const d of (parseAgent($input.first().json).decisions || [])) verdicts[d.id] = d;\n\n// union find\nconst parent = {};\nconst find = (x) => { while (parent[x] && parent[x] !== x) x = parent[x]; return x; };\nconst counts = {};\nfor (const o of C.orders) counts[o.customer] = (counts[o.customer] || 0) + 1;\nconst union = (a, b) => {\n  const ra = find(a), rb = find(b);\n  if (ra === rb) return;\n  if ((counts[ra] || 0) >= (counts[rb] || 0)) parent[rb] = ra; else parent[ra] = rb;\n};\nfor (const m of C.auto_merges) union(m.into, m.from);\nconst merges = C.auto_merges.map(m => ({ ...m }));\nfor (const p of C.pairs) {\n  const v = verdicts[p.id];\n  const agentSame = v && (v.same === true || String(v.same).toLowerCase() === 'true');\n  // different phone numbers on both sides means two businesses, whatever the names say\n  if (p.phone_conflict) continue;\n  if ((p.same_phone && (agentSame || p.sim >= 0.6)) || (agentSame && p.core_sim >= 0.85 && p.sim >= 0.78)) {\n    union(p.a, p.b);\n    merges.push({ from: p.b, into: p.a, why: p.same_phone ? 'same phone number' : (v && v.reason) || 'agent and code agree' });\n  }\n}\n\n// as-of date\nconst today = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));\nconst asOf = /^\\d{4}-\\d{2}-\\d{2}$/.test(String(rules.as_of_date || '')) ? String(rules.as_of_date) : today.toISOString().slice(0, 10);\nconst day = (s) => Math.round(Date.parse(s + 'T00:00:00Z') / 86400000);\nconst asOfDay = day(asOf);\n\nconst median = (a) => { const s = [...a].sort((x, y) => x - y); const n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : 0; };\nconst groups = {};\nfor (const o of C.orders) {\n  if (day(o.date) > asOfDay) continue;\n  const k = find(o.customer);\n  const g = groups[k] || (groups[k] = { name: k, visits: {}, phone: '', phoneDay: -1, items: '' });\n  g.visits[o.date] = (g.visits[o.date] || 0) + o.amount;\n  if (o.phone && day(o.date) >= g.phoneDay) { g.phone = o.phone; g.phoneDay = day(o.date); }\n  if (o.items) g.items = o.items;\n}\n\nconst customers = Object.values(groups).map(g => {\n  const dates = Object.keys(g.visits).sort();\n  const days = dates.map(day);\n  const bills = dates.map(d => Math.round(g.visits[d]));\n  const gaps = days.slice(1).map((d, i) => d - days[i]);\n  const med = gaps.length ? median(gaps) : 0;\n  const mad = gaps.length ? median(gaps.map(x => Math.abs(x - med))) : 0;\n  const avgBill = bills.reduce((a, b) => a + b, 0) / bills.length;\n  return {\n    name: g.name, phone: g.phone, visits: dates.length, dates, days, bills,\n    first_order: dates[0], last_order: dates[dates.length - 1],\n    usual_gap: Math.round(med * 10) / 10, gap_mad: Math.round(mad * 10) / 10,\n    steadiness: med ? Math.round((mad / med) * 100) / 100 : 0,\n    avg_bill: Math.round(avgBill),\n    yearly_value: med ? Math.round(avgBill * 365 / med) : 0,\n    days_silent: asOfDay - days[days.length - 1],\n    last_items: g.items\n  };\n});\n\nreturn [{ json: { as_of: asOf, as_of_day: asOfDay, merges, customers, stats: { ...C.stats, customers: customers.length, merged_names: merges.length } } }];\n"
+      },
+      "id": "b628935f-0a8d-44ad-bcce-6bc3a4760a0d",
+      "name": "13 Merge Names And Measure Rhythm",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1776,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 14 Judge Status, Season And Money\n// Plain arithmetic decides who is slipping. Days silent is compared with each\n// customer's own usual gap (irregular buyers get more room). Then the Seasonal\n// Guard checks the same weeks last year, past owner decisions are respected,\n// and every Slipping or Gone Quiet customer gets a rupee value.\nconst S = $('07 Sample The Columns').first().json;\nconst R = $json;\nconst rules = S.rules;\nconst asOfDay = R.as_of_day;\nconst toIso = (d) => new Date(d * 86400000).toISOString().slice(0, 10);\nconst day = (s) => Math.round(Date.parse(s + 'T00:00:00Z') / 86400000);\n\n// owner decisions (Decisions tab: customer | decision | date)\nconst lastDecision = {};\nfor (const r of (S.decisions || []).slice(1)) {\n  const name = String(r[0] || '').trim(); if (!name) continue;\n  let d = r[2];\n  let dd = typeof d === 'number' ? Math.round(d) - 25569 : (/^\\d{4}-\\d{2}-\\d{2}/.test(String(d)) ? day(String(d).slice(0, 10)) : null);\n  if (dd === null) continue;\n  if (!lastDecision[name] || dd >= lastDecision[name].day) lastDecision[name] = { decision: String(r[1] || ''), day: dd };\n}\n\nconst ORDER = { 'Gone Quiet': 0, 'Slipping': 1, 'Watch': 2, 'Seasonal': 3, 'Healthy': 4, 'Too New': 5 };\nconst out = R.customers.map(c => {\n  let status;\n  let ratio = 0;\n  if (c.visits < rules.min_orders || !c.usual_gap) {\n    status = 'Too New';\n  } else {\n    const room = 1 + 0.5 * Math.min(c.steadiness, 1);\n    ratio = c.days_silent / (c.usual_gap * room);\n    const late = c.days_silent - c.usual_gap;\n    if (late < rules.min_days_late || ratio < rules.watch_ratio) status = 'Healthy';\n    else if (ratio < rules.slipping_ratio) status = 'Watch';\n    else if (ratio < rules.gone_ratio) status = 'Slipping';\n    else status = 'Gone Quiet';\n  }\n  // Seasonal Guard: was this customer also silent in the same weeks last year?\n  let seasonal_note = '';\n  if (status === 'Slipping' || status === 'Gone Quiet') {\n    // last year's version of this silence, with one usual gap of slack at the start\n    const ws = c.days[c.days.length - 1] - 365 + Math.max(c.usual_gap, 7), we = asOfDay - 365;\n    const firstDay = c.days[0];\n    if (firstDay < ws - c.usual_gap && we - ws >= c.usual_gap) {\n      const inWindow = c.days.filter(d => d > ws && d <= we).length;\n      const before = c.days.filter(d => d <= ws && d > ws - rules.seasonal_lookback).length;\n      const after = c.days.filter(d => d > we && d <= we + rules.seasonal_lookback).length;\n      if (inWindow === 0 && before > 0 && after > 0) {\n        status = 'Seasonal';\n        seasonal_note = `Also quiet from ${toIso(ws)} to ${toIso(we)} last year, then came back.`;\n      }\n    }\n  }\n  const dec = lastDecision[c.name];\n  const snoozed = !!(dec && asOfDay - dec.day <= rules.snooze_days);\n  const atRisk = (status === 'Slipping' || status === 'Gone Quiet') ? c.yearly_value : 0;\n  const last3 = c.bills.slice(-3);\n  const avgLast3 = last3.reduce((a, b) => a + b, 0) / (last3.length || 1);\n  const basketChange = c.avg_bill ? Math.round((avgLast3 / c.avg_bill - 1) * 100) : 0;\n  return {\n    name: c.name, phone: c.phone, status, ratio: Math.round(ratio * 100) / 100,\n    usual_gap: Math.round(c.usual_gap), days_silent: c.days_silent, last_order: c.last_order, first_order: c.first_order,\n    visits: c.visits, avg_bill: c.avg_bill, yearly_value: c.yearly_value, at_risk: atRisk,\n    basket_change_pct: basketChange, last_bills: c.bills.slice(-6), seasonal_note,\n    decision: dec ? dec.decision : '', snoozed, last_items: c.last_items,\n    months_as_customer: Math.max(1, Math.round((asOfDay - day(c.first_order)) / 30.4))\n  };\n});\nout.sort((a, b) => (ORDER[a.status] - ORDER[b.status]) || (b.yearly_value - a.yearly_value));\n\nconst count = (s) => out.filter(c => c.status === s).length;\nconst actionable = out.filter(c => (c.status === 'Slipping' || c.status === 'Gone Quiet') && !c.snoozed)\n  .sort((a, b) => b.yearly_value - a.yearly_value);\nconst top = actionable.slice(0, rules.ai_top).map((c, i) => ({ id: 'c' + (i + 1), ...c }));\nconst totals = {\n  as_of: R.as_of, customers: out.length,\n  healthy: count('Healthy'), watch: count('Watch'), slipping: count('Slipping'), gone_quiet: count('Gone Quiet'),\n  seasonal: count('Seasonal'), too_new: count('Too New'),\n  at_risk_total: out.reduce((a, c) => a + c.at_risk, 0),\n  needs_action: actionable.length,\n  call_today: actionable.slice(0, 3).map(c => c.name),\n  seasonal_names: out.filter(c => c.status === 'Seasonal').map(c => c.name),\n  snoozed: out.filter(c => c.snoozed && (c.status === 'Slipping' || c.status === 'Gone Quiet')).length\n};\n\n// a plain-words label of the pattern, so Agent 3 reasons from evidence, not a template\nconst patternOf = (c) => c.basket_change_pct <= -25 ? 'bills shrank over the last few orders before stopping'\n  : c.days_silent > 120 ? 'went silent months ago with no shrinking first'\n  : c.status === 'Gone Quiet' ? 'stopped suddenly after steady, full-size orders'\n  : 'running late against their own usual rhythm';\nconst facts = top.map(c => ({\n  id: c.id, customer: c.name, pattern: patternOf(c), long_standing: c.months_as_customer >= 12, status: c.status, usual_gap_days: c.usual_gap, days_silent: c.days_silent,\n  last_order_date: c.last_order, orders_count: c.visits, avg_bill_rs: c.avg_bill, yearly_value_rs: c.yearly_value,\n  last_bills_rs: c.last_bills, basket_change_pct: c.basket_change_pct, months_as_customer: c.months_as_customer\n}));\nconst brief_facts = {\n  'Business': rules.business_name, 'Regular customers judged': totals.customers,\n  'Customers who broke their usual ordering pattern': totals.slipping + totals.gone_quiet,\n  'Of those, slipping': totals.slipping, 'Of those, gone quiet': totals.gone_quiet,\n  'A little late (watch list)': totals.watch, 'Seasonal, no action needed': totals.seasonal_names,\n  'Rupees a year at risk': totals.at_risk_total, 'Call today': totals.call_today\n};\n\nreturn [{ json: { as_of: R.as_of, stats: R.stats, merges: R.merges, customers: out, top, totals,\n  facts_text: JSON.stringify(facts, null, 1), brief_text: JSON.stringify(brief_facts, null, 1) } }];\n"
+      },
+      "id": "b753eb59-8d7e-4d04-b401-f9b0d809604f",
+      "name": "14 Judge Status, Season And Money",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.4, maxOutputTokens: 2048, responseMimeType: 'application/json' }, contents: [{ role: 'user', parts: [{ text: \"You look at regular customers of an Indian distributor who have gone quiet, and suggest ONE likely reason for each, in plain English for a busy owner.\\nRead the pattern in the numbers:\\n- bills shrinking over the last few orders before stopping usually means they moved part of their buying to another supplier\\n- a sudden stop after steady full-size bills usually means something changed at once: a new supplier, a closure, a payment or delivery problem\\n- a long-standing customer going quiet deserves a personal call\\nEach customer comes with a pattern label in plain words. Build the reason from that label and the numbers.\\nAlways write it as a possibility (may, might, possibly), never as a fact.\\nWrite every reason differently: never start two reasons with the same words, and do not repeat a phrase across customers.\\nUse ONLY numbers that appear in the data. Never invent a percentage, amount, date or event. Under 25 words each. No em dash or en dash.\\nReturn ONLY JSON {\\\"reasons\\\":[{\\\"id\\\":\\\"c1\\\",\\\"reason\\\":\\\"...\\\"}]} with one entry per id.\\n\\nCUSTOMERS:\\n\" + $json.facts_text }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "b4b4091e-f3b5-4d53-b5db-920c631d1a8e",
+      "name": "15 Agent 3 · The Context Detective",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2240,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// 16 Fact Guard\n// Rejects any reason that contains a number the agent was never given and\n// swaps in a plain reason built by code. Then prepares Agent 4's brief.\nconst J = $('14 Judge Status, Season And Money').first().json;\nconst S = $('07 Sample The Columns').first().json;\nconst parseAgent = (res) => {\n  try {\n    let t = res.candidates[0].content.parts.map(p => p.text || '').join('');\n    t = t.replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    return JSON.parse(t);\n  } catch (e) { return {}; }\n};\nconst got = {};\nfor (const r of (parseAgent($input.first().json).reasons || [])) if (r && r.id) got[r.id] = String(r.reason || '').trim();\n\nconst numbersIn = (s) => (String(s).replace(/(\\d),(?=\\d)/g, '$1').match(/\\d+(\\.\\d+)?/g) || []).map(x => String(Number(x)));\nconst rejected = [];\nconst top = J.top.map(c => {\n  const allowed = new Set(numbersIn(JSON.stringify(c)));\n  let reason = got[c.id] || '';\n  const bad = numbersIn(reason).filter(x => !allowed.has(x));\n  if (!reason || bad.length || reason.length > 220 || /[–—]/.test(reason)) {\n    if (reason) rejected.push({ id: c.id, reason, invented: bad });\n    reason = c.basket_change_pct <= -25\n      ? `Bill size fell ${Math.abs(c.basket_change_pct)}% across the last 3 orders before going quiet.`\n      : `Usually orders every ${c.usual_gap} days and has now been silent for ${c.days_silent}.`;\n  }\n  return { ...c, reason };\n});\n\nconst t = S.tone || {};\nconst r = S.rules;\nconst writer = top.map(c => ({ id: c.id, customer: c.customer || c.name, usual_gap_days: c.usual_gap, days_silent: c.days_silent, reason: c.reason }));\nconst tone_text = [\n  'Business name: ' + (r.business_name || ''),\n  'Owner name: ' + (t.owner_name || ''),\n  'Greeting the owner uses: ' + (t.greeting || 'Namaste'),\n  'Sign off: ' + (t.sign_off || ''),\n  'Words and phrases the owner uses: ' + (t.words_to_use || ''),\n  'Never use: ' + (t.words_to_avoid || ''),\n  'Language: ' + (r.language || 'hinglish'),\n  'Discounts allowed: ' + (String(r.allow_discount).toLowerCase() === 'yes' ? 'yes, at most a small one' : 'NO, never mention a discount, offer, cashback or free item')\n].join('\\n');\n\nreturn [{ json: { top, rejected_reasons: rejected, writer_text: JSON.stringify(writer, null, 1), tone_text } }];\n"
+      },
+      "id": "5cb0ba1b-f7ed-4276-92ed-1c6f0191ec58",
+      "name": "16 Fact Guard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.8, maxOutputTokens: 3072, responseMimeType: 'application/json' }, contents: [{ role: 'user', parts: [{ text: \"Write a short WhatsApp message that the owner will send personally to each regular customer who has gone quiet. The goal is a warm, natural check-in that makes it easy to order again.\\nRules, all of them:\\n- Sound like the owner texting a customer they know, not like a company\\n- Follow the tone, words and language below. hinglish means natural Roman-script Hindi mixed with English, the way people text in India\\n- Open with the owner's greeting and the FIRST word of the shop name plus ji: Daga Kirana becomes Daga ji, Mathur Traders Malviya Nagar becomes Mathur ji. Never put ji after the full shop name\\n- Use the owner's favourite phrases where they fit, at most one per message, and never the same phrase in every message. Use the sign-off once at the end\\n- Questions end with a question mark\\n- Ask if all is well and offer to send stock. You may mention new stock in general words\\n- Never mention tracking, systems, data, records, or how many days they have been away\\n- No numbers of any kind. No guilt. No emojis. No em dash or en dash. Under 280 characters\\n- Follow the discount rule exactly\\n- Every message must read differently. Do not reuse the same opening or the same sentence\\nReturn ONLY JSON {\\\"messages\\\":[{\\\"id\\\":\\\"c1\\\",\\\"message\\\":\\\"...\\\"}]}.\\n\\n\" + 'OWNER TONE:\\n' + $json.tone_text + '\\n\\nCUSTOMERS:\\n' + $json.writer_text }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "5c5638d2-6eff-413a-9d40-9a8f7f4a6df4",
+      "name": "17 Agent 4 · The Win-back Writer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2672,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.3, maxOutputTokens: 3072, responseMimeType: 'application/json' }, contents: [{ role: 'user', parts: [{ text: \"You are the last check before a business owner sees these WhatsApp drafts.\\nREPAIR, do not rewrite: keep each draft as close to the original as possible and change only what breaks a rule.\\nRules:\\n- under 280 characters\\n- no discount, offer, cashback or free item unless discounts are allowed below\\n- no guilt (you forgot us, why did you stop)\\n- nothing that sounds like surveillance (our system noticed, our records show, it has been so many days)\\n- nothing untrue or invented: no new product names, prices or dates\\n- no numbers, no emojis, no em dash or en dash\\n- must stay warm and in the owner's language\\nReturn ONLY JSON {\\\"checked\\\":[{\\\"id\\\":\\\"c1\\\",\\\"message\\\":\\\"...\\\",\\\"changes\\\":[\\\"short note\\\"]}]}. changes is an empty list when nothing needed fixing.\\n\\nOWNER TONE AND RULES:\\n\" + $('16 Fact Guard').first().json.tone_text + '\\n\\nDRAFTS:\\n' + (($json.candidates && $json.candidates[0] && $json.candidates[0].content.parts[0].text) || '{\"messages\":[]}') }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "62ef582f-ec80-4f78-8ce7-1c5d0b185560",
+      "name": "18 Agent 5 · The Message Checker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2896,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generationConfig: { temperature: 0.4, maxOutputTokens: 1024, responseMimeType: 'application/json' }, contents: [{ role: 'user', parts: [{ text: \"Write the owner's Monday brief: exactly five short lines in plain English, for someone reading on a phone between customers.\\nLine 1: how many regular customers have broken their usual ordering pattern.\\nLine 2: the rupees a year at risk, written as Rs with Indian commas and the words a year, for example Rs 4,20,000 a year.\\nWrite natural sentences. Never copy a field label or write an underscore.\\nLine 3: who to call today, by name.\\nLine 4: who is seasonal and needs no action, or say nobody.\\nLine 5: one calm, practical nudge.\\nUse ONLY numbers given below. Do not calculate new ones and do not round. No emojis, no em dash or en dash.\\nReturn ONLY JSON {\\\"lines\\\":[\\\"...\\\",\\\"...\\\",\\\"...\\\",\\\"...\\\",\\\"...\\\"]}.\\n\\nFACTS:\\n\" + $('14 Judge Status, Season And Money').first().json.brief_text }] }] }) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "id": "92466dd4-ddce-46ee-ae17-7d434fbda328",
+      "name": "19 Agent 6 · The Brief Writer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3120,
+        352
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// 20 Package The Results\n// Final code checks on every message and on the brief, then builds everything\n// that leaves the desk: sheet rows, Telegram brief, customer cards, HTML email\n// and the CSV attachment.\nconst S = $('07 Sample The Columns').first().json;\nconst C = $('09 Check And Clean').first().json;\nconst J = $('14 Judge Status, Season And Money').first().json;\nconst F = $('16 Fact Guard').first().json;\nconst rules = S.rules;\nconst tone = S.tone || {};\nconst parseAgent = (res) => {\n  try {\n    let t = res.candidates[0].content.parts.map(p => p.text || '').join('');\n    t = t.replace(/^```(json)?/i, '').replace(/```$/, '').trim();\n    return JSON.parse(t);\n  } catch (e) { return {}; }\n};\nlet drafts = {}, checked = {};\ntry { for (const m of (parseAgent($('17 Agent 4 · The Win-back Writer').first().json).messages || [])) drafts[m.id] = String(m.message || ''); } catch (e) {}\ntry { for (const m of (parseAgent($('18 Agent 5 · The Message Checker').first().json).checked || [])) checked[m.id] = m; } catch (e) {}\nconst briefAgent = parseAgent($input.first().json);\n\nconst esc = (s) => String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst rs = (n) => 'Rs ' + Math.round(Number(n) || 0).toLocaleString('en-IN');\nconst numbersIn = (s) => (String(s).replace(/(\\d),(?=\\d)/g, '$1').match(/\\d+(\\.\\d+)?/g) || []).map(x => String(Number(x)));\nconst allowDiscount = String(rules.allow_discount).toLowerCase() === 'yes';\nconst hinglish = /hing|hindi/i.test(String(rules.language));\n\n// ---------- messages ----------\nconst fallbackMsg = (c) => {\n  const first = String(c.name).split(' ')[0];\n  const g = tone.greeting || 'Namaste';\n  const so = tone.sign_off ? ' ' + tone.sign_off : '';\n  return hinglish\n    ? `${g} ${first} ji, kaafi din se aapka order nahi aaya. Sab theek hai? Kuch bhi chahiye ho to bata dijiye, turant bhijwa denge.${so}`\n    : `${g} ${first} ji, we have not had your usual order in a while. Hope all is well. If you need anything, just tell us and we will send it right away.${so}`;\n};\nconst msgProblems = (m) => {\n  const p = [];\n  if (!m || m.length < 20) p.push('empty');\n  if (m.length > 350) p.push('too long');\n  if (/\\d/.test(m)) p.push('contains a number');\n  if (/[–—]/.test(m)) p.push('dash');\n  if (/[\\[\\]{}]/.test(m)) p.push('placeholder');\n  if (!allowDiscount && /discount|cashback|% ?off|\\bfree\\b|offer/i.test(m)) p.push('discount');\n  if (/our system|tracking|our records|data shows|we noticed from|algorithm|\\bAI\\b/i.test(m)) p.push('sounds like surveillance');\n  if (/you forgot|ignoring us|disappointed/i.test(m)) p.push('guilt trip');\n  return p;\n};\nconst top = F.top.map(c => {\n  const ch = checked[c.id] || {};\n  let msg = String(ch.message || drafts[c.id] || '').trim();\n  let source = ch.message ? 'checked' : (drafts[c.id] ? 'draft' : 'none');\n  const problems = msgProblems(msg);\n  if (problems.length) { msg = fallbackMsg(c); source = 'code fallback (' + problems.join(', ') + ')'; }\n  return { ...c, message: msg, message_source: source, checker_changes: Array.isArray(ch.changes) ? ch.changes : [] };\n});\nconst byName = Object.fromEntries(top.map(c => [c.name, c]));\n\n// ---------- brief ----------\nconst T = J.totals;\nconst allowedBrief = new Set(numbersIn(J.brief_text));\nlet lines = Array.isArray(briefAgent.lines) ? briefAgent.lines.map(String).filter(Boolean).slice(0, 6) : [];\nconst badBrief = lines.some(l => numbersIn(l).some(x => !allowedBrief.has(x)) || /[–—]/.test(l));\nif (!lines.length || badBrief) {\n  lines = [\n    `${T.slipping + T.gone_quiet} regular customers have broken their usual ordering pattern.`,\n    `${rs(T.at_risk_total)} a year of business is at risk.`,\n    T.call_today.length ? `Call today: ${T.call_today.join(', ')}.` : 'Nobody needs a call today.',\n    T.seasonal ? `${T.seasonal} marked seasonal, no action needed.` : 'No seasonal customers this week.',\n    `${T.watch} more are a little late and on Watch.`\n  ];\n}\nconst st = J.stats;\nconst housekeeping = `Read ${Number(st.raw_rows).toLocaleString('en-IN')} rows: removed ${st.removed_returns} returns and ${st.removed_duplicates} duplicate bills, joined ${J.merges.length} name spellings, judged ${T.customers} customers as of ${J.as_of}.`;\nconst cardsN = Math.min(rules.cards, top.length);\nconst briefHtml = `<b>Monday brief · ${esc(rules.business_name)}</b>\\n\\n` + lines.map(esc).join('\\n') +\n  `\\n\\n<i>${esc(housekeeping)}</i>` + (cardsN ? `\\n\\nCards for the top ${cardsN} are below. Nothing is sent to any customer without your tap.` : '');\n\n// ---------- sheet rows ----------\nconst WL_HEAD = ['customer', 'status', 'usual_gap_days', 'days_silent', 'last_order', 'orders', 'avg_bill_rs', 'yearly_value_rs', 'at_risk_rs', 'likely_reason', 'message', 'phone', 'decision', 'lateness_ratio', 'updated_on'];\nconst wl = J.customers.map(c => {\n  const t = byName[c.name] || {};\n  return [c.name, c.status, c.usual_gap, c.days_silent, c.last_order, c.visits, c.avg_bill, c.yearly_value, c.at_risk,\n    t.reason || c.seasonal_note || '', t.message || '', c.phone ? \"'\" + c.phone : '', c.decision || '', c.ratio, J.as_of];\n});\nconst pad = (rows, prevLen, width) => { const out = rows.slice(); while (out.length < prevLen) out.push(Array(width).fill('')); return out; };\nconst data = [{ range: 'Watchlist!A1', values: pad([WL_HEAD, ...wl], S.prev_watch_rows, WL_HEAD.length) }];\n\nconst RL_HEAD = ['run_date', 'healthy', 'watch', 'slipping', 'gone_quiet', 'seasonal', 'too_new', 'at_risk_rs', 'customers', 'needs_action'];\nconst runRow = [J.as_of, T.healthy, T.watch, T.slipping, T.gone_quiet, T.seasonal, T.too_new, T.at_risk_total, T.customers, T.needs_action];\nconst log = S.run_log || [];\nconst serial = Math.round(Date.parse(J.as_of + 'T00:00:00Z') / 86400000) + 25569;\nlet rowIdx = log.length ? log.length + 1 : 2;\nfor (let i = 1; i < log.length; i++) {\n  const v = log[i][0];\n  if (v === serial || String(v).slice(0, 10) === J.as_of) { rowIdx = i + 1; break; }\n}\nif (!log.length) data.push({ range: \"'Run Log'!A1\", values: [RL_HEAD] });\ndata.push({ range: `'Run Log'!A${rowIdx}`, values: [runRow] });\n\nif (C.source === 'file') {\n  const OH = ['customer', 'date', 'amount', 'invoice', 'phone', 'items'];\n  const orows = C.orders.map(o => [o.customer, o.date, o.amount, o.invoice ? \"'\" + o.invoice : '', o.phone ? \"'\" + o.phone : '', o.items]);\n  data.push({ range: 'Orders!A1', values: pad([OH, ...orows], S.prev_order_rows, OH.length) });\n}\nconst chatIdx = (S.rules_keys || []).indexOf('owner_chat_id');\nif (S.chat_id && chatIdx > 0 && String(S.rules.owner_chat_id || '') !== String(S.chat_id)) {\n  data.push({ range: `Rules!B${chatIdx + 1}`, values: [[\"'\" + S.chat_id]] });\n}\n\n// ---------- email ----------\nconst pill = (s) => {\n  const m = { 'Slipping': ['#fdeee4', '#c2410c'], 'Gone Quiet': ['#fde8e8', '#b91c1c'] }[s] || ['#eef0f3', '#374151'];\n  return `<span style=\"background:${m[0]};color:${m[1]};font-weight:bold;font-size:11px;padding:3px 7px;border-radius:999px;white-space:nowrap\">${esc(s)}</span>`;\n};\nconst tile = (n, label, bg, fg) => `<td width=\"25%\" style=\"padding:4px\"><div style=\"background:${bg};color:${fg};border-radius:8px;padding:10px;text-align:center;font-family:Arial,sans-serif\"><div style=\"font-size:22px;font-weight:bold\">${n}</div><div style=\"font-size:11px\">${label}</div></div></td>`;\nconst topRows = top.slice(0, 8).map(c => `<tr><td style=\"padding:8px;border-bottom:1px solid #eef0f3\">${esc(c.name)}<div style=\"color:#6b7280;font-size:11px;margin-top:2px\">${esc(c.reason)}</div></td><td style=\"padding:8px;border-bottom:1px solid #eef0f3;white-space:nowrap\">${c.usual_gap} days</td><td style=\"padding:8px;border-bottom:1px solid #eef0f3;white-space:nowrap\">${c.days_silent} days</td><td style=\"padding:8px;border-bottom:1px solid #eef0f3;white-space:nowrap\">${rs(c.yearly_value)}</td><td style=\"padding:8px;border-bottom:1px solid #eef0f3\">${pill(c.status)}</td></tr>`).join('');\nconst dash = rules.dashboard_url ? `<a href=\"${esc(rules.dashboard_url)}\" style=\"display:inline-block;background:#c2410c;color:#ffffff;text-decoration:none;padding:11px 18px;border-radius:8px;font-weight:bold;font-size:14px;font-family:Arial,sans-serif\">Open the live dashboard</a>` : '';\nconst email_html = `<!doctype html><html><body style=\"margin:0;padding:0;background:#eef0f3\">\n<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#eef0f3;padding:20px 8px\"><tr><td align=\"center\">\n<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;color:#1f2937\">\n<tr><td style=\"background:#1b1a17;padding:22px 24px\"><div style=\"color:#fdba74;font-size:11px;letter-spacing:2px;text-transform:uppercase\">Quiet Churn Desk · Week of ${esc(J.as_of)}</div><div style=\"color:#ffffff;font-size:20px;font-weight:bold;margin-top:6px\">${esc(rules.business_name)}, Monday report</div></td></tr>\n<tr><td style=\"padding:22px 24px 6px\"><div style=\"font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:1px\">Yearly business at risk</div><div style=\"font-size:34px;font-weight:bold;color:#c2410c\">${rs(T.at_risk_total)}</div><div style=\"font-size:13px;color:#4b5563\">${T.slipping + T.gone_quiet} regular customers have broken their usual ordering pattern.</div></td></tr>\n<tr><td style=\"padding:10px 20px\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>${tile(T.healthy, 'Healthy', '#e7f5ec', '#15803d')}${tile(T.watch, 'Watch', '#fdf5dc', '#a16207')}${tile(T.slipping, 'Slipping', '#fdeee4', '#c2410c')}${tile(T.gone_quiet, 'Gone quiet', '#fde8e8', '#b91c1c')}</tr></table></td></tr>\n<tr><td style=\"padding:6px 24px\"><div style=\"font-size:14px;font-weight:bold;margin:8px 0\">This week in five lines</div>${lines.map(l => `<div style=\"font-size:13px;color:#374151;margin:3px 0\">${esc(l)}</div>`).join('')}</td></tr>\n${top.length ? `<tr><td style=\"padding:10px 24px\"><div style=\"font-size:14px;font-weight:bold;margin:8px 0\">Call these first</div><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:12.5px;border-collapse:collapse\"><tr style=\"background:#f3f4f6;color:#6b7280;font-size:10.5px;text-transform:uppercase\"><td style=\"padding:8px\">Customer</td><td style=\"padding:8px\">Usual gap</td><td style=\"padding:8px\">Silent</td><td style=\"padding:8px\">Yearly value</td><td style=\"padding:8px\">Status</td></tr>${topRows}</table></td></tr>` : ''}\n${T.seasonal_names.length ? `<tr><td style=\"padding:6px 24px\"><div style=\"background:#eff6ff;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#1e3a8a\"><b>Seasonal, no action needed:</b> ${esc(T.seasonal_names.join(', '))} were quiet in these same weeks last year too.</div></td></tr>` : ''}\n<tr><td style=\"padding:16px 24px 22px\">${dash}</td></tr>\n<tr><td style=\"background:#f9fafb;color:#9ca3af;font-size:11px;padding:12px 24px\">${esc(housekeeping)} Drafts are waiting for your approval on Telegram. Nothing is ever sent to a customer without your tap.</td></tr>\n</table></td></tr></table></body></html>`;\nconst subject = `Monday report: ${rs(T.at_risk_total)} a year at risk from ${T.slipping + T.gone_quiet} customers`;\n\nconst csvCell = (v) => { const s = String(v === undefined || v === null ? '' : v).replace(/^'/, ''); return /[\",\\n]/.test(s) ? '\"' + s.replace(/\"/g, '\"\"') + '\"' : s; };\nconst csv = [WL_HEAD, ...wl].map(r => r.map(csvCell).join(',')).join('\\n');\n\nconst shared = {\n  chat_id: S.chat_id, brief_html: briefHtml, email_to: rules.email_to, email_subject: subject, email_html,\n  sheet_body: { valueInputOption: 'USER_ENTERED', data }, totals: T, housekeeping\n};\n\n// ---------- cards ----------\nconst cards = top.slice(0, cardsN).map((c, i) => {\n  const ph = /^[6-9]\\d{9}$/.test(c.phone || '') ? c.phone : '';\n  const text = `<b>${i + 1} of ${cardsN} · ${esc(c.name)} · ${esc(c.status.toUpperCase())}</b>\\n` +\n    `Usually orders every ${c.usual_gap} days. Last order ${c.days_silent} days ago.\\n` +\n    `Worth ${rs(c.yearly_value)} a year.\\n` +\n    `<i>Likely reason (a guess): ${esc(c.reason)}</i>\\n` +\n    (ph ? `Phone: ${ph}\\n` : '') +\n    `\\nDraft:\\n${esc(c.message)}`;\n  const key = c.name.slice(0, 40);\n  return { json: { is_card: true, chat_id: S.chat_id, card_text: text, cb_approve: 'a|' + key, cb_skip: 's|' + key, cb_seasonal: 'z|' + key } };\n});\nconst items = cards.length ? cards : [{ json: { is_card: false, chat_id: S.chat_id } }];\nitems[0].json.shared = shared;\nitems[0].binary = { watchlist: { data: Buffer.from(csv, 'utf8').toString('base64'), mimeType: 'text/csv', fileName: `watchlist_${J.as_of}.csv`, fileExtension: 'csv' } };\nreturn items;\n"
+      },
+      "id": "12b1f541-bec3-4b3c-9a9e-5eddfdb549ce",
+      "name": "20 Package The Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3344,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ 'I could not tell which columns are the customer, the date and the amount in this file, so I have not judged anything yet.\\n\\nColumns I found: ' + ($json.headers || []).join(', ') + '\\nDates readable: ' + $json.date_rate + '%  Amounts readable: ' + $json.amount_rate + '%\\n\\nPlease rename the three columns to Customer, Date and Amount, or send the sales register straight from Tally or Vyapar as an Excel file, and send it again.' }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "68bfaca1-dbcb-41bb-b73f-37400ac9bd43",
+      "name": "11 Ask About Columns",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1552,
+        544
+      ],
+      "webhookId": "2a2a7190-3591-42a8-8b1b-448ed2390db7",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1wDh6wRlQ_6stA_IxTtxd68_Ar9hgGR03BZZGwkuTqZE/values:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('20 Package The Results').first().json.shared.sheet_body) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "dbcb8d2b-6ccf-4a66-aeb9-f5dba9feac92",
+      "name": "21 Save To Google Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3568,
+        176
+      ],
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('20 Package The Results').first().json.shared.chat_id }}",
+        "text": "={{ $('20 Package The Results').first().json.shared.brief_html }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "901cd2a8-3c7b-450c-833c-fc231385b32e",
+      "name": "22 Send The Brief",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3792,
+        176
+      ],
+      "executeOnce": true,
+      "webhookId": "19e4a5a2-d1dc-4ed7-971b-df1d761ea1ca",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.shared.email_to }}",
+        "subject": "={{ $json.shared.email_subject }}",
+        "message": "={{ $json.shared.email_html }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "watchlist"
+              }
+            ]
+          },
+          "senderName": "Quiet Churn Desk"
+        }
+      },
+      "id": "0541c35f-7ef0-4668-b24d-cea7969ff431",
+      "name": "23 Send The Email Report",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3568,
+        368
+      ],
+      "executeOnce": true,
+      "webhookId": "1147c5eb-f8ec-4c62-bad1-deca64fb75e5",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.is_card }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "id": "ec5e232f-4438-4012-856c-0b357af5f037"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ac5c32d4-7e5a-41dd-8a58-7d3a37df2b57",
+      "name": "24 Only Real Cards",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        3568,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.card_text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Approve",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.cb_approve }}"
+                    }
+                  },
+                  {
+                    "text": "Skip",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.cb_skip }}"
+                    }
+                  },
+                  {
+                    "text": "Seasonal",
+                    "additionalFields": {
+                      "callback_data": "={{ $json.cb_seasonal }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "f037e96e-3703-4480-8039-95f6b591c429",
+      "name": "25 One Card Per Customer",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3792,
+        560
+      ],
+      "webhookId": "641695c5-c7e8-4412-9d0b-c28cdb1c5b4a",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## A · Intake\nMonday schedule or a file dropped on Telegram. Button taps and /scan are routed here too.",
+        "height": 304,
+        "width": 300,
+        "color": 7
+      },
+      "id": "5d6dc451-7c10-4b06-a2f2-48cefb57e14e",
+      "name": "Sticky Note 8855d4eb",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -912,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## B · Understand\nAgents read messy columns and names. Code decides what to trust.",
+        "height": 368,
+        "width": 1116,
+        "color": 5
+      },
+      "id": "c739b189-ee6e-4432-bdd9-63af7cba4185",
+      "name": "Sticky Note 7a72b168",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        368,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## C · The maths (code only)\nUsual gap, pattern break, seasonal guard, past decisions, rupees at risk.",
+        "height": 328,
+        "width": 444,
+        "color": 4
+      },
+      "id": "79a0fd70-308e-426b-baf6-78a07930b24d",
+      "name": "Sticky Note 9a13baef",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## D · Agents explain and act\nReason, win-back message, message check, Monday brief. Every number is checked.",
+        "height": 392,
+        "width": 1100,
+        "color": 6
+      },
+      "id": "b5e1555f-a275-40fc-be84-046ce3bbf23d",
+      "name": "Sticky Note 466d011c",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2176,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## E · Deliver\nGoogle Sheet (feeds Data Studio), Telegram brief and cards, HTML email.",
+        "height": 760,
+        "width": 684,
+        "color": 3
+      },
+      "id": "d361a486-397b-4b85-9767-a9ab636762d2",
+      "name": "Sticky Note 7c665dcf",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3296,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 304,
+        "width": 508,
+        "color": 7
+      },
+      "id": "32445a56-d4a5-4438-8575-f2a743a8aa19",
+      "name": "Sticky Note 8855d4eb1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        448
+      ],
+      "id": "7532d062-8f37-4920-bea3-91d0af8e7604",
+      "name": "Telegram Trigger",
+      "webhookId": "3f57357e-4096-4d0c-9c3d-cbe90f703a9e",
+      "credentials": {
+        "telegramApi": {
+          "id": "Oiae9gEdzKAXX9kV",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "01 Monday Morning Bell": {
+      "main": [
+        [
+          {
+            "node": "06 Load Desk Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "06 Load Desk Data": {
+      "main": [
+        [
+          {
+            "node": "07 Sample The Columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "03 What Came In?": {
+      "main": [
+        [
+          {
+            "node": "26 Read The Tap",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "04 Fetch The File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "06 Load Desk Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "29 How To Use",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "26 Read The Tap": {
+      "main": [
+        [
+          {
+            "node": "27 Record The Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "27 Record The Decision": {
+      "main": [
+        [
+          {
+            "node": "28 Here Is Your Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "04 Fetch The File": {
+      "main": [
+        [
+          {
+            "node": "05 Open The Spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "05 Open The Spreadsheet": {
+      "main": [
+        [
+          {
+            "node": "06 Load Desk Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "07 Sample The Columns": {
+      "main": [
+        [
+          {
+            "node": "08 Agent 1 · The Column Reader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "08 Agent 1 · The Column Reader": {
+      "main": [
+        [
+          {
+            "node": "09 Check And Clean",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "09 Check And Clean": {
+      "main": [
+        [
+          {
+            "node": "10 Columns Understood?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10 Columns Understood?": {
+      "main": [
+        [
+          {
+            "node": "12 Agent 2 · The Name Matcher",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "11 Ask About Columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12 Agent 2 · The Name Matcher": {
+      "main": [
+        [
+          {
+            "node": "13 Merge Names And Measure Rhythm",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "13 Merge Names And Measure Rhythm": {
+      "main": [
+        [
+          {
+            "node": "14 Judge Status, Season And Money",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "14 Judge Status, Season And Money": {
+      "main": [
+        [
+          {
+            "node": "15 Agent 3 · The Context Detective",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "15 Agent 3 · The Context Detective": {
+      "main": [
+        [
+          {
+            "node": "16 Fact Guard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "16 Fact Guard": {
+      "main": [
+        [
+          {
+            "node": "17 Agent 4 · The Win-back Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "17 Agent 4 · The Win-back Writer": {
+      "main": [
+        [
+          {
+            "node": "18 Agent 5 · The Message Checker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "18 Agent 5 · The Message Checker": {
+      "main": [
+        [
+          {
+            "node": "19 Agent 6 · The Brief Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "19 Agent 6 · The Brief Writer": {
+      "main": [
+        [
+          {
+            "node": "20 Package The Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "20 Package The Results": {
+      "main": [
+        [
+          {
+            "node": "21 Save To Google Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "23 Send The Email Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "24 Only Real Cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "21 Save To Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "22 Send The Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "24 Only Real Cards": {
+      "main": [
+        [
+          {
+            "node": "25 One Card Per Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9d2ca345-29d4-4676-be92-ad4cd74043a7",
+  "meta": {
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "qhXUFNaFXqoEO3NM",
+  "tags": []
+}

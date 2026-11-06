@@ -1,0 +1,128 @@
+{
+  "name": "Quiet Churn Desk · Dashboard API",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "quiet-churn-dashboard",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "64995b52-1ef6-42c8-bddc-8be9fa6c1c06",
+      "name": "D1 Dashboard Asks For Data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        496,
+        -80
+      ],
+      "webhookId": "a2121ead-068e-430b-9743-c09d0d77c5d4"
+    },
+    {
+      "parameters": {
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1wDh6wRlQ_6stA_IxTtxd68_Ar9hgGR03BZZGwkuTqZE/values:batchGet?ranges=Watchlist&ranges=%27Run%20Log%27&ranges=Rules&ranges=Decisions&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "bafbc63d-2d1c-4f21-9593-b79acfad7e20",
+      "name": "D2 Read The Sheet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        736,
+        -80
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Shape Dashboard Data\n// Turns the Google Sheet tabs into one small JSON file for the Lovable dashboard.\nconst ranges = $json.valueRanges || [];\nconst tab = (name) => {\n  const r = ranges.find(v => String(v.range || '').replace(/'/g, '').split('!')[0] === name);\n  return (r && r.values) || [];\n};\nconst toIso = (v) => typeof v === 'number' ? new Date((Math.round(v) - 25569) * 864e5).toISOString().slice(0, 10) : String(v || '').slice(0, 10);\nconst rows = (t) => {\n  const v = tab(t);\n  const h = (v[0] || []).map(String);\n  return v.slice(1).filter(r => r.some(x => x !== '' && x !== null && x !== undefined))\n    .map(r => Object.fromEntries(h.map((k, i) => [k, r[i] === undefined ? '' : r[i]])));\n};\nconst num = (x) => Number(x) || 0;\nconst wl = rows('Watchlist').filter(r => r.customer);\nconst customers = wl.map(r => ({\n  customer: String(r.customer), status: String(r.status), usual_gap_days: num(r.usual_gap_days),\n  days_silent: num(r.days_silent), last_order: toIso(r.last_order), orders: num(r.orders),\n  yearly_value_rs: num(r.yearly_value_rs), at_risk_rs: num(r.at_risk_rs),\n  likely_reason: String(r.likely_reason || ''), message: String(r.message || ''), decision: String(r.decision || '')\n}));\nconst count = (s) => customers.filter(c => c.status === s).length;\nconst STATUSES = ['Gone Quiet', 'Slipping', 'Watch', 'Won Back', 'Seasonal', 'Healthy', 'Too New'];\nconst totals = {\n  customers: customers.length,\n  at_risk_rs: customers.reduce((a, c) => a + c.at_risk_rs, 0),\n  won_back_rs: customers.filter(c => c.status === 'Won Back').reduce((a, c) => a + c.yearly_value_rs, 0),\n  slipping: count('Slipping'), gone_quiet: count('Gone Quiet'), watch: count('Watch'),\n  won_back: count('Won Back'), seasonal: count('Seasonal'), healthy: count('Healthy'), too_new: count('Too New')\n};\nconst status_counts = STATUSES.map(s => ({ status: s, count: count(s) }));\nconst trend = rows('Run Log').map(r => ({ week: toIso(r.run_date), at_risk_rs: num(r.at_risk_rs), needs_action: num(r.needs_action) }))\n  .filter(r => r.week).sort((a, b) => (a.week < b.week ? -1 : 1));\nconst action_list = customers.filter(c => ['Slipping', 'Gone Quiet', 'Watch', 'Won Back'].includes(c.status))\n  .sort((a, b) => (b.at_risk_rs - a.at_risk_rs) || (b.yearly_value_rs - a.yearly_value_rs));\nconst decisions = rows('Decisions').filter(r => r.customer)\n  .map(r => ({ customer: String(r.customer), decision: String(r.decision), date: toIso(r.date) })).reverse().slice(0, 15);\nconst rules = Object.fromEntries(tab('Rules').slice(1).map(r => [String(r[0]), r[1]]));\nreturn [{ json: {\n  business: String(rules.business_name || 'Your business'),\n  updated_on: wl.length ? toIso(wl[0].updated_on) : '',\n  generated_at: new Date().toISOString(),\n  totals, status_counts, trend, action_list, decisions\n} }];\n"
+      },
+      "id": "48dfc8c6-92ad-4127-9b8f-9f46182e412e",
+      "name": "D3 Shape Dashboard Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "id": "9c792c74-0206-4b5d-9df0-e611b106c355",
+      "name": "D4 Send It Back",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1216,
+        -80
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "D1 Dashboard Asks For Data": {
+      "main": [
+        [
+          {
+            "node": "D2 Read The Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D2 Read The Sheet": {
+      "main": [
+        [
+          {
+            "node": "D3 Shape Dashboard Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D3 Shape Dashboard Data": {
+      "main": [
+        [
+          {
+            "node": "D4 Send It Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a3f98841-345b-481f-9f9d-186f3f001157",
+  "meta": {
+    "instanceId": "bc664105e998f70dd126e00cc0d23747d5eea3cf68fa181abd4090be216f2066"
+  },
+  "id": "8znGC2nojAPDWdQt",
+  "tags": []
+}
